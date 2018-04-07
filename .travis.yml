@@ -21,23 +21,24 @@ env:
   - VERSION=2.4.89 BASE=ubuntu
 
 before_install:
+- sudo apt-get update
+- sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
 - git config --global user.name "MISP-dockerized-bot"
-install:
 - git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git
   ~/misp-docs
 script:
 - travis_retry ./build.sh ${VERSION}-${BASE}
 - ~/misp-docs/official-images/test/run.sh -t utc -t cve-2014--shellshock -t no-hard-coded-passwords "dcso/misp-${CONTAINER}:$VERSION-${BASE}"
-after_sucess:
+  
+before_deploy:
 - docker tag dcso/misp-${CONTAINER}:${VERSION}-${BASE}
 - docker tag dcso/misp-${CONTAINER}:${LATEST_VERSION}-${LATEST_BASE} dcso/misp-${CONTAINER}:latest
-before_deploy:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
 deploy:
   provider: script
-  script: docker push dcso/misp-${CONTAINER}-private:${VERSION}-${BASE} docker push
-    dcso/misp-${CONTAINER}-private:latest
+  script:
+  - docker push dcso/misp-${CONTAINER}-private:${VERSION}-${BASE} 
+  - docker push dcso/misp-${CONTAINER}-private:latest
   on:
-    branch: develop
-
-# vim:set et ts=2 sw=2:
+    branch: master
