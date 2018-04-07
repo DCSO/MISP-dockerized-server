@@ -25,7 +25,7 @@ install:
   ~/misp-docs
 script:
 - travis_retry ./build.sh ${VERSION}-${BASE}
-- ~/misp-docs/official-images/test/run.sh "dcso/misp-${CONTAINER}:$VERSION-${BASE}"
+- ~/misp-docs/official-images/test/run.sh -t utc cve-2014--shellshock no-hard-coded-passwords "dcso/misp-${CONTAINER}:$VERSION-${BASE}"
 after_sucess:
 - docker tag dcso/misp-${CONTAINER}:${VERSION}-${BASE}
 - docker tag dcso/misp-${CONTAINER}:${LATEST_VERSION}-${LATEST_BASE} dcso/misp-${CONTAINER}:latest
