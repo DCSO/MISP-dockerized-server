@@ -9,38 +9,33 @@ addons:
 
 env:
   global:
-    - CONTAINER=server
-    - LATEST_VERSION=2.4.88
-    - LATEST_BASE=ubuntu
+  - CONTAINER=server
+  - LATEST_VERSION=2.4.88
+  - LATEST_BASE=ubuntu
+  - secure: ZGFM6+AKCRZ8UvhU1P9CeinKTbt3N8bamu/1+LaPut1c+Gc8Vx82RGmTjFe4EUuRFQLwzTu4Vn0WKVfaD3vWx2wb0m6krAh06YUcH8HnCCN7joAieDgE36VmFieEtusRi4HcoqbuylTIvssJVweTfUmJwFjT5wKMualA2+N6BF58K6gAJdPIeGYqM0x//euUqVeQTqczHMIXnm1wtGMezFbeFJkVuUQb4Cb3JcqTkH0pkTRWP9VR7gNSCOfLg80NU2XNhWvtAQeoRU9kZzX222m3Bvbx2LWPJdEqveWPxlMWcUVwGOsDNvfOPVBMvfWNVkCXbXk+iVeaHfTIII36rPV1VDU0V+sEUgtCpxSMA/R2+Pk2n/VRRn/m3yv0TiflgJ6dLu2gHM70jZhK93xLxxueH9UBngbHDoj19QozBpEq3R5IaQB7yaEvr+66iVbsYtOvwDu6B+lLORYyyUFHt+ijxCtJ6LJaiw/4PWl7K2mTYMjKtAmk8eUDYkSsAG2WdqtyiCkDbn4+dX5Mg7e7AvuMrXW5LPX9N8f9Jv4jHOuTlInqEx2q3obPaoIjm8EPc7vZmUGUi+54IObbwsSeTeIuOtbgVQyrwtAOjz3hlcqhTvZGaCgQ5d7s53JT9jVcdHYeOX6sd4ptxQd635fo6boJMZ5j/lOBGKz6YYLmqa0=
+  - secure: W74zlD6+hEl3eIp0yC/kDjLA0wn0KjHr/yFluZ5L+AX6McHVdP/39ZKkZVNM35ilSMSZogyFRaE2+SEB6jnFRZ/+Q087bV4wwYfxk8WddH+W5ey/DqkdDZhNm7FTFdYiSmKYnbbk62RU9ORTXVheobQfdpcps9NLS7QJTS3Cvk3bfI2hQAojtVqbWvWXXtygB9Loa3o7R4bSP95HOhEPt1bFMOm2LQc+4rtCctV6/xcxvBngD+gK5DKS0mS9FZ3zQa/z6FNlVdXnpSOP9PsyPfsvqWKbvMO5pjRv3OVjXYITUWEOGBcJ3UVocONHBK7RQLzaNEAV8TMTFS1nKlS5SMGCpw5n0nMr8866BOgEtPNSzAzabmK0WmkWXrPqiZYjx/HObeyf4vRtz0ffme6y0X/AIRNdWxdSB/gHM0mYjg7DUdrn9V6kqFHO9GnqWDpJRXnRSIbnRtLTEJK2iaoqb4hd9iCIlSPHdYEJZXZzQkrYnIayYGuwusLCjYvla8mVImFfPJfDnhXjtI+7Ve7DIIn1vBiLE1BqdwiDeM5Hz1P30dodQ1Y/bClUpJD0ySKe4pG9/tpQsGIwntNFYUk2/80u01EnSnxrF8UKx8yXANR3u+ywMgMswVC6blQK0C6G+8KV+J12I0t64tXaWHzq5FvcyEjPIXqKEk+S1BNL3Ts=
   matrix:
-    - VERSION=2.4.88 BASE=ubuntu
-    - VERSION=2.4.89 BASE=ubuntu
+  - VERSION=2.4.88 BASE=ubuntu
+  - VERSION=2.4.89 BASE=ubuntu
 
 before_install:
-  - git config --global user.name "MISP-dockerized-bot"
-
+- git config --global user.name "MISP-dockerized-bot"
 install:
-  - git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git ~/misp-docs
-
+- git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git
+  ~/misp-docs
 script:
-  - travis_retry ./build.sh ${VERSION}-${BASE}
-  - ~/misp-docs/official-images/test/run.sh "dcso/misp-${CONTAINER}:$VERSION-${BASE}"
-
-
+- travis_retry ./build.sh ${VERSION}-${BASE}
+- ~/misp-docs/official-images/test/run.sh "dcso/misp-${CONTAINER}:$VERSION-${BASE}"
 after_sucess:
-  - docker tag dcso/misp-${CONTAINER}:${VERSION}-${BASE}
-  - docker tag dcso/misp-${CONTAINER}:${LATEST_VERSION}-${LATEST_BASE} dcso/misp-${CONTAINER}:latest
-
+- docker tag dcso/misp-${CONTAINER}:${VERSION}-${BASE}
+- docker tag dcso/misp-${CONTAINER}:${LATEST_VERSION}-${LATEST_BASE} dcso/misp-${CONTAINER}:latest
 before_deploy:
-  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-
+- docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 deploy:
   provider: script
-  script: 
-    docker push dcso/misp-${CONTAINER}-private:${VERSION}-${BASE}
-    docker push dcso/misp-${CONTAINER}-private:latest
+  script: docker push dcso/misp-${CONTAINER}-private:${VERSION}-${BASE} docker push
+    dcso/misp-${CONTAINER}-private:latest
   on:
     branch: develop
-
 
 # vim:set et ts=2 sw=2:
