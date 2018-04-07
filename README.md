@@ -1,3 +1,7 @@
+# Supported Tags
+tbd
+
+# Quick reference
 
 -	**Where to file issues**:  
 	[https://github.com/DCSO/MISP-dockerized-server/issues](https://github.com/DCSO/MISP-dockerized-server/issues)
@@ -13,6 +17,46 @@
 **MISP dockerized** is a project designed to provide an easy-to-use and easy-to-install'out of the box' MISP instance that includes everything you need to run MISP with minimal host-side requirements. 
 
 **MISP dockerized** uses MISP (Open Source Threat Intelligence Platform - https://github.com/MISP/MISP), which is maintend and developed by the MISP project team (https://www.misp-project.org/)
+
+### Project Information
+<table>
+<tr>
+  <td>Latest Release</td>
+  <td><a href="https://badge.fury.io/gh/DCSO%2FMISP-dockerized-proxy"><img src="https://badge.fury.io/gh/DCSO%2FMISP-dockerized-proxy.svg" alt="GitHub version" height="18"></a></td>
+</tr>
+<tr>
+  <td>Travis</td>
+  <td><a href="https://travis-ci.org/DCSO/MISP-dockerized-proxy"><img src="https://img.shields.io/travis/DCSO/MISP-dockerized-proxy/2.4.svg" /></a></td>
+</tr>
+<tr>
+  <td>Contributors</td>
+  <td><img src="https://img.shields.io/github/contributors/DCSO/MISP-dockerized-proxy.svg" /></td>
+</tr>
+<tr>
+  <td>Project License</td>
+  <td><img src="https://img.shields.io/github/license/DCSO/MISP-dockerized-proxy.svg" /></td>
+</tr>
+<tr>
+  <td>Docker Container License</td>
+  <td><img src="https://images.microbadger.com/badges/license/dcso/misp-proxy.svg" /></td>
+</tr>
+<tr>
+  <td>Docker Size & Layers</td>
+  <td><img src="https://images.microbadger.com/badges/image/dcso/misp-proxy.svg" /></td>
+</tr>
+<tr>
+  <td>Latest Docker Version</td>
+  <td><img src="https://images.microbadger.com/badges/version/dcso/misp-proxy.svg" /></td>
+</tr>
+<tr>
+  <td>Commit for Latest Docker Version</td>
+  <td><img src="https://images.microbadger.com/badges/commit/dcso/misp-proxy.svg" /></td>
+</tr>
+<tr>
+  <td>Latest Docker Version</td>
+  <td><img src="https://images.microbadger.com/badges/version/dcso/misp-proxy.svg" /></td>
+</tr>
+</table>
 
 # How to use this image
 

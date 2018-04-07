@@ -8,19 +8,23 @@ addons:
       - docker-ce
 
 env:
-  - CONTAINER=server
-  - BASE=ubuntu
-  - VERSION=2.4.88
-  - VERSION=2.4.89
-  - LATEST_VERSION=2.4.88
-  - LATEST_BASE=ubuntu
+  global:
+    - CONTAINER=server
+    - LATEST_VERSION=2.4.88
+    - LATEST_BASE=ubuntu
+  matrix:
+    - VERSION=2.4.88 BASE=ubuntu
+    - VERSION=2.4.89 BASE=ubuntu
+
+before_install:
+  - git config --global user.name "MISP-dockerized-bot"
 
 install:
   - git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git ~/misp-docs
 
 script:
   - travis_retry ./build.sh ${VERSION}-${BASE}
-  - ~/misp-docs/official-images/test/run.sh "dcso/misp-${CONTAINER}:$VERSION"
+  - ~/misp-docs/official-images/test/run.sh "dcso/misp-${CONTAINER}:$VERSION-${BASE}"
 
 
 after_sucess:
@@ -33,9 +37,10 @@ before_deploy:
 deploy:
   provider: script
   script: 
-    docker push dcso/misp-${CONTAINER}:${VERSION}-${BASE}
-    docker push dcso/misp-${CONTAINER}:latest
+    docker push dcso/misp-${CONTAINER}-private:${VERSION}-${BASE}
+    docker push dcso/misp-${CONTAINER}-private:latest
   on:
     branch: develop
+
 
 # vim:set et ts=2 sw=2:
