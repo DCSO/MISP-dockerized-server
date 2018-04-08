@@ -44,5 +44,5 @@ deploy:
   script:
   - docker push dcso/misp-${CONTAINER}-private:${VERSION}-${BASE} 
   - docker push dcso/misp-${CONTAINER}-private:latest
-  on:
-    branch: master
+#  on:
+#    branch: master
