@@ -33,14 +33,14 @@ setup_dependencies() {
   sudo apt install realpath python python-pip -y
   sudo apt install --only-upgrade docker-ce -y
 
-  sudo pip install docker-compose || true
+  #sudo pip install docker-compose || true
 
-  docker info
-  docker-compose --version
+  #docker info
+  #docker-compose --version
   
   git config --global user.name "MISP-dockerized-bot"
   
-  git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git ~/misp-docs
+  #git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git ~/misp-docs
 
 }
 
