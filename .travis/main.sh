@@ -41,8 +41,7 @@ setup_dependencies() {
   
   git config --global user.name "MISP-dockerized-bot"
   
-  git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git
-  ~/misp-docs
+  git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git ~/misp-docs
 
 }
 
