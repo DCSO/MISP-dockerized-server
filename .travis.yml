@@ -16,7 +16,7 @@ before_install:
 
 script:
 - travis_retry make build-travis v=${VERSION} b=${BASE}
-- travis_retry make tags
+- travis_retry make tags-travis v=${VERSION} b=${BASE}
 
 after_success:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin

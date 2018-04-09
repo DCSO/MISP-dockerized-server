@@ -37,6 +37,15 @@ tags:
 		docker tag $(i):$(LATEST_VERSION)-$(LATEST_BASE) $(i):latest; ) 
 		docker images|grep $(CONTAINER)
 
+tags-travis:
+ifeq ($(b),$(LATEST_BASE)) 
+	$(foreach i, $(REPOS), docker tag $(i):$(v)-$(LATEST_BASE) $(i):$(v);)
+endif
+
+ifeq ($(v)$(b),$(LATEST_VERSION)$(LATEST_BASE)) 
+	$(foreach i, $(REPOS), echo $(i); docker tag $(i):$(LATEST_VERSION)-$(LATEST_BASE) $(i):latest;)
+endif
+
 push-image:
 ifeq ($(LOCATION),public)
 	docker push $(PUBLIC_REPO)
@@ -44,4 +53,4 @@ else ifeq ($(LOCATION),private)
 	docker push $(PRIVATE_REPO)
 endif
 
-.PHONY: build build-travis push-image test test-travis tags
+.PHONY: build build-travis push-image test test-travis tags tags-travis
