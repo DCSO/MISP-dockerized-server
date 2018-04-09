@@ -1,17 +1,8 @@
-language: bash
 sudo: required
 services: docker
 
-addons:
-  apt:
-    packages:
-      - docker-ce
-
 env:
   global:
-  - CONTAINER=server
-  - LATEST_VERSION=2.4.88
-  - LATEST_BASE=ubuntu
   # Docker Username
   - secure: "aMYHwyVryzSscNcAXMnre113ND31ILGdsUBhyxI4Ih5osYDxir6xJTHP7pWHgsRDlb0yTVeLJAOnfwrou/Zf1CwHMUMf0mBiGzv7kPgvz+fq4VHPp9yS+cMJE0zIjtqGltCka1hiYvv8Bir2XVnr9yInqWhIM2XLSvjLnpyZJ30iauLlf87dmnc1/z7+qZIWQZ1hOsjta2+y9Trdp/FduIw853mIxjb7WKc5C9ch5O3y4RkbLvcF7T8q0IDyHWzzJ5UTT0/0zApqHH7AT9haSTr4f0dcrvhmAQssjn2h4dFV0Puryu2RJd5He4xjWdhFmHM8E2j5WlIaaXw5irt+12wxqVVKawoPAtAE7qokkl7j2Dz76FTX8iGsPSCpdPDwpqf2ySdoag5cV1xbeDZoFleniBpV2jSXWCPf7CZuMIDllaAR1Uc8npUOCJ0VSZd+G5aYl0Tmltup8Jmf17KODjnB7libWEXz48AuLDRzxQPxw24sgecyTkuiaMm/WfmyUss2nEOobUHm0f7jV8OOQldRqfq4NyE/fTaiWOvanW0z2sLMuO8p0snbO+/Lx1vOs0YapkFh3SE+ypedBadcYJGrOboXAqkJEq+Oj/qZxWXH23WcpMS9OK30n4qKndvsZPG4/N4c5uiAkE0XkNnccCdVs+7jGWz7TZuGoRHUWjE="
   # Docker Password
@@ -21,28 +12,20 @@ env:
   - VERSION=2.4.89 BASE=ubuntu
 
 before_install:
-- sudo apt-get update
-- sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-- git config --global user.name "MISP-dockerized-bot"
-- git clone --recurse-submodules https://github.com/8ear/MISP-dockerized-documentation.git
-  ~/misp-docs
+- './.travis/main.sh'
+
 script:
-- travis_retry ./build.sh ${VERSION}-${BASE}
-- ~/misp-docs/official-images/test/run.sh -t utc -t cve-2014--shellshock -t no-hard-coded-passwords "dcso/misp-${CONTAINER}:$VERSION-${BASE}"
+- travis_retry make build-travis v=${VERSION} b=${BASE}
+- travis_retry make tags
 
 after_success:
-# tag container:version: proxy:1.0.0
-- docker tag dcso/misp-${CONTAINER}:${VERSION}-${LATEST_BASE} dcso/misp-${CONTAINER}:${VERSION}
-# tag container:latest proxy:latest
-- docker tag dcso/misp-${CONTAINER}:${LATEST_VERSION}-${LATEST_BASE} dcso/misp-${CONTAINER}:latest
-
-before_deploy:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then
+    make push-image LOCATION=public
+  elseif [[ "$TRAVIS_BRANCH" == "develop" ]]; then
+    make push-image LOCATION=private
+  fi
 
-deploy:
-  provider: script
-  script:
-  - docker push dcso/misp-${CONTAINER}-private:${VERSION}-${BASE} 
-  - docker push dcso/misp-${CONTAINER}-private:latest
-#  on:
-#    branch: master
+# don't notify me when things fail
+notifications:
+  email: false
