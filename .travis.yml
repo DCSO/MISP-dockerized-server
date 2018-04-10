@@ -20,12 +20,12 @@ script:
 
 after_script:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-# check if branch=master and the current build is no pull request, then push it to docker hub
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
-    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
-      make push-image LOCATION=public; 
-    fi; 
-  fi
+# # check if branch=master and the current build is no pull request, then push it to docker hub
+# - if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
+#     if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
+#       make push-image LOCATION=public; 
+#     fi; 
+#   fi
 # check if branch=develop and the current build is no pull request, then push it to docker hub
 - if [[ "$TRAVIS_BRANCH" == "develop" ]]; then 
     if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
