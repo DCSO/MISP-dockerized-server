@@ -22,39 +22,35 @@ tbd
 <table>
 <tr>
   <td>Latest Release</td>
-  <td><a href="https://badge.fury.io/gh/DCSO%2FMISP-dockerized-proxy"><img src="https://badge.fury.io/gh/DCSO%2FMISP-dockerized-proxy.svg" alt="GitHub version" height="18"></a></td>
+  <td><a href="https://badge.fury.io/gh/DCSO%2FMISP-dockerized-server"><img src="https://badge.fury.io/gh/DCSO%2FMISP-dockerized-server.svg" alt="GitHub version" height="18"></a></td>
 </tr>
 <tr>
-  <td>Travis</td>
-  <td><a href="https://travis-ci.org/DCSO/MISP-dockerized-proxy"><img src="https://img.shields.io/travis/DCSO/MISP-dockerized-proxy/2.4.svg" /></a></td>
+  <td>Travis Master</td>
+  <td><a href="https://travis-ci.org/DCSO/MISP-dockerized-robot"><img src="https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=master" /></a></td>
 </tr>
 <tr>
-  <td>Contributors</td>
-  <td><img src="https://img.shields.io/github/contributors/DCSO/MISP-dockerized-proxy.svg" /></td>
-</tr>
-<tr>
-  <td>Project License</td>
-  <td><img src="https://img.shields.io/github/license/DCSO/MISP-dockerized-proxy.svg" /></td>
+  <td>Travis Develop</td>
+  <td><a href="https://travis-ci.org/DCSO/MISP-dockerized-robot"><img src="https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=develop" /></a></td>
 </tr>
 <tr>
   <td>Docker Container License</td>
-  <td><img src="https://images.microbadger.com/badges/license/dcso/misp-proxy.svg" /></td>
+  <td><img src="https://images.microbadger.com/badges/license/dcso/misp-server.svg" /></td>
 </tr>
 <tr>
   <td>Docker Size & Layers</td>
-  <td><img src="https://images.microbadger.com/badges/image/dcso/misp-proxy.svg" /></td>
+  <td><img src="https://images.microbadger.com/badges/image/dcso/misp-server.svg" /></td>
 </tr>
 <tr>
   <td>Latest Docker Version</td>
-  <td><img src="https://images.microbadger.com/badges/version/dcso/misp-proxy.svg" /></td>
+  <td><img src="https://images.microbadger.com/badges/version/dcso/misp-server.svg" /></td>
 </tr>
 <tr>
   <td>Commit for Latest Docker Version</td>
-  <td><img src="https://images.microbadger.com/badges/commit/dcso/misp-proxy.svg" /></td>
+  <td><img src="https://images.microbadger.com/badges/commit/dcso/misp-server.svg" /></td>
 </tr>
 <tr>
   <td>Latest Docker Version</td>
-  <td><img src="https://images.microbadger.com/badges/version/dcso/misp-proxy.svg" /></td>
+  <td><img src="https://images.microbadger.com/badges/version/dcso/misp-server.svg" /></td>
 </tr>
 </table>
 
@@ -66,8 +62,7 @@ For the Usage please read the [MISP-dockerized](https://github.com/DCSO/MISP-doc
 
 
 ## Documentation
-The [dockerfile](https://github.com/DCSO/MISP-dockerized-server/) you can find at Github too.
-
+You can also find the [docker file](https://github.com/DCSO/MISP-dockerized-server/) at Github.
 
 # License
 
