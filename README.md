@@ -1,5 +1,7 @@
 # Supported Tags
-tbd
+
+- [`2.4.89`,`2.4.89-ubuntu`](https://github.com/DCSO/MISP-dockerized-server/2.4.88/Dockerfile)
+- [`2.4.88`,`2.4.88-ubuntu`,`latest`](https://github.com/DCSO/MISP-dockerized-server/2.4.88/Dockerfile)
 
 # Quick reference
 
@@ -19,40 +21,18 @@ tbd
 **MISP dockerized** uses MISP (Open Source Threat Intelligence Platform - https://github.com/MISP/MISP), which is maintend and developed by the MISP project team (https://www.misp-project.org/)
 
 ### Project Information
-<table>
-<tr>
-  <td>Latest Release</td>
-  <td><a href="https://badge.fury.io/gh/DCSO%2FMISP-dockerized-server"><img src="https://badge.fury.io/gh/DCSO%2FMISP-dockerized-server.svg" alt="GitHub version" height="18"></a></td>
-</tr>
-<tr>
-  <td>Travis Master</td>
-  <td><a href="https://travis-ci.org/DCSO/MISP-dockerized-robot"><img src="https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=master" /></a></td>
-</tr>
-<tr>
-  <td>Travis Develop</td>
-  <td><a href="https://travis-ci.org/DCSO/MISP-dockerized-robot"><img src="https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=develop" /></a></td>
-</tr>
-<tr>
-  <td>Docker Container License</td>
-  <td><img src="https://images.microbadger.com/badges/license/dcso/misp-server.svg" /></td>
-</tr>
-<tr>
-  <td>Docker Size & Layers</td>
-  <td><img src="https://images.microbadger.com/badges/image/dcso/misp-server.svg" /></td>
-</tr>
-<tr>
-  <td>Latest Docker Version</td>
-  <td><img src="https://images.microbadger.com/badges/version/dcso/misp-server.svg" /></td>
-</tr>
-<tr>
-  <td>Commit for Latest Docker Version</td>
-  <td><img src="https://images.microbadger.com/badges/commit/dcso/misp-server.svg" /></td>
-</tr>
-<tr>
-  <td>Latest Docker Version</td>
-  <td><img src="https://images.microbadger.com/badges/version/dcso/misp-server.svg" /></td>
-</tr>
-</table>
+
+| | |
+|-|-|
+| Latest Release | [![GitHub version](https://badge.fury.io/gh/dcso%2FMISP-dockerized-server.svg)](https://badge.fury.io/gh/dcso%2FMISP-dockerized-server) |
+| Travis Master | [![Build Status](https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=master)](https://travis-ci.org/DCSO/MISP-dockerized-server) |
+| Travis Develop | [![Build Status](https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=develop)](https://travis-ci.org/DCSO/MISP-dockerized-server) |
+| Docker Container License | [![](https://images.microbadger.com/badges/license/dcso/misp-server.svg)](https://microbadger.com/images/dcso/misp-server) |
+| Docker Size & Layers | [![](https://images.microbadger.com/badges/image/dcso/misp-server.svg)](https://microbadger.com/images/dcso/misp-server)|
+| Latest Docker Version | [![](https://images.microbadger.com/badges/version/dcso/misp-server.svg)](https://microbadger.com/images/dcso/misp-server)|
+| Commit for Latest Docker Version | [![](https://images.microbadger.com/badges/commit/dcso/misp-server.svg)](https://microbadger.com/images/dcso/misp-server)|
+
+
 
 # How to use this image
 
