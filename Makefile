@@ -12,6 +12,11 @@ PUBLIC_REPO := dcso/misp-$(CONTAINER)
 PRIVATE_REPO := dcso/misp-$(CONTAINER)-private
 REPOS := $(PUBLIC_REPO) $(PRIVATE_REPO)
 
+.PHONY: build build-travis push-image test test-travis tags tags-travis
+
+help:
+	echo "Please use a command"
+
 test:
 	
 	#- ~/misp-docs/official-images/test/run.sh "dcso/misp-${CONTAINER}:$VERSION-${BASE}"
@@ -52,5 +57,3 @@ ifeq ($(LOCATION),public)
 else ifeq ($(LOCATION),private)
 	docker push $(PRIVATE_REPO)
 endif
-
-.PHONY: build build-travis push-image test test-travis tags tags-travis
