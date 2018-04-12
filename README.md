@@ -1,5 +1,7 @@
 # Supported Tags
-tbd
+
+- [`2.4.89`,`2.4.89-ubuntu`](https://github.com/DCSO/MISP-dockerized-server/2.4.88/Dockerfile)
+- [`2.4.88`,`2.4.88-ubuntu`,`latest`](https://github.com/DCSO/MISP-dockerized-server/2.4.88/Dockerfile)
 
 # Quick reference
 
