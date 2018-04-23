@@ -43,10 +43,9 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y && apt-get autoremove -y && apt-get clean -y
 RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 RUN apt-get install -y \ 
-supervisor \
-nano \
-vim \
-curl \
+# supervisor \
+# nano \
+# vim \
 gcc \
 make \
 python \
@@ -175,7 +174,7 @@ chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
 ### 7 Configure Apache
 # add HTTP MISP Config
 RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
-COPY files/misp*.conf /etc/apache2/sites-available/
+COPY files/misp*.conf /etc/apache2/sites-enabled/
 COPY files/ports.conf /etc/apache2/ports.conf
 RUN chmod 644 /etc/apache2/ports.conf
 
@@ -183,9 +182,7 @@ RUN chmod 644 /etc/apache2/ports.conf
 RUN sudo a2dismod status; \
 sudo a2enmod ssl; \
 sudo a2enmod rewrite; \
-sudo a2enmod headers; \
-#sudo a2ensite misp.ssl; \
-sudo a2ensite misp;
+sudo a2enmod headers;
 
 ### 8/ Log rotation
 # MISP saves the stdout and stderr of its workers in /var/www/MISP/app/tmp/logs
@@ -213,8 +210,16 @@ chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
 #########################################
 #       Start of DCSO MISP Config Part
 
+# Remove git package
+RUN apt-get purge -y git && apt-get autoremove -y && apt-get clean -y
+
 # Copy PHP.ini File for PHP Config
 COPY files/php.ini /etc/php/7.0/apache2/
+
+# Create Logging
+RUN ln -s /var/log/apache2/access.log /dev/stdout; \
+    ln -s /var/log/apache2/error.log /dev/stderr; \
+    ln -s /var/log/apache2/other_vhosts_access.log /dev/stdout;
 
 # Environment Variable for Proxy
 ENV HTTP_PROXY=""
