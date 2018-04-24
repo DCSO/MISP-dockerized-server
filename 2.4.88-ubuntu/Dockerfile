@@ -217,9 +217,10 @@ RUN apt-get purge -y git && apt-get autoremove -y && apt-get clean -y
 COPY files/php.ini /etc/php/7.0/apache2/
 
 # Create Logging
-RUN ln -s /var/log/apache2/access.log /dev/stdout; \
-    ln -s /var/log/apache2/error.log /dev/stderr; \
-    ln -s /var/log/apache2/other_vhosts_access.log /dev/stdout;
+RUN rm /var/log/apache2/*; \
+    ln -s /dev/stdout /var/log/apache2/access.log; \
+    ln -s /dev/stderr /var/log/apache2/error.log; \
+    ln -s /dev/stdout /var/log/apache2/other_vhosts_access.log;
 
 # Environment Variable for Proxy
 ENV HTTP_PROXY=""
