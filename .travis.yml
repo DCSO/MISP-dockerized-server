@@ -8,28 +8,34 @@ env:
   # Docker Password
   - secure: "wNg+wZNIFwFkG6iFrrplyx0UjzG4uc/OD+pzWxLqyye/Xc3mNZkdgsLtxmollR1/ppzcguOcamjux5uAHXECSrBstqlMAXuf6diR1Z9LSfLL3K5vwLRNEKeryGq/5LkLZoNLPs4OFEEzbFOofP5Coq9ER1qv9T7FD5w3TAhpnjj1XCQm1hhMZAdRwX0U4pDBFQ8DhhzHkCIZkgmog8ibTxCHM7ltLGngFw0Jwn02cL2Ro6yIERr/8deXJ5uNn+f2IT0g6Qx+Y/IqFfaHIhUg7p+48WWR5SVgYWeBq25iz46yRfMWPi6ujN0Nk7bH5dWjwe/Q6lwc3rtPBl5HBtksrhtF0sWBSHmEuTDRuyax0/EMUkk2oIhQPeg6GyZhWINyfildCyd2MIju4KI7KtByC5RlFhKtNaHxvvjeiCypcRk9MHvmxP5Gq+ctJt2uKv3k9Sc/TRY6M92EJ27fBPoRjNeifksUKP0FcVnjwGXegux4ORA7rkCQ0lEWNaUvKAHJvWBI/waHJHaTzM7MvGQmbOXeGkYpUtjQLCIs5xmfRpfCa0/V/Xi4tKIwqFnvbk9nR3J5q+HOdSlZXPrR4yt77eI18Jn1EIt7lIFoZcnwuGVSTGLP5rvqjnXPY3v8W3LPD0Yz+zVQdoiXUybrZLOZiG8xNyTlZSYhdjem6JP7jVw="
   matrix:
-  - VERSION=2.4.88 BASE=ubuntu
-  - VERSION=2.4.89 BASE=ubuntu
+  - VERSION=2.4.88-ubuntu
+  - VERSION=2.4.89-ubuntu
+  - VERSION=2.4.90-ubuntu
+  - VERSION=2.4.91-ubuntu
 
 before_install:
-- './.travis/main.sh'
+- make install
 
 script:
-- travis_retry make build-travis v=${VERSION} b=${BASE}
-- travis_retry make tags-travis v=${VERSION} b=${BASE}
+- travis_retry make build v=${VERSION} dev=dev
+- make tags
 
 after_script:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-# # check if branch=master and the current build is no pull request, then push it to docker hub
-# - if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
-#     if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
-#       make push-image LOCATION=public; 
-#     fi; 
-#   fi
-# check if branch=develop and the current build is no pull request, then push it to docker hub
-- if [[ "$TRAVIS_BRANCH" == "develop" ]]; then 
+# check if branch=master and the current build is no pull request, then push it to docker hub
+#- [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make push;
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
     if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
-      make push-image LOCATION=private; 
+      make push;
+    fi; 
+  fi
+
+after_success:
+# notify Docker Hub to make a new build
+#- [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
+    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
+      make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
     fi; 
   fi
 
