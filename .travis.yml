@@ -12,22 +12,34 @@ env:
   matrix:
   - VERSION=2.4.88-ubuntu
   - VERSION=2.4.89-ubuntu
+  - VERSION=2.4.90-ubuntu
+  - VERSION=2.4.91-ubuntu
 
 before_install:
 - make install
 
 script:
-- travis_retry make build v=${VERSION}
+- travis_retry make build v=${VERSION} dev=dev
 - make tags
 
 after_script:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 # check if branch=master and the current build is no pull request, then push it to docker hub
-- [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make push;
+#- [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make push;
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
+    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
+      make push;
+    fi; 
+  fi
 
 after_success:
 # notify Docker Hub to make a new build
-- [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
+#- [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
+    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
+      make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
+    fi; 
+  fi
 
 # don't notify me when things fail
 notifications:

@@ -13,7 +13,7 @@ test-travis:
 	.travis/travis-cli.sh check
 
 build:
-	.travis/build.sh $(v)
+	.travis/build.sh $(v) $(dev)
 
 tags:
 	.travis/tagging.sh
