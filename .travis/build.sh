@@ -1,6 +1,4 @@
 #!/bin/bash
-
-
 #################   MANUAL VARIABLES #################
 # path of the script
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"

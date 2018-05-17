@@ -29,7 +29,6 @@ after_success:
 # notify Docker Hub to make a new build
 - [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
 
-
 # don't notify me when things fail
 notifications:
   email: false
