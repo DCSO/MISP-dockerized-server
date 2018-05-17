@@ -1,31 +1,51 @@
 #!/bin/bash
-set -x
+#################   MANUAL VARIABLES #################
+# path of the script
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+# dockerfile name:
+DOCKERFILE_NAME=Dockerfile
+# Which Folder the script should use
+[ $1 == "dev" ] && echo "false first argument. Abort." && exit 1
+if [ -z $1 ] ;then
+    	# build all you finde
+        FOLDER=( */)
+        FOLDER=( "${FOLDER[@]%/}" )
+else
+    # build only the argumented one
+    FOLDER=$1
+fi
+#########################################################
 
-# Set default Value if no parameter is deployed:
-[ -z $1 ] || FOLDER="$1"
-
-source $SCRIPTPATH/../$FOLDER/configuration.sh
-
+#################   AUTOMATIC VARIABLES #################
+# Find Out Git Hub Repository
+GIT_REPO="$(git remote get-url origin|sed 's/.*://'|sed 's/....$//')"
+GIT_REPO_URL="https://github.com/$GIT_REPO"
+# Dockerifle Settings
+CONTAINER_NAME="$(echo $GIT_REPO|cut -d / -f 2|tr '[:upper:]' '[:lower:]')"
 DOCKER_REPO="dcso/$CONTAINER_NAME"
-DOCKERFILE_PATH=Dockerfile
+#########################################################
 
-docker build \
+for FOLD in ${FOLDER[@]}
+do  
+    #Find Out Version from folder
+    VERSION=$(echo $FOLD|cut -d- -f 1)
+    DOCKERFILE_PATH="$SCRIPTPATH/../$FOLD"
+    # load Variables from configuration file
+    source $DOCKERFILE_PATH/configuration.sh
+    ### Add -dev to tag if dev is set as a second argument
+    [ $2 == "dev" ] && TAGS="-t $DOCKER_REPO:$FOLD-dev"
+    [ $2 == "dev" ] || TAGS="-t $DOCKER_REPO:$FOLD"
+    # Default Build Args
+    BUILD_ARGS+="
         --build-arg RELEASE_DATE="$(date +"%Y-%m-%d")" \
         --build-arg BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
         --build-arg NAME="$CONTAINER_NAME" \
-        --build-arg GIT_REPO="$GIT_REPO" \
+        --build-arg GIT_REPO="$GIT_REPO_URL" \
         --build-arg VCS_REF=$(git rev-parse --short HEAD) \
         --build-arg VERSION="$VERSION" \
-        --build-arg MISP_TAG="$MISP_TAG" \
-        --build-arg python_cybox_TAG="$python_cybox_TAG" \
-        --build-arg python_stix_TAG="$python_stix_TAG" \
-        --build-arg mixbox_TAG="$mixbox_TAG" \
-        --build-arg cake_resque_TAG="$cake_resque_TAG" \
-    -f $SCRIPTPATH/../$FOLDER/$DOCKERFILE_PATH -t $DOCKER_REPO:$FOLDER -t $DOCKER_REPO-private:$FOLDER $SCRIPTPATH/../$FOLDER/
-
-# ##################################################
-# # for documentation:
-# ./generate-stackbrew-library.sh > $CONTAINER_NAME
-# git clone git@github.com:8ear/official-images.git
-# mv $CONTAINER_NAME official-images/library/
+    "
+    # build container
+    docker build \
+            $BUILD_ARGS \
+        -f $DOCKERFILE_PATH/$DOCKERFILE_NAME $TAGS $DOCKERFILE_PATH/
+done
