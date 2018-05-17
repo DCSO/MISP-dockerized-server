@@ -24,7 +24,6 @@
 **MISP dockerized** uses MISP (Open Source Threat Intelligence Platform - https://github.com/MISP/MISP), which is maintend and developed by the MISP project team (https://www.misp-project.org/).
 
 ### Project Information
-
 | | |
 |-|-|
 | Travis Master | [![Build Status][1]][2] |
@@ -39,7 +38,6 @@
 [5]: https://images.microbadger.com/badges/version/dcso/misp-server.svg
 [6]: https://images.microbadger.com/badges/commit/dcso/misp-server.svg
 [7]: https://microbadger.com/images/dcso/misp-server
-
 
 
 # How to use this image
