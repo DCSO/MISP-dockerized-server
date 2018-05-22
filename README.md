@@ -28,20 +28,21 @@
 **MISP dockerized** uses MISP (Open Source Threat Intelligence Platform - https://github.com/MISP/MISP), which is maintend and developed by the MISP project team (https://www.misp-project.org/).
 
 ### Project Information
+
 | | |
 |-|-|
-| Travis Master | [![Build Status][1]][2] |
-| Docker Size & Layers | [![][4]][7]|
-| Latest Docker Version | [![][5]][7]|
-| Commit for Latest Docker Version | [![][6]][7]|
+| Travis Master | [![][101]][102] |
+| Docker Size & Layers | [![][104]][107]|
+| Latest Docker Version | [![][105]][107]|
+| Commit for Latest Docker Version | [![][106]][107]|
 
-[1]: https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=master
-[2]: https://travis-ci.org/DCSO/MISP-dockerized-server
-[3]: https://images.microbadger.com/badges/license/dcso/misp-server.svg
-[4]: https://images.microbadger.com/badges/image/dcso/misp-server.svg
-[5]: https://images.microbadger.com/badges/version/dcso/misp-server.svg
-[6]: https://images.microbadger.com/badges/commit/dcso/misp-server.svg
-[7]: https://microbadger.com/images/dcso/misp-server
+[101]: https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=master
+[102]: https://travis-ci.org/DCSO/MISP-dockerized-server
+[103]: https://images.microbadger.com/badges/license/dcso/misp-server.svg
+[104]: https://images.microbadger.com/badges/image/dcso/misp-server.svg
+[105]: https://images.microbadger.com/badges/version/dcso/misp-server.svg
+[106]: https://images.microbadger.com/badges/commit/dcso/misp-server.svg
+[107]: https://microbadger.com/images/dcso/misp-server
 
 
 # How to use this image
