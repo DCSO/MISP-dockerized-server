@@ -228,6 +228,7 @@ COPY files/php.ini /etc/php/7.0/apache2/
 
 # Environment Variable for Proxy
 ENV HTTP_PROXY=""
+ENV HTTPS_PROXY=""
 ENV NO_PROXY="0.0.0.0"
 
 # Add Healthcheck Config

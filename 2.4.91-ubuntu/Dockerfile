@@ -255,9 +255,17 @@ ENV LANG en_US.UTF-8
     RUN sudo echo "extension=ssdeep.so" > /etc/php/7.0/mods-available/ssdeep.ini; \
         sudo phpenmod ssdeep;
 
-
-
-
+    # #Advanced attachment handler
+    # #The advanced attachment tools are used by the add attachment functionality to extract additional data about the uploaded sample.
+    # #pymisp:… Please install pymisp: pip install pymisp
+    # RUN pip install pymisp
+    # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
+    # RUN pip install git+https://github.com/kbandla/pydeep.git
+    # #magic:… Please install python-magic: pip install python-magic.
+    # RUN pip install python-magic
+    # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
+    # RUN pip install setuptools --upgrade; \
+    #     pip install lief
 
 
 #########################################

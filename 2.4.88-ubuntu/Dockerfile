@@ -224,6 +224,7 @@ RUN rm /var/log/apache2/*; \
 
 # Environment Variable for Proxy
 ENV HTTP_PROXY=""
+ENV HTTPS_PROXY=""
 ENV NO_PROXY="0.0.0.0"
 # Environment Variable to check MISP Version
 ENV MISP_TAG=${MISP_TAG}
