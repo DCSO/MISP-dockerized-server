@@ -14,6 +14,7 @@ env:
   - VERSION=2.4.89-ubuntu
   - VERSION=2.4.90-ubuntu
   - VERSION=2.4.91-ubuntu
+  - VERSION=2.4.92-ubuntu
 
 before_install:
 - make install
