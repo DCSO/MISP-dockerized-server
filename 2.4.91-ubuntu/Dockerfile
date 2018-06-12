@@ -20,6 +20,17 @@ ARG mixbox_TAG=v1.0.2
 ARG cake_resque_TAG=4.1.2
 #     END Variables
 
+#########################################
+LABEL vendor=${VENDOR}
+LABEL maintainer=${MAINTAINER}
+LABEL org.label-schema.build-date="${BUILD_DATE}" \
+        org.label-schema.name="MISP-dockerized ${NAME}" \
+        org.label-schema.description="This docker container is part of the DCSO MISP dockerized environment." \
+        org.label-schema.vcs-ref="${VCS_REF}" \
+        org.label-schema.vcs-url="${GIT_REPO}" \
+        org.label-schema.vendor="${VENDOR}" \
+        org.label-schema.version="${MISP_TAG}" \
+        org.label-schema.schema-version="1.0.0-rc1"
 
 #########################################
 #       Start of MISP Config Part
@@ -36,6 +47,8 @@ net-tools \
 sudo \
 apt-utils \
 wget \
+supervisor \
+gosu \
 && apt-get autoremove -y && apt-get clean -y
 
 # Set locals
@@ -56,12 +69,13 @@ ENV LANG en_US.UTF-8
     # ------------------------------
     # Install required software
     RUN apt-get install -y \
-        curl gcc git gnupg-agent make python python3 openssl sudo vim zip \
+        curl gcc git gnupg-agent make python python3 openssl sudo redis-server vim zip \
         && apt-get autoremove -y && apt-get clean -y
 
     # Install MariaDB (a MySQL fork/alternative) | Server has its own container!!!
     RUN apt-get install -y \
         mariadb-client \
+        mariadb-server \
         && apt-get autoremove -y && apt-get clean -y
 
 
@@ -168,11 +182,7 @@ ENV LANG en_US.UTF-8
 
 # 6/ Create a database and user
 # -----------------------------
-    # At the moment this will be done via misp-robot.
-
-
-
-
+    # At the moment this will be done via 
 
 
 # 7 Configure Apache
@@ -268,20 +278,21 @@ ENV LANG en_US.UTF-8
     #     pip install lief
 
 
-#########################################
-LABEL vendor=${VENDOR}
-LABEL maintainer=${MAINTAINER}
-LABEL org.label-schema.build-date="${BUILD_DATE}" \
-          org.label-schema.name="MISP-dockerized ${NAME}" \
-          org.label-schema.description="This docker container is part of the DCSO MISP dockerized environment." \
-          org.label-schema.vcs-ref="${VCS_REF}" \
-          org.label-schema.vcs-url="${GIT_REPO}" \
-          org.label-schema.vendor="${VENDOR}" \
-          org.label-schema.version="${MISP_TAG}" \
-          org.label-schema.schema-version="1.0.0-rc1"
+
 
 #########################################
 #       Start of DCSO MISP Config Part
+
+# for local MySQL Server:
+    # delete debian.cnf
+RUN mv /etc/mysql /etc/mysql.orig; \
+    mkdir /etc/mysql;
+
+# add own config
+COPY files/DCSO.cnf /etc/mysql/
+ENV CMD_MYSQL mysqld
+ENV CMD_APACHE none
+ENV CMD_REDIS "redis-server -u root --appendonly yes"
 
 # Copy PHP.ini File for PHP Config
 COPY files/php.ini /etc/php/7.0/apache2/
@@ -291,13 +302,18 @@ ENV HTTP_PROXY=""
 ENV HTTPS_PROXY=""
 ENV NO_PROXY="0.0.0.0"
 
-# Add Healthcheck Config
-HEALTHCHECK --interval=1m --timeout=15s --retries=3 CMD curl -f http://localhost/ || exit 1
-
 # CMD
-COPY files/entrypoint.sh /srv/entrypoint.sh
-RUN chmod +x /srv/entrypoint.sh
-ENTRYPOINT [ "/srv/entrypoint.sh" ] 
+COPY files/entrypoint*.sh files/init*.sh files/healthcheck.sh /
+RUN chmod +x /*.sh
+#ENTRYPOINT [ "/entrypoint.sh" ]
+
+COPY files/supervisord.conf /etc/supervisor/supervisord.conf
+
+# Execute Supervisod after start:
+CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+
+# Add Healthcheck Config
+HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
 
 #       End of DCSO MISP Config Part
 #########################################
