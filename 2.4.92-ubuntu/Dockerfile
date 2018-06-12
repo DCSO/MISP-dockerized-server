@@ -138,9 +138,6 @@ ENV LANG en_US.UTF-8
         git clone https://github.com/CybOXProject/mixbox.git; \
         cd mixbox; python3 setup.py install;
 
-    # install PyMISP
-    RUN cd /var/www/MISP/PyMISP; python3 setup.py install;
-
     # install support for STIX 2.0 (Python 3 is required)
     RUN pip3 install stix2
 
@@ -169,7 +166,10 @@ ENV LANG en_US.UTF-8
     # If you have multiple MISP instances on the same system, don't forget to have a different Redis per MISP instance for the CakeResque workers
     # The default Redis port can be updated in Plugin/CakeResque/Config/config.php
 
+##############
 
+    # install PyMISP
+    RUN cd /var/www/MISP/PyMISP; python3 setup.py install;
 
 
 
