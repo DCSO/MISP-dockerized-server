@@ -124,6 +124,8 @@ ENV LANG en_US.UTF-8
 
     # install Mitre's STIX and its dependencies by running the following commands:
         RUN apt-get install -y python3-dev python3-pip python3-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools
+        # Upgrade
+        RUN pip3 install setuptools --upgrade;
         # install python-cybox
         RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/CybOXProject/python-cybox.git; \
@@ -254,7 +256,7 @@ ENV LANG en_US.UTF-8
 
 # ADD additionall modules
     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
-    RUN pip install pyzmq
+    RUN pip3 install pyzmq
 
     # For the experimental ssdeep correlations, run the following installation:
     # installing ssdeep
@@ -274,12 +276,11 @@ ENV LANG en_US.UTF-8
             sudo phpenmod ssdeep;
 
     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-    RUN pip install git+https://github.com/kbandla/pydeep.git
+    RUN pip3 install git+https://github.com/kbandla/pydeep.git
     # #magic:… Please install python-magic: pip install python-magic.
-    RUN pip install python-magic
+    RUN pip3 install python-magic
     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
-    RUN pip install setuptools --upgrade; \
-        pip install lief
+    RUN pip3 install lief
 
 
 #########################################
