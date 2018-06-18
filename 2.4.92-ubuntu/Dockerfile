@@ -13,7 +13,7 @@ ARG GIT_REPO
 ARG VCS_REF
 ARG VERSION
 # for Installation
-ARG MISP_TAG=${VERSION}
+ARG MISP_TAG=2.4.92
 ARG python_cybox_TAG=v2.1.0.12
 ARG python_stix_TAG=v1.1.1.4
 ARG mixbox_TAG=v1.0.2
