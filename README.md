@@ -1,6 +1,7 @@
 # Supported tags and respective `Dockerfile` links
 
-- [`2.4.91-ubuntu`, `latest`][4]
+- [`2.4.92-ubuntu`, `latest`][5]
+- [`2.4.91-ubuntu`][4]
 - [`2.4.90-ubuntu`][3]
 - [`2.4.89-ubuntu`][2]
 - [`2.4.88-ubuntu`][1]
@@ -9,6 +10,7 @@
 [2]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.89-ubuntu/Dockerfile
 [3]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.90-ubuntu/Dockerfile
 [4]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.91-ubuntu/Dockerfile
+[5]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.92-ubuntu/Dockerfile
 
 # Quick reference
 
@@ -51,6 +53,88 @@
 
 For the Usage please read the [MISP-dockerized](https://github.com/DCSO/MISP-dockerized) Github Repository.
 
+### Using with docker-compose
+``` bash
+services:
+  ### MISP-Server ###
+  misp-server:
+    image: dcso/misp-dockerized-server:${MISP_CONTAINER_TAG}
+    container_name: misp-server
+    depends_on:
+      - "misp-postfix"
+    restart: on-failure  
+    tty: true
+    stdin_open: true
+    # ports:
+    #   - "8080:80" # DEBUG only
+    #   - "8443:443" # DEBUG only
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      CMD_MYSQL: mysqld
+      CMD_APACHE:
+      CMD_REDIS: redis-server --appendonly yes
+    volumes:
+    # DB
+    - misp-vol-db-data:/var/lib/mysql/
+    # Logfile
+    - misp-vol-server-logs:/var/log/apache2/
+    # Apache2 Configuration
+    - misp-vol-server-apache2-config-sites-enabled:/etc/apache2/sites-enabled:ro
+    - misp-vol-ssl:/etc/apache2/ssl:ro
+    # MISP Configurations:
+    - misp-vol-server-MISP-app-Config:/var/www/MISP/app/Config
+    - misp-vol-server-MISP-cakeresque-config:/var/www/MISP/app/Plugin/CakeResque/Config
+    - misp-vol-server-MISP-tmp:/var/www/MISP/tmp
+    - misp-vol-server-MISP-attachments:/var/www/MISP/attachments
+    networks:
+      misp-backend:
+        aliases:
+        - misp-server
+
+```
+
+#### .env file for docker-compose variable
+If you want to use the postfix container with variables you require a .env file with the following content:
+``` bash
+#=================================================
+# ------------------------------
+# Container Configuration
+# ------------------------------
+MISP_CONTAINER_TAG=x.x.x-ubuntu
+# ------------------------------
+# DB configuration
+# ------------------------------
+MYSQL_DATABASE=misp
+MYSQL_USER=misp
+MYSQL_PASSWORD=<PW>
+MYSQL_ROOT_PASSWORD=<PW>
+##################################################################
+```
+
+### Usign with `docker run`
+``` bash
+docker run \
+    --name misp-server \
+    -e MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} \
+    -e MYSQL_DATABASE: ${MYSQL_DATABASE} \
+    -e MYSQL_USER: ${MYSQL_USER} \
+    -e MYSQL_PASSWORD: ${MYSQL_PASSWORD} \
+    -e CMD_MYSQL: mysqld \
+    -e CMD_APACHE: \
+    -e CMD_REDIS: redis-server --appendonly yes \
+    -v misp-vol-db-data:/var/lib/mysql/ \
+    -v misp-vol-server-logs:/var/log/apache2/ \
+    -v misp-vol-server-apache2-config-sites-enabled:/etc/apache2/sites-enabled:ro \
+    -v misp-vol-ssl:/etc/apache2/ssl:ro \
+    -v misp-vol-server-MISP-app-Config:/var/www/MISP/app/Config \
+    -v misp-vol-server-MISP-cakeresque-config:/var/www/MISP/app/Plugin/CakeResque/Config \
+    -v misp-vol-server-MISP-tmp:/var/www/MISP/tmp \
+    -v misp-vol-server-MISP-attachments:/var/www/MISP/attachments \
+    image: dcso/misp-dockerized-server \
+```
 
 ## Documentation
 You can also find the [docker file](https://github.com/DCSO/MISP-dockerized-server/) at Github.

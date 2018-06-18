@@ -39,6 +39,7 @@ after_success:
 - if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
     if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
       make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
+
     fi; 
   fi
 
