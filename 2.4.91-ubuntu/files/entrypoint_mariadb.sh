@@ -28,55 +28,33 @@ if [ ! -d "$DATADIR/mysql" ]
         # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
         gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
         echo 'Database initialized'
-fi
 
-########################################################
-# create debian.cnf
-debian_conf=/etc/mysql/debian.cnf
-
-# add debian.cnf File
-cat << EOF > $debian_conf
-#	MYSQL Configuration from DCSO
-[client]
-#host     = localhost
-user     = root
-password = $(echo $MYSQL_ROOT_PASSWORD)
-socket   = /var/run/mysqld/mysqld.sock
-[mysql_upgrade]
-#host     = localhost
-user     = root
-password = $(echo $MYSQL_ROOT_PASSWORD)
-socket   = /var/run/mysqld/mysqld.sock
-basedir  = /usr
-
-EOF
-########################################################
-echo "########################"
-echo "Start mysqld to setup"
-#"$@" --skip-networking --socket="${SOCKET}" &
-start_mysql &
-pid="$!"
-sleep 2
-# test if mysqld is ready
-i=0
-while(true)
-do
-    [ -z "$(mysql -uroot -h localhost -e 'select 1;'|tail -1|grep ERROR)" ] && break;
-    echo "not ready..."
-    sleep 3
-    i+=1
-    [ "$i" >= 10 ] && echo "can't start DB" && exit 1
-done
-########################################################
-echo "########################"
-# Create Root Password if none is given
-if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-    export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)"
-    echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
-fi
+        echo "########################"
+        echo "Start mysqld to setup"
+        #"$@" --skip-networking --socket="${SOCKET}" &
+        start_mysql &
+        pid="$!"
+        sleep 2
+        # test if mysqld is ready
+        i=0
+        while(true)
+        do
+            [ -z "$(mysql -uroot -h localhost -e 'select 1;'|tail -1|grep ERROR)" ] && break;
+            echo "not ready..."
+            sleep 3
+            i+=1
+            [ "$i" >= 10 ] && echo "can't start DB" && exit 1
+        done
+        ########################################################
+        echo "########################"
+        # Create Root Password if none is given
+        if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+            export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)"
+            echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+        fi
 
 
-mysql -uroot -h localhost << EOF
+        mysql -uroot -h localhost << EOF
 -- What's done in this file shouldn't be replicated
 --  or products like mysql-fabric won't work
 SET @@SESSION.SQL_LOG_BIN=0;
@@ -105,11 +83,34 @@ DROP DATABASE IF EXISTS test ;
 FLUSH PRIVILEGES ;
 EOF
 
-# import MISP DB Scheme
-echo "########################"
-echo "Import MySQL scheme"
-mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /var/www/MISP/INSTALL/MYSQL.sql
-#############################
+        # import MISP DB Scheme
+        echo "########################"
+        echo "Import MySQL scheme"
+        mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /var/www/MISP/INSTALL/MYSQL.sql
+        #############################
+fi
+
+########################################################
+# create debian.cnf
+debian_conf=/etc/mysql/debian.cnf
+
+# add debian.cnf File
+cat << EOF > $debian_conf
+#	MYSQL Configuration from DCSO
+[client]
+#host     = localhost
+user     = root
+password = $(echo $MYSQL_ROOT_PASSWORD)
+socket   = /var/run/mysqld/mysqld.sock
+[mysql_upgrade]
+#host     = localhost
+user     = root
+password = $(echo $MYSQL_ROOT_PASSWORD)
+socket   = /var/run/mysqld/mysqld.sock
+basedir  = /usr
+
+EOF
+########################################################
 
 
 echo "########################"
