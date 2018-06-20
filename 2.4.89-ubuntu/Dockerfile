@@ -13,11 +13,11 @@ ARG GIT_REPO
 ARG VCS_REF
 ARG VERSION
 # for Installation
-ARG MISP_TAG
-ARG python_cybox_TAG
-ARG python_stix_TAG
-ARG mixbox_TAG
-ARG cake_resque_TAG
+ARG MISP_TAG=2.4.89
+ARG python_cybox_TAG=v2.1.0.12
+ARG python_stix_TAG=v1.1.1.4
+ARG mixbox_TAG=v1.0.2
+ARG cake_resque_TAG=4.1.2
 #     END Variables
 
 #LABEL de.dcso.misp-server.version="0.0.1-alpha"
@@ -44,10 +44,9 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update -y && apt-get autoremove -y && apt-get clean -y
 RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 RUN apt-get install -y \ 
-supervisor \
-nano \
-vim \
-curl \
+# supervisor \
+# nano \
+# vim \
 gcc \
 make \
 python \
@@ -176,17 +175,15 @@ chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
 ### 7 Configure Apache
 # add HTTP MISP Config
 RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
-COPY files/misp*.conf /etc/apache2/sites-available/
+COPY files/misp*.conf /etc/apache2/sites-enabled/
 COPY files/ports.conf /etc/apache2/ports.conf
-RUN chmod 644 /etc/apache2/ports.conf
+RUN chmod 644 /etc/apache2/ports.conf /etc/apache2/sites-enabled/
 
 # Configure Apache
 RUN sudo a2dismod status; \
 sudo a2enmod ssl; \
 sudo a2enmod rewrite; \
-sudo a2enmod headers; \
-#sudo a2ensite misp.ssl; \
-sudo a2ensite misp;
+sudo a2enmod headers;
 
 ### 8/ Log rotation
 # MISP saves the stdout and stderr of its workers in /var/www/MISP/app/tmp/logs
@@ -214,11 +211,24 @@ chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
 #########################################
 #       Start of DCSO MISP Config Part
 
+# Remove git package
+RUN apt-get purge -y git && apt-get autoremove -y && apt-get clean -y
+
+# Copy PHP.ini File for PHP Config
+COPY files/php.ini /etc/php/7.0/apache2/
+
+# Create Logging
+RUN rm /var/log/apache2/*; \
+    ln -s /dev/stdout /var/log/apache2/access.log; \
+    ln -s /dev/stderr /var/log/apache2/error.log; \
+    ln -s /dev/stdout /var/log/apache2/other_vhosts_access.log;
+
 # Copy PHP.ini File for PHP Config
 COPY files/php.ini /etc/php/7.0/apache2/
 
 # Environment Variable for Proxy
 ENV HTTP_PROXY=""
+ENV HTTPS_PROXY=""
 ENV NO_PROXY="0.0.0.0"
 
 # Add Healthcheck Config
