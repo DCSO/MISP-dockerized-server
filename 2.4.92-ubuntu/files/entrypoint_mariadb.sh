@@ -105,37 +105,10 @@ DROP DATABASE IF EXISTS test ;
 FLUSH PRIVILEGES ;
 EOF
 
-# #-- What's done in this file shouldn't be replicated
-# #--  or products like mysql-fabric won't work
-# send_2_mysql "SET @@SESSION.SQL_LOG_BIN=0;"
-
-# #-- Delete all Users except root
-# send_2_mysql "DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost', '$HOSTNAME') ;"
-# #-- Set Password
-# send_2_mysql "UPDATE mysql.user SET Password=PASSWORD('$MYSQL_ROOT_PASSWORD') WHERE User='root'"
-# #--SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}') ;
-
-# #-- Create Root User with Hostname
-# send_2_mysql "CREATE USER 'root'@'${MYSQL_ROOT_HOST}' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;"
-
-# #-- Grant Permissions
-# send_2_mysql "GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;"
-# send_2_mysql "GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
-
-# #-- Create MISP DB
-# send_2_mysql "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;"
-
-# #-- Create MISP DB User    
-# send_2_mysql "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;"
-# send_2_mysql "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;"
-
-# send_2_mysql "DROP DATABASE IF EXISTS test ;"
-# send_2_mysql "FLUSH PRIVILEGES ;"
-
 # import MISP DB Scheme
 echo "########################"
 echo "Import MySQL scheme"
-mysql -u$MYSQL_USER -h$MYSQL_HOST -p$MYSQL_PASSWORD $MYSQL_DATABASE < /var/www/MISP/INSTALL/MYSQL.sql
+mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /var/www/MISP/INSTALL/MYSQL.sql
 #############################
 
 
