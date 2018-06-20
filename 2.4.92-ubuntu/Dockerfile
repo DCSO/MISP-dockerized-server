@@ -227,11 +227,11 @@ ENV LANG en_US.UTF-8
 
 ### 9/ MISP configuration
     # There are 4 sample configuration files in /var/www/MISP/app/Config that need to be copied
-    RUN sudo -u www-data cp -a /var/www/MISP/app/Config/bootstrap.default.php /var/www/MISP/app/Config/bootstrap.php
-    RUN sudo -u www-data cp -a /var/www/MISP/app/Config/database.default.php /var/www/MISP/app/Config/database.php
-    RUN sudo -u www-data cp -a /var/www/MISP/app/Config/core.default.php /var/www/MISP/app/Config/core.php
-    RUN sudo -u www-data cp -a /var/www/MISP/app/Config/config.default.php /var/www/MISP/app/Config/config.php
-
+    # RUN sudo -u www-data cp -a /var/www/MISP/app/Config/bootstrap.default.php /var/www/MISP/app/Config/bootstrap.php
+    # RUN sudo -u www-data cp -a /var/www/MISP/app/Config/database.default.php /var/www/MISP/app/Config/database.php
+    # RUN sudo -u www-data cp -a /var/www/MISP/app/Config/core.default.php /var/www/MISP/app/Config/core.php
+    # RUN sudo -u www-data cp -a /var/www/MISP/app/Config/config.default.php /var/www/MISP/app/Config/config.php
+    #### WILL BE DONE IN MISP_ROBOT
 
 
 
@@ -260,13 +260,13 @@ ENV LANG en_US.UTF-8
 
     # For the experimental ssdeep correlations, run the following installation:
     # installing ssdeep
-        RUN wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz
-        RUN tar zxvf ssdeep-2.13.tar.gz; \
-            cd ssdeep-2.13; \
-            ./configure; \
-            make;    \
-            sudo make install; 
-            #ssdeep -h; # test
+        RUN cd /usr/local/src/; wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz; \
+        tar zxvf ssdeep-2.13.tar.gz; \
+        cd ssdeep-2.13; \
+        ./configure; \
+        make;    \
+        sudo make install;
+        #ssdeep -h; # test
 
         #installing ssdeep_php
         RUN sudo pecl install ssdeep;
@@ -280,22 +280,34 @@ ENV LANG en_US.UTF-8
     # #magic:… Please install python-magic: pip install python-magic.
     RUN pip3 install python-magic
     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
-    RUN pip3 install lief
+    RUN pip install setuptools --upgrade; \ 
+        pip3 install lief
 
 
 #########################################
 #       Start of DCSO MISP Config Part
 
+# for S/MIME
+RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
+    sudo -u www-data chmod 500 /var/www/MISP/.smime;
+# for PGP
+RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
+    sudo -u www-data chmod 700 /var/www/MISP/.gnupg;
+    
 # for local MySQL Server:
-    # delete debian.cnf
+    # delete all config files
 RUN mv /etc/mysql /etc/mysql.orig; \
-    mkdir /etc/mysql;
+    mkdir /etc/mysql; \
+    rm -Rf /var/lib/mysql/*;
+
+# create folder for db schemes
+RUN mkdir /docker-entrypoint-initdb.d;
 
 # add own config
 COPY files/DCSO.cnf /etc/mysql/
 ENV CMD_MYSQL mysqld
 ENV CMD_APACHE none
-ENV CMD_REDIS "redis-server -u root --appendonly yes"
+ENV CMD_REDIS "redis-server --appendonly yes"
 
 # Copy PHP.ini File for PHP Config
 COPY files/php.ini /etc/php/7.0/apache2/
