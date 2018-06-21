@@ -1,12 +1,32 @@
 #!/bin/bash
 set -e
 
-echo "####################################"
-echo "started Apache2 with cmd: '$CMD_APACHE'"
-echo "####################################"
-sleep 5
+function check_and_link_error(){
+    [ -e $1 ] && rm $1;
+    ln -s /dev/stderr $1
+}
+function check_and_link_out(){
+    [ -e $1 ] && rm $1;
+    ln -s /dev/stdout $1
+}
+# For Logfiles
+## APACHE2
+check_and_link_out /var/log/apache2/access.log
+check_and_link_out /var/log/apache2/other_vhosts_access.log
+check_and_link_out /var/log/apache2/error.log
+## MISP LOGS
+#check_and_link_error /var/www/MISP/app/tmp/logs/debug.log
+check_and_link_out /var/www/MISP/app/tmp/logs/resque-scheduler-error.log
+check_and_link_out /var/www/MISP/app/tmp/logs/error.log
+check_and_link_out /var/www/MISP/app/tmp/logs/resque-worker-error.log
+check_and_link_out /var/www/MISP/app/tmp/logs/resque-$(date +%Y-%m-%d).log
+check_and_link_out /var/www/MISP/app/tmp/logs/resque-scheduler-$(date +%Y-%m-%d).log
+
 
 function init_pgp(){
+    echo "####################################"
+    echo "PGP Key exists and copy it to MISP webroot"
+    echo "####################################"
     # Copy public key to the right place
     sudo -u www-data sh -c "cp /var/www/MISP/.gnupg/public.key /var/www/MISP/app/webroot/gpg.asc"
     ### IS DONE VIA ANSIBLE: # And export the public key to the webroot
@@ -14,6 +34,9 @@ function init_pgp(){
 }
 
 function init_smime(){
+    echo "####################################"
+    echo "S/MIME Cert exists and copy it to MISP webroot"
+    echo "####################################"
     ### Set permissions
     chown www-data:www-data /var/www/MISP/.smime
     chmod 500 /var/www/MISP/.smime
@@ -26,6 +49,9 @@ function init_smime(){
 }
 
 function init_apache() {
+    echo "####################################"
+    echo "started Apache2 with cmd: '$CMD_APACHE'"
+    echo "####################################"
     # Apache gets grumpy about PID files pre-existing
     rm -f /run/apache2/apache2.pid
     # start Workers for MISP

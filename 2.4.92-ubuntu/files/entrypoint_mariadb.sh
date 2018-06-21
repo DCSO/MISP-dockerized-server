@@ -1,7 +1,20 @@
 #!/bin/bash
-set -e
+set -ex
 
 DATADIR="/var/lib/mysql"
+
+function check_and_link_error(){
+    [ -e $1 ] && rm $1;
+    ln -s /dev/stderr $1
+}
+function check_and_link_out(){
+    [ -e $1 ] && rm $1;
+    ln -s /dev/stdout $1
+}
+
+check_and_link_out "/var/log/mysql/error.log"
+
+MYSQL_DATABASE=$MYSQL_DATABASE
 
 start_mysql(){
     if [ -z "$@" ]; then
