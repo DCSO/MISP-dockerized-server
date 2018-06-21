@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 DATADIR="/var/lib/mysql"
 
@@ -68,6 +68,7 @@ if [ ! -d "$DATADIR/mysql" ]
 
 
         mysql -uroot -h localhost << EOF
+
 -- What's done in this file shouldn't be replicated
 --  or products like mysql-fabric won't work
 SET @@SESSION.SQL_LOG_BIN=0;
@@ -124,6 +125,7 @@ basedir  = /usr
 
 EOF
 ########################################################
+
 
 
 echo "########################"

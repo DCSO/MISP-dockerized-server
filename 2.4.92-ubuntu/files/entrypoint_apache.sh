@@ -27,6 +27,7 @@ function init_pgp(){
     echo "####################################"
     echo "PGP Key exists and copy it to MISP webroot"
     echo "####################################"
+
     # Copy public key to the right place
     sudo -u www-data sh -c "cp /var/www/MISP/.gnupg/public.key /var/www/MISP/app/webroot/gpg.asc"
     ### IS DONE VIA ANSIBLE: # And export the public key to the webroot

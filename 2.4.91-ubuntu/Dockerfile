@@ -225,8 +225,6 @@ ENV LANG en_US.UTF-8
 
 
 
-
-
 #       END of MISP Config Part
 #########################################
 
