@@ -3,6 +3,19 @@ set -e
 
 DATADIR="/var/lib/mysql"
 
+function check_and_link_error(){
+    [ -e $1 ] && rm $1;
+    ln -s /dev/stderr $1
+}
+function check_and_link_out(){
+    [ -e $1 ] && rm $1;
+    ln -s /dev/stdout $1
+}
+
+check_and_link_out "/var/log/mysql/error.log"
+
+MYSQL_DATABASE=$MYSQL_DATABASE
+
 start_mysql(){
     if [ -z "$@" ]; then
         gosu mysql mysqld 
@@ -28,55 +41,33 @@ if [ ! -d "$DATADIR/mysql" ]
         # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
         gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
         echo 'Database initialized'
-fi
 
-########################################################
-# create debian.cnf
-debian_conf=/etc/mysql/debian.cnf
-
-# add debian.cnf File
-cat << EOF > $debian_conf
-#	MYSQL Configuration from DCSO
-[client]
-#host     = localhost
-user     = root
-password = $(echo $MYSQL_ROOT_PASSWORD)
-socket   = /var/run/mysqld/mysqld.sock
-[mysql_upgrade]
-#host     = localhost
-user     = root
-password = $(echo $MYSQL_ROOT_PASSWORD)
-socket   = /var/run/mysqld/mysqld.sock
-basedir  = /usr
-
-EOF
-########################################################
-echo "########################"
-echo "Start mysqld to setup"
-#"$@" --skip-networking --socket="${SOCKET}" &
-start_mysql &
-pid="$!"
-sleep 2
-# test if mysqld is ready
-i=0
-while(true)
-do
-    [ -z "$(mysql -uroot -h localhost -e 'select 1;'|tail -1|grep ERROR)" ] && break;
-    echo "not ready..."
-    sleep 3
-    i+=1
-    [ "$i" >= 10 ] && echo "can't start DB" && exit 1
-done
-########################################################
-echo "########################"
-# Create Root Password if none is given
-if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-    export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)"
-    echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
-fi
+        echo "########################"
+        echo "Start mysqld to setup"
+        #"$@" --skip-networking --socket="${SOCKET}" &
+        start_mysql &
+        pid="$!"
+        sleep 2
+        # test if mysqld is ready
+        i=0
+        while(true)
+        do
+            [ -z "$(mysql -uroot -h localhost -e 'select 1;'|tail -1|grep ERROR)" ] && break;
+            echo "not ready..."
+            sleep 3
+            i+=1
+            [ "$i" >= 10 ] && echo "can't start DB" && exit 1
+        done
+        ########################################################
+        echo "########################"
+        # Create Root Password if none is given
+        if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+            export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)"
+            echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+        fi
 
 
-mysql -uroot -h localhost << EOF
+        mysql -uroot -h localhost << EOF
 -- What's done in this file shouldn't be replicated
 --  or products like mysql-fabric won't work
 SET @@SESSION.SQL_LOG_BIN=0;
@@ -105,38 +96,35 @@ DROP DATABASE IF EXISTS test ;
 FLUSH PRIVILEGES ;
 EOF
 
-# #-- What's done in this file shouldn't be replicated
-# #--  or products like mysql-fabric won't work
-# send_2_mysql "SET @@SESSION.SQL_LOG_BIN=0;"
+        # import MISP DB Scheme
+        echo "########################"
+        echo "Import MySQL scheme"
+        mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /var/www/MISP/INSTALL/MYSQL.sql
+        #############################
+fi
 
-# #-- Delete all Users except root
-# send_2_mysql "DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost', '$HOSTNAME') ;"
-# #-- Set Password
-# send_2_mysql "UPDATE mysql.user SET Password=PASSWORD('$MYSQL_ROOT_PASSWORD') WHERE User='root'"
-# #--SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}') ;
+########################################################
+# create debian.cnf
+debian_conf=/etc/mysql/debian.cnf
 
-# #-- Create Root User with Hostname
-# send_2_mysql "CREATE USER 'root'@'${MYSQL_ROOT_HOST}' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;"
+# add debian.cnf File
+cat << EOF > $debian_conf
+#	MYSQL Configuration from DCSO
+[client]
+#host     = localhost
+user     = root
+password = $(echo $MYSQL_ROOT_PASSWORD)
+socket   = /var/run/mysqld/mysqld.sock
+[mysql_upgrade]
+#host     = localhost
+user     = root
+password = $(echo $MYSQL_ROOT_PASSWORD)
+socket   = /var/run/mysqld/mysqld.sock
+basedir  = /usr
 
-# #-- Grant Permissions
-# send_2_mysql "GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;"
-# send_2_mysql "GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
+EOF
+########################################################
 
-# #-- Create MISP DB
-# send_2_mysql "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;"
-
-# #-- Create MISP DB User    
-# send_2_mysql "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;"
-# send_2_mysql "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;"
-
-# send_2_mysql "DROP DATABASE IF EXISTS test ;"
-# send_2_mysql "FLUSH PRIVILEGES ;"
-
-# import MISP DB Scheme
-echo "########################"
-echo "Import MySQL scheme"
-mysql -u$MYSQL_USER -h$MYSQL_HOST -p$MYSQL_PASSWORD $MYSQL_DATABASE < /var/www/MISP/INSTALL/MYSQL.sql
-#############################
 
 
 echo "########################"

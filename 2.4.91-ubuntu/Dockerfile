@@ -189,16 +189,16 @@ ENV LANG en_US.UTF-8
 # ------------------
     # add HTTP MISP Config
     RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
-    COPY files/misp*.conf /etc/apache2/sites-available/
+    COPY files/misp* /etc/apache2/sites-enabled/
     COPY files/ports.conf /etc/apache2/ports.conf
     RUN chmod 644 /etc/apache2/ports.conf
     # Configure Apache
     RUN sudo a2dismod status; \
     sudo a2enmod ssl; \
     sudo a2enmod rewrite; \
-    sudo a2enmod headers; \
+    sudo a2enmod headers;
     #sudo a2ensite misp.ssl; \
-    sudo a2ensite misp;
+    #sudo a2ensite misp;
 
 
 
@@ -222,19 +222,6 @@ ENV LANG en_US.UTF-8
     # RUN sudo -u www-data cp -a /var/www/MISP/app/Config/core.default.php /var/www/MISP/app/Config/core.php
     # RUN sudo -u www-data cp -a /var/www/MISP/app/Config/config.default.php /var/www/MISP/app/Config/config.php
     #### WILL BE DONE IN MISP_ROBOT
-
-
-### 5/ Set the permissions
-    # Check if the permissions are set correctly using the following commands:
-    RUN chown -R www-data:www-data /var/www/MISP; \
-    chmod -R 750 /var/www/MISP; \
-    chmod -R g+ws /var/www/MISP/app/tmp; \ 
-    chmod -R g+ws /var/www/MISP/app/files; \
-    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
-
-
-
-
 
 
 

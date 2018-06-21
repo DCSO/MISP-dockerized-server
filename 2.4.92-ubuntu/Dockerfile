@@ -199,16 +199,16 @@ ENV LANG en_US.UTF-8
 # ------------------
     # add HTTP MISP Config
     RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
-    COPY files/misp*.conf /etc/apache2/sites-available/
+    COPY files/misp* /etc/apache2/sites-enabled/
     COPY files/ports.conf /etc/apache2/ports.conf
     RUN chmod 644 /etc/apache2/ports.conf
     # Configure Apache
     RUN sudo a2dismod status; \
     sudo a2enmod ssl; \
     sudo a2enmod rewrite; \
-    sudo a2enmod headers; \
+    sudo a2enmod headers;
     #sudo a2ensite misp.ssl; \
-    sudo a2ensite misp;
+    #sudo a2ensite misp;
 
 
 
