@@ -39,13 +39,11 @@ RUN apt-get update; apt-get install -y \
 locales \
 iputils-ping \
 net-tools \
-sudo \
 apt-utils \
 wget \
 supervisor \
 gosu \
-sudo \
-gnupg-agent \
+python-pip \
 && apt-get autoremove -y && apt-get clean -y
 
 # Set locals

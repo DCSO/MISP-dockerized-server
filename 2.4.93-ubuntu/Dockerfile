@@ -39,6 +39,7 @@ apt-utils \
 wget \
 supervisor \
 gosu \
+python-pip \
 && apt-get autoremove -y && apt-get clean -y
 
 # Set locals
