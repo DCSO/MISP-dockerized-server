@@ -42,7 +42,6 @@ do
 
     # Default Build Args
     BUILD_ARGS+="
-        --build-arg RELEASE_DATE="$(date +"%Y-%m-%d")" \
         --build-arg BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
         --build-arg NAME="$CONTAINER_NAME" \
         --build-arg GIT_REPO="$GIT_REPO_URL" \
