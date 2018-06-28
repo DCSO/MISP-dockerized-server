@@ -4,11 +4,8 @@ FROM ubuntu:16.04
 #     Variables:
 # for Labels:
 ARG VENDOR="DCSO GmbH <www.dcso.de>"
-ARG RELEASE_DATE
-ARG IS_PRODUCTION="false"
-ARG MAINTAINER="DCSO MISP <misp@dcso.de>"
+ARG NAME="server"
 ARG BUILD_DATE
-ARG NAME="misp-server"
 ARG GIT_REPO
 ARG VCS_REF
 ARG VERSION
@@ -21,10 +18,8 @@ ARG cake_resque_TAG=4.1.2
 #     END Variables
 
 #########################################
-LABEL vendor=${VENDOR}
-LABEL maintainer=${MAINTAINER}
 LABEL org.label-schema.build-date="${BUILD_DATE}" \
-        org.label-schema.name="MISP-dockerized ${NAME}" \
+        org.label-schema.name="MISP-dockerized-${NAME}" \
         org.label-schema.description="This docker container is part of the DCSO MISP dockerized environment." \
         org.label-schema.vcs-ref="${VCS_REF}" \
         org.label-schema.vcs-url="${GIT_REPO}" \
@@ -258,6 +253,9 @@ ENV LANG en_US.UTF-8
     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
     RUN pip3 install pyzmq
 
+    # PyMISP
+    RUN pip install pymisp
+
     # For the experimental ssdeep correlations, run the following installation:
     # installing ssdeep
         RUN cd /usr/local/src/; wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz; \
@@ -276,12 +274,12 @@ ENV LANG en_US.UTF-8
             sudo phpenmod ssdeep;
 
     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-    RUN pip3 install git+https://github.com/kbandla/pydeep.git
+    RUN pip install git+https://github.com/kbandla/pydeep.git
     # #magic:… Please install python-magic: pip install python-magic.
-    RUN pip3 install python-magic
+    RUN pip install python-magic
     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
     RUN pip install setuptools --upgrade; \ 
-        pip3 install lief
+        pip install lief
 
 
 #########################################
