@@ -31,7 +31,7 @@ ENV DEBIAN_FRONTEND noninteractive
 #RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 
 # DCSO Required Software
-RUN apt-get update; apt-get install -y \ 
+RUN apt-get update; apt-get upgrade -y; apt-get install -y \ 
 locales \
 iputils-ping \
 net-tools \
@@ -111,6 +111,11 @@ ENV LANG en_US.UTF-8
     # Make git ignore filesystem permission differences
     RUN cd /var/www/MISP; git config core.filemode false;
 
+    # CakePHP and a lot of other things is included as a submodule of MISP, execute the following commands to let git fetch it:
+    RUN cd /var/www/MISP; git submodule init; git submodule update;
+    # Make git ignore filesystem permission differences for submodules
+    RUN cd /var/www/MISP; git submodule foreach git config core.filemode false
+
     # install Mitre's STIX and its dependencies by running the following commands:
         RUN apt-get install -y python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools
         # Upgrade
@@ -131,7 +136,7 @@ ENV LANG en_US.UTF-8
 
     # install PyMISP
     RUN cd /var/www/MISP/PyMISP; \
-        sudo python3 setup.py install
+        python3 setup.py install
 
     # install support for STIX 2.0 (Python 3 is required)
     RUN pip3 install stix2
@@ -143,11 +148,6 @@ ENV LANG en_US.UTF-8
 
 # 4/ CakePHP
 # ------------
-    # CakePHP is included as a submodule of MISP, execute the following commands to let git fetch it:
-    RUN cd /var/www/MISP; git submodule init; git submodule update;
-    # Make git ignore filesystem permission differences for submodules
-    RUN cd /var/www/MISP; git submodule foreach git config core.filemode false
-
     # Once done, install CakeResque along with its dependencies if you intend to use the built in background jobs:
     RUN cd /var/www/MISP/app; sudo -u www-data php composer.phar require kamisama/cake-resque:4.1.2; \
         php composer.phar config vendor-dir Vendor; \
