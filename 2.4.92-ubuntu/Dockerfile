@@ -44,7 +44,9 @@ wget \
 supervisor \
 gosu \
 python-pip \
+libfuzzy-dev \
 && apt-get autoremove -y && apt-get clean -y
+## Installation of libfuzzy-dev is required for pydeep
 
 # Set locals
 RUN locale-gen en_US.UTF-8
@@ -273,6 +275,8 @@ ENV LANG en_US.UTF-8
         RUN sudo echo "extension=ssdeep.so" > /etc/php/7.0/mods-available/ssdeep.ini; \
             sudo phpenmod ssdeep;
 
+    # pymisp:… Please install pymisp: pip install pymisp
+    RUN pip install pymisp
     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
     RUN pip install git+https://github.com/kbandla/pydeep.git
     # #magic:… Please install python-magic: pip install python-magic.
@@ -280,6 +284,8 @@ ENV LANG en_US.UTF-8
     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
     RUN pip install setuptools --upgrade; \ 
         pip install lief
+    # Install maec libraries for STIX
+    RUN pip3 install maec
 
 
 #########################################
