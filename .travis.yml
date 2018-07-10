@@ -16,7 +16,7 @@ env:
   - VERSION=2.4.91-ubuntu
   - VERSION=2.4.92-ubuntu
   - VERSION=2.4.93-ubuntu
-  - VERSION=2.4.93-debian
+  #- VERSION=2.4.93-debian
 
 before_install:
 - make install
