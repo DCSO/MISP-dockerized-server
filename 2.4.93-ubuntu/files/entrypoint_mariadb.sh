@@ -12,7 +12,7 @@ function check_and_link_out(){
     ln -s /dev/stdout $1
 }
 
-check_and_link_out "/var/log/mysql/error.log"
+check_and_link_error "/var/log/mysql/error.log"
 
 MYSQL_DATABASE=$MYSQL_DATABASE
 

@@ -12,9 +12,7 @@ function init_redis() {
 		exec gosu redis "$0" "$@"
 	fi
 
-	echo "####################################"
-	echo "started REDIS with cmd: '$CMD_REDIS'"
-	echo "####################################"
+	echo -e "####################################\n	started REDIS with cmd: '$CMD_REDIS'	\n####################################"
 	exec "$@"
 }
 

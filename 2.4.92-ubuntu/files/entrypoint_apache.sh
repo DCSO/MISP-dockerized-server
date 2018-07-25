@@ -13,12 +13,12 @@ function check_and_link_out(){
 ## APACHE2
 check_and_link_out /var/log/apache2/access.log
 check_and_link_out /var/log/apache2/other_vhosts_access.log
-check_and_link_out /var/log/apache2/error.log
+check_and_link_error /var/log/apache2/error.log
 ## MISP LOGS
 #check_and_link_error /var/www/MISP/app/tmp/logs/debug.log
-check_and_link_out /var/www/MISP/app/tmp/logs/resque-scheduler-error.log
-check_and_link_out /var/www/MISP/app/tmp/logs/error.log
-check_and_link_out /var/www/MISP/app/tmp/logs/resque-worker-error.log
+check_and_link_error /var/www/MISP/app/tmp/logs/resque-scheduler-error.log
+check_and_link_error /var/www/MISP/app/tmp/logs/error.log
+check_and_link_error /var/www/MISP/app/tmp/logs/resque-worker-error.log
 check_and_link_out /var/www/MISP/app/tmp/logs/resque-$(date +%Y-%m-%d).log
 check_and_link_out /var/www/MISP/app/tmp/logs/resque-scheduler-$(date +%Y-%m-%d).log
 
