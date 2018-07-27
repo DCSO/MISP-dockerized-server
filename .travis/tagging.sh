@@ -12,7 +12,7 @@ docker images
 
 CONTAINER_NAME="$(echo $GIT_REPO|cut -d / -f 2|tr '[:upper:]' '[:lower:]')"
 
-[ -z "$INTERNAL_REGISTRY_HOST" ] || DOCKER_REPO="dcso/$CONTAINER_NAME"
+[ -z "$INTERNAL_REGISTRY_HOST" ] && DOCKER_REPO="dcso/$CONTAINER_NAME"
 [ -z "$INTERNAL_REGISTRY_HOST" ] || DOCKER_REPO="$INTERNAL_REGISTRY_HOST/$CONTAINER_NAME"
 
 # Create the Array
