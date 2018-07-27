@@ -39,12 +39,17 @@ do
     # load Variables from configuration file
     source $DOCKERFILE_PATH/configuration.sh
     ### Add -dev to tag if dev is set as a second argument
-    [ "$2" == "prod" ] || TAGS="-t $DOCKER_REPO:$FOLD-dev"
-    [ "$2" == "prod" -a -z "$INTERNAL_REGISTRY_HOST" ] || TAGS+=" -t $INTERNAL_REGISTRY_HOST/$CONTAINER_NAME:$FOLD-dev"
-
-    [ "$2" == "prod" ] && TAGS="-t $DOCKER_REPO:$FOLD"
-    [ "$2" == "prod" -a ! -z "$INTERNAL_REGISTRY_HOST" ] && TAGS+=" -t $INTERNAL_REGISTRY_HOST/$CONTAINER_NAME:$FOLD"
-
+    if [ "$2" == "prod" ]
+    then
+        # PROD Version
+        TAGS="-t $DOCKER_REPO:$FOLD"
+        [ -z "$INTERNAL_REGISTRY_HOST" ] || TAGS+=" -t $INTERNAL_REGISTRY_HOST/$CONTAINER_NAME:$FOLD"
+    else
+        # DEV Version
+        TAGS="-t $DOCKER_REPO:$FOLD-dev"
+        [ -z "$INTERNAL_REGISTRY_HOST" ] || TAGS+=" -t $INTERNAL_REGISTRY_HOST/$CONTAINER_NAME:$FOLD-dev"
+    fi
+    
     # Default Build Args
     BUILD_ARGS+="
         --build-arg RELEASE_DATE="$(date +"%Y-%m-%d")" \
