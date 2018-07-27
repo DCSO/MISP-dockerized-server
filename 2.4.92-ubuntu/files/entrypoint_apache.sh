@@ -59,7 +59,7 @@ function init_apache() {
     su -s /bin/bash -c "/var/www/MISP/app/Console/worker/start.sh" www-data
 
     #exec apache2 -DFOREGROUND
-    /usr/sbin/apache2ctl -DFOREGROUND $1
+    /usr/sbin/apache2ctl -DFOREGROUND -E /dev/stderr $1
 }
 
 # if secring.pgp exists execute init_pgp
