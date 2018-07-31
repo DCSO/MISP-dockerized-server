@@ -62,11 +62,23 @@ function init_apache() {
     /usr/sbin/apache2ctl -DFOREGROUND -E /dev/stderr $1
 }
 
+function add_analyze_column(){
+    ORIG_FILE="/var/www/MISP/app/View/Elements/Events/eventIndexTable.ctp"
+    PATCH_FILE="/eventIndexTable.patch"
+
+    # Backup Orig File
+    cp $ORIG_FILE ${ORIG_FILE}.bak
+    # Patch file
+    patch $ORIG_FILE < $PATCH_FILE
+}
+
 # if secring.pgp exists execute init_pgp
 [ -f "/var/www/MISP/.gnupgp/public.key" ] && init_pgp
 # If certificate exists execute init_smime
 [ -f "/var/www/MISP/.smime/cert.pem" ] && init_smime
+# If a customer needs a analze column in misp
+[ "$ADD_ANALYZE_COLUMN" == "yes" ] && add_analyze_column
 
-
+# execute apache
 [ "$CMD_APACHE" != "none" ] && init_apache $CMD_APACHE
 [ "$CMD_APACHE" == "none" ] && init_apache
