@@ -72,12 +72,18 @@ function add_analyze_column(){
     patch $ORIG_FILE < $PATCH_FILE
 }
 
+function change_php_memory_limit(){
+    FILE="/etc/php/7.0/apache2/php.ini"
+    sed "s/memory_limit = .*/memory_limit = ${PHP_MEMORY}M/" $FILE
+}
+
 # if secring.pgp exists execute init_pgp
 [ -f "/var/www/MISP/.gnupgp/public.key" ] && init_pgp
 # If certificate exists execute init_smime
 [ -f "/var/www/MISP/.smime/cert.pem" ] && init_smime
 # If a customer needs a analze column in misp
 [ "$ADD_ANALYZE_COLUMN" == "yes" ] && add_analyze_column
+[ ! -z "$PHP_MEMORY"] && change_php_memory_limit
 
 # execute apache
 [ "$CMD_APACHE" != "none" ] && init_apache $CMD_APACHE
