@@ -22,13 +22,42 @@ before_script:
 #- make install
 
 
-build_container:
+build_2.4.88:
   stage: build
   script:
-  - make build
+  - make build v=2.4.88-ubuntu
   - make tags
-  #- docker build --pull -t $CONTAINER_TEST_IMAGE .
-  #- docker push $CONTAINER_TEST_IMAGE
+
+build_2.4.89:
+  stage: build
+  script:
+  - make build v=2.4.89-ubuntu
+  - make tags
+
+build_2.4.90:
+  stage: build
+  script:
+  - make build v=2.4.90-ubuntu
+  - make tags
+
+build_2.4.91:
+  stage: build
+  script:
+  - make build v=2.4.91-ubuntu
+  - make tags
+
+build_2.4.92:
+  stage: build
+  script:
+  - make build v=2.4.92-ubuntu
+  - make tags
+
+build_2.4.93:
+  stage: build
+  script:
+  - make build v=2.4.93-ubuntu
+  - make tags
+
 
 
 upload_image_internal_registry:
