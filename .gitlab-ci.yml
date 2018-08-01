@@ -19,6 +19,7 @@ variables:
 
 before_script:
 - apk add --no-cache make bash sudo git
+- docker login -u "$INTERNAL_REGISTRY_USER" -p "$INTERNAL_REGISTRY_PW" "$INTERNAL_REGISTRY_HOST"
 #- make install
 
 
@@ -27,45 +28,51 @@ build_2.4.88:
   script:
   - make build v=2.4.88-ubuntu
   - make tags
+  - make push
 
 build_2.4.89:
   stage: build
   script:
   - make build v=2.4.89-ubuntu
   - make tags
+  - make push
 
 build_2.4.90:
   stage: build
   script:
   - make build v=2.4.90-ubuntu
   - make tags
+  - make push
 
 build_2.4.91:
   stage: build
   script:
   - make build v=2.4.91-ubuntu
   - make tags
+  - make push
 
 build_2.4.92:
   stage: build
   script:
   - make build v=2.4.92-ubuntu
   - make tags
+  - make push
 
 build_2.4.93:
   stage: build
   script:
   - make build v=2.4.93-ubuntu
   - make tags
+  - make push
 
 
 
-upload_image_internal_registry:
+.upload_image_internal_registry:
   stage: deploy
   #only: 
   #- master
   script:
-    - echo "$INTERNAL_REGISTRY_PW" | docker login -u "$INTERNAL_REGISTRY_USER" --password-stdin "$INTERNAL_REGISTRY_HOST"
+    - docker login -u "$INTERNAL_REGISTRY_USER" -p "$INTERNAL_REGISTRY_PW" "$INTERNAL_REGISTRY_HOST"
     - make push
 
 .upload_image_hub.docker.com:
