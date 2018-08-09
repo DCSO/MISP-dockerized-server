@@ -112,7 +112,6 @@ ENV LANG en_US.UTF-8
     RUN cd /var/www/MISP; git submodule foreach git config core.filemode false
 
     # install Mitre's STIX and its dependencies by running the following commands:
-        RUN apt-get install -y python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools
         # Upgrade
         RUN pip3 install setuptools --upgrade;
         # install python-cybox
@@ -134,7 +133,7 @@ ENV LANG en_US.UTF-8
         python3 setup.py install
 
     # install support for STIX 2.0 (Python 3 is required)
-    RUN pip3 install stix2
+    #RUN pip3 install stix2
 
 
 
