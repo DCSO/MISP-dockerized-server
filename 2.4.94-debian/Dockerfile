@@ -296,6 +296,9 @@ COPY files/php.ini /etc/php/7.0/apache2/
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
+# I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
+RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
+
 # Environment Variables
     # CMD
     ENV CMD_MYSQL mysqld
