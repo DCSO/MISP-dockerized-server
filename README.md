@@ -1,6 +1,8 @@
 # Supported tags and respective `Dockerfile` links
 
-- [`2.4.92-ubuntu`, `latest`][5]
+- [`2.4.94-ubuntu`, `latest`][7]
+- [`2.4.93-ubuntu`][6]
+- [`2.4.92-ubuntu`][5]
 - [`2.4.91-ubuntu`][4]
 - [`2.4.90-ubuntu`][3]
 - [`2.4.89-ubuntu`][2]
@@ -11,6 +13,8 @@
 [3]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.90-ubuntu/Dockerfile
 [4]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.91-ubuntu/Dockerfile
 [5]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.92-ubuntu/Dockerfile
+[6]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.93-ubuntu/Dockerfile
+[7]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.94-debian/Dockerfile
 
 # Quick reference
 
