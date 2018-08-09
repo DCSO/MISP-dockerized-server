@@ -23,28 +23,28 @@ before_script:
 #- make install
 
 
-build_2.4.88:
+.build_2.4.88:
   stage: build
   script:
   - make build v=2.4.88-ubuntu
   - make tags
   - make push
 
-build_2.4.89:
+.build_2.4.89:
   stage: build
   script:
   - make build v=2.4.89-ubuntu
   - make tags
   - make push
 
-build_2.4.90:
+.build_2.4.90:
   stage: build
   script:
   - make build v=2.4.90-ubuntu
   - make tags
   - make push
 
-build_2.4.91:
+.build_2.4.91:
   stage: build
   script:
   - make build v=2.4.91-ubuntu
@@ -65,6 +65,12 @@ build_2.4.93:
   - make tags
   - make push
 
+build_2.4.94:
+  stage: build
+  script:
+  - make build v=2.4.94-debian
+  - make tags
+  - make push
 
 
 .upload_image_internal_registry:
