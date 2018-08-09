@@ -31,7 +31,7 @@ ENV DEBIAN_FRONTEND noninteractive
 #RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 
 # DCSO Required Software
-RUN apt-get update; apt-get upgrade -y; apt-get install -y \ 
+RUN apt-get update -qq; apt-get upgrade -y; apt-get install -y \ 
 locales \
 iputils-ping \
 net-tools \
@@ -41,6 +41,7 @@ supervisor \
 gosu \
 python-pip \
 libfuzzy-dev \
+sudo \
 && apt-get autoremove -y && apt-get clean -y
 ## Installation of libfuzzy-dev is required for pydeep
 
@@ -54,7 +55,7 @@ ENV LANG en_US.UTF-8
 # 1/ Minimal Ubuntu install
 # -------------------------
     # Upgrade System
-    RUN apt-get update -y && apt-get autoremove -y && apt-get clean -y
+    RUN apt-get update -qq -y && apt-get autoremove -y && apt-get clean -y
 
     # ATTENTION Postfix has its own container!
 
