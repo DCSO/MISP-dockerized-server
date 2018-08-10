@@ -68,7 +68,7 @@ build_2.4.93:
 build_2.4.94:
   stage: build
   script:
-  - make build v=2.4.94-debian
+  - make build v=2.4.94-ubuntu
   - make tags
   - make push
 

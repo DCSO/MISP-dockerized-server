@@ -14,7 +14,7 @@
 [4]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.91-ubuntu/Dockerfile
 [5]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.92-ubuntu/Dockerfile
 [6]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.93-ubuntu/Dockerfile
-[7]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.94-debian/Dockerfile
+[7]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.94-ubuntu/Dockerfile
 
 # Quick reference
 
