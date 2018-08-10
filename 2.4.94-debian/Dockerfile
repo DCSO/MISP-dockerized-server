@@ -1,5 +1,4 @@
-#FROM debian:buster
-FROM debian:stable-slim
+FROM debian:buster-slim
 
 #     Variables:
 # for Labels:
