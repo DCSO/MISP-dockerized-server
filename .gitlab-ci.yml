@@ -25,6 +25,8 @@ before_script:
 
 .build_2.4.88:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.88-ubuntu
   - make tags
@@ -32,6 +34,8 @@ before_script:
 
 .build_2.4.89:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.89-ubuntu
   - make tags
@@ -39,6 +43,8 @@ before_script:
 
 .build_2.4.90:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.90-ubuntu
   - make tags
@@ -46,6 +52,8 @@ before_script:
 
 .build_2.4.91:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.91-ubuntu
   - make tags
@@ -53,6 +61,8 @@ before_script:
 
 build_2.4.92:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.92-ubuntu
   - make tags
@@ -60,6 +70,8 @@ build_2.4.92:
 
 build_2.4.93:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.93-ubuntu
   - make tags
@@ -67,6 +79,8 @@ build_2.4.93:
 
 build_2.4.94:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.94-ubuntu
   - make tags
@@ -75,8 +89,8 @@ build_2.4.94:
 
 .upload_image_internal_registry:
   stage: deploy
-  #only: 
-  #- master
+  only: 
+  - master
   script:
     - docker login -u "$INTERNAL_REGISTRY_USER" -p "$INTERNAL_REGISTRY_PW" "$INTERNAL_REGISTRY_HOST"
     - make push
