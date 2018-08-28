@@ -1,6 +1,6 @@
 #!/bin/bash
 # Set an option to exit immediately if any error appears
-set -xe
+set -e
 
 echo  "### Show Images before Tagging:"
 docker images
@@ -39,15 +39,24 @@ for i in $ALL_BUILD_DOCKER_VERSIONS
 do
     VERSION=$(echo $i|cut -d- -f 1)
     BASE=$(echo $i|cut -d- -f 2)
-    # CHECK Alpine Image
+    # Check image base
     if [ $BASE == "alpine" ] ;then
-        #If avaialble tag always alpine as latest
+        # 1st alpine as latest
         [ $VERSION == $LATEST ] && docker tag $DOCKER_REPO:$i $DOCKER_REPO:latest-dev
-        # docker tag $DOCKER_REPO:$i $DOCKER_REPO:$VERSION-dev
-    else if [ $BASE == "ubuntu" -a ! -d "$VERSION-alpine" ] ;then
-        # If no alpine and debian available tag ubuntu
+    else 
+        if [ $BASE == "debian" -a ! -d "$VERSION-alpine" ] ;then
+        # 2nd debian as latest
         [ $VERSION == $LATEST ] && docker tag $DOCKER_REPO:$i $DOCKER_REPO:latest-dev
-        #docker tag $DOCKER_REPO:$i $DOCKER_REPO:$VERSION-dev
+    
+        else 
+            if [ $BASE == "ubuntu" -a ! -d "$VERSION-alpine" -a ! -d "$VERSION-debian" ] ;then
+            # 3rd ubuntu as latest
+            [ $VERSION == $LATEST ] && docker tag $DOCKER_REPO:$i $DOCKER_REPO:latest-dev
+            
+            else 
+                # 4th all other
+                [ $VERSION == $LATEST ] && docker tag $DOCKER_REPO:$i $DOCKER_REPO:latest-dev
+            fi
         fi
     fi
 done
