@@ -44,11 +44,11 @@
 
 [101]: https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=master
 [102]: https://travis-ci.org/DCSO/MISP-dockerized-server
-[103]: https://images.microbadger.com/badges/license/dcso/misp-server.svg
-[104]: https://images.microbadger.com/badges/image/dcso/misp-server.svg
-[105]: https://images.microbadger.com/badges/version/dcso/misp-server.svg
-[106]: https://images.microbadger.com/badges/commit/dcso/misp-server.svg
-[107]: https://microbadger.com/images/dcso/misp-server
+[103]: https://images.microbadger.com/badges/license/dcso/misp-dockerized-server.svg
+[104]: https://images.microbadger.com/badges/image/dcso/misp-dockerized-server.svg
+[105]: https://images.microbadger.com/badges/version/dcso/misp-dockerized-server.svg
+[106]: https://images.microbadger.com/badges/commit/dcso/misp-dockerized-server.svg
+[107]: https://microbadger.com/images/dcso/misp-dockerized-server
 
 
 # How to use this image
