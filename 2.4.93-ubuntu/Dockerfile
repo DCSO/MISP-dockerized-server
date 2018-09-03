@@ -137,6 +137,8 @@ ENV LANG en_US.UTF-8
         git clone https://github.com/CybOXProject/mixbox.git; \
         cd mixbox; python3 setup.py install;
 
+    # pymisp:… Please install pymisp: pip install pymisp
+    RUN pip install pymisp
     # install PyMISP
     RUN cd /var/www/MISP/PyMISP; \
         python3 setup.py install
