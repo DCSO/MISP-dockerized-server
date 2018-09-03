@@ -41,6 +41,7 @@ supervisor \
 gosu \
 python-pip \
 libfuzzy-dev \
+syslog-ng \
 && apt-get autoremove -y && apt-get clean -y
 ## Installation of libfuzzy-dev is required for pydeep
 
@@ -138,7 +139,11 @@ ENV LANG en_US.UTF-8
             git clone https://github.com/CybOXProject/mixbox.git; \
             cd mixbox; python3 setup.py install;
 
+    
     # install PyMISP
+    # pymisp:… Please install pymisp: pip install pymisp
+    RUN pip install pymisp
+    
     RUN cd /var/www/MISP/PyMISP; \
         python3 setup.py install
 
@@ -194,7 +199,7 @@ ENV LANG en_US.UTF-8
     COPY files/misp* /etc/apache2/sites-enabled/
     COPY files/ports.conf /etc/apache2/ports.conf
     RUN chmod 640 /etc/apache2/ports.conf; \
-        chown root.root /etc/apache2/ports.conf \
+        chown root.root /etc/apache2/ports.conf; \
         chmod 640 /etc/apache2/sites-enabled/*; \
         chown root.root /etc/apache2/sites-enabled/*
     # Configure Apache
@@ -265,7 +270,7 @@ ENV LANG en_US.UTF-8
         RUN sudo pecl install ssdeep;
 
         # 7.0 if your PHP 7.0 and you know what to do if you have a different version
-        RUN sudo echo "extension=ssdeep.so" > /etc/php/7.0/mods-available/ssdeep.ini; \
+        RUN sudo echo "extension=ssdeep.so" > /etc/php/7.2/mods-available/ssdeep.ini; \
             sudo phpenmod ssdeep;
 
     # pymisp:… Please install pymisp: pip install pymisp
@@ -296,8 +301,8 @@ RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
 RUN mv /etc/mysql /etc/mysql.orig; \
     mkdir /etc/mysql; \
     rm -Rf /var/lib/mysql/*;
-
-# add own mysql config
+    
+    # add own mysql config
 COPY files/DCSO.cnf /etc/mysql/
 
 # Copy PHP.ini File for PHP Config
@@ -308,6 +313,12 @@ COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
 RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
+
+# Syslog Server
+COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+
+# Add Netdata monitoring
+RUN wget https://my-netdata.io/kickstart.sh; bash kickstart.sh all --non-interactive
 
 # Environment Variables
     # CMD

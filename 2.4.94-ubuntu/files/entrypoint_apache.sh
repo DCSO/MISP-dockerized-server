@@ -1,28 +1,6 @@
 #!/bin/bash
 set -e
 
-function check_and_link_error(){
-    [ -e $1 ] && rm $1;
-    ln -s /dev/stderr $1
-}
-function check_and_link_out(){
-    [ -e $1 ] && rm $1;
-    ln -s /dev/stdout $1
-}
-# For Logfiles
-## APACHE2
-check_and_link_out /var/log/apache2/access.log
-check_and_link_out /var/log/apache2/other_vhosts_access.log
-check_and_link_error /var/log/apache2/error.log
-## MISP LOGS
-#check_and_link_error /var/www/MISP/app/tmp/logs/debug.log
-check_and_link_error /var/www/MISP/app/tmp/logs/resque-scheduler-error.log
-check_and_link_error /var/www/MISP/app/tmp/logs/error.log
-check_and_link_error /var/www/MISP/app/tmp/logs/resque-worker-error.log
-check_and_link_out /var/www/MISP/app/tmp/logs/resque-$(date +%Y-%m-%d).log
-check_and_link_out /var/www/MISP/app/tmp/logs/resque-scheduler-$(date +%Y-%m-%d).log
-
-
 function init_pgp(){
     echo "####################################"
     echo "PGP Key exists and copy it to MISP webroot"
@@ -50,16 +28,16 @@ function init_smime(){
 }
 
 function init_apache() {
-    echo "####################################"
-    echo "started Apache2 with cmd: '$CMD_APACHE'"
-    echo "####################################"
+    echo "####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
     # Apache gets grumpy about PID files pre-existing
     rm -f /run/apache2/apache2.pid
+    #exec apache2 -DFOREGROUND
+    /usr/sbin/apache2ctl -DFOREGROUND $1
+}
+
+function start_workers(){
     # start Workers for MISP
     su -s /bin/bash -c "/var/www/MISP/app/Console/worker/start.sh" www-data
-
-    #exec apache2 -DFOREGROUND
-    /usr/sbin/apache2ctl -DFOREGROUND -E /dev/stderr $1
 }
 
 function add_analyze_column(){
@@ -72,16 +50,22 @@ function add_analyze_column(){
     patch $ORIG_FILE < $PATCH_FILE
 }
 
-function change_php_memory_limit(){
-    FILE="/etc/php/7.0/apache2/php.ini"
-    sed "s/memory_limit = .*/memory_limit = ${PHP_MEMORY}M/" $FILE
+function change_php_vars(){
+    [ -z ${PHP_MEMORY} ] && PHP_MEMORY=512
+    for FILE in $(ls /etc/php/*/apache2/php.ini)
+    do
+        sed -i "s/memory_limit = .*/memory_limit = ${PHP_MEMORY}M/" $FILE
+        sed -i "s/max_execution_time = .*/max_execution_time = 300/" $FILE
+        sed -i "s/upload_max_filesize = .*/upload_max_filesize = 50M/" $FILE
+        sed -i "s/post_max_size = .*/post_max_size = 50M/" $FILE
+    done
 }
 
 function setup_via_cake_cli(){
-    PATH_TO_MISP="/var/www/MISP/"
-    export CAKE="$PATH_TO_MISP/app/Console/cake"
+    PATH_TO_MISP="/var/www/MISP"
+    CAKE="$PATH_TO_MISP/app/Console/cake"
     # Initialize user and fetch Auth Key
-    sudo -E $CAKE userInit -q
+    #sudo -E $CAKE userInit -q
     export AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "SELECT authkey FROM users;" | tail -1)
     # Setup some more MISP default via cake CLI
     # Tune global time outs
@@ -99,18 +83,18 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "Plugin.Enrichment_hover_timeout" 150
     sudo $CAKE Admin setSetting "Plugin.Enrichment_cve_enabled" true
     sudo $CAKE Admin setSetting "Plugin.Enrichment_dns_enabled" true
-    sudo $CAKE Admin setSetting "Plugin.Enrichment_services_url" "http://127.0.0.1"
+    sudo $CAKE Admin setSetting "Plugin.Enrichment_services_url" "http://misp-modules"
     sudo $CAKE Admin setSetting "Plugin.Enrichment_services_port" 6666
     # Enable Import modules set better timout
     sudo $CAKE Admin setSetting "Plugin.Import_services_enable" true
-    sudo $CAKE Admin setSetting "Plugin.Import_services_url" "http://127.0.0.1"
+    sudo $CAKE Admin setSetting "Plugin.Import_services_url" "http://misp-modules"
     sudo $CAKE Admin setSetting "Plugin.Import_services_port" 6666
     sudo $CAKE Admin setSetting "Plugin.Import_timeout" 300
     sudo $CAKE Admin setSetting "Plugin.Import_ocr_enabled" true
     sudo $CAKE Admin setSetting "Plugin.Import_csvimport_enabled" true
     # Enable Export modules set better timout
     sudo $CAKE Admin setSetting "Plugin.Export_services_enable" true
-    sudo $CAKE Admin setSetting "Plugin.Export_services_url" "http://127.0.0.1"
+    sudo $CAKE Admin setSetting "Plugin.Export_services_url" "http://misp-modules"
     sudo $CAKE Admin setSetting "Plugin.Export_services_port" 6666
     sudo $CAKE Admin setSetting "Plugin.Export_timeout" 300
     sudo $CAKE Admin setSetting "Plugin.Export_pdfexport_enabled" true
@@ -154,7 +138,7 @@ function setup_via_cake_cli(){
     # Force defaults to make MISP Server Settings less RED
     sudo $CAKE Admin setSetting "MISP.language" "eng"
     sudo $CAKE Admin setSetting "MISP.proposals_block_attributes" false
-    ## Redis block
+    # Redis block
     sudo $CAKE Admin setSetting "MISP.redis_host" "127.0.0.1"
     sudo $CAKE Admin setSetting "MISP.redis_port" 6379
     sudo $CAKE Admin setSetting "MISP.redis_database" 13
@@ -175,12 +159,13 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "MISP.block_old_event_alert" false
     sudo $CAKE Admin setSetting "MISP.block_old_event_alert_age" ""
     sudo $CAKE Admin setSetting "MISP.incoming_tags_disabled_by_default" false
-    sudo $CAKE Admin setSetting "MISP.footermidleft" "This is an initial install"
-    sudo $CAKE Admin setSetting "MISP.footermidright" "Please configure and harden accordingly"
-    sudo $CAKE Admin setSetting "MISP.welcome_text_top" "Initial Install, please configure"
-    sudo $CAKE Admin setSetting "MISP.welcome_text_bottom" "Welcome to MISP, change this message in MISP Settings"
+    # sudo $CAKE Admin setSetting "MISP.footermidleft" "This is an initial install"
+    # sudo $CAKE Admin setSetting "MISP.footermidright" "Please configure and harden accordingly"
+    # sudo $CAKE Admin setSetting "MISP.welcome_text_top" "Initial Install, please configure"
+    # sudo $CAKE Admin setSetting "MISP.welcome_text_bottom" "Welcome to MISP, change this message in MISP Settings"
+    
     # Force defaults to make MISP Server Settings less GREEN
-    sudo $CAKE Admin setSetting "Security.password_policy_length" 12
+    sudo $CAKE Admin setSetting "Security.password_policy_length" 16
     sudo $CAKE Admin setSetting "Security.password_policy_complexity" '/^((?=.*\d)|(?=.*\W+))(?![\n])(?=.*[A-Z])(?=.*[a-z]).*$|.{16,}/'
     # Tune global time outs
     sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
@@ -195,11 +180,12 @@ function setup_via_cake_cli(){
     # Updating the warning lists…
     sudo $CAKE Admin updateWarningLists
     # Updating the notice lists…
-    ## sudo $CAKE Admin updateNoticeLists
-    curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
+    sudo $CAKE Admin updateNoticeLists
+    #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
+    
     # Updating the object templates…
-    ##sudo $CAKE Admin updateObjectTemplates
-    curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
+    sudo $CAKE Admin updateObjectTemplates
+    #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
 
     # Delete the initial decision file:
     rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
@@ -209,12 +195,18 @@ function setup_via_cake_cli(){
 [ -f "/var/www/MISP/.gnupgp/public.key" ] && init_pgp
 # If certificate exists execute init_smime
 [ -f "/var/www/MISP/.smime/cert.pem" ] && init_smime
-# check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
-[ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ] && setup_via_cake_cli
 
 # If a customer needs a analze column in misp
 [ "$ADD_ANALYZE_COLUMN" == "yes" ] && add_analyze_column
-[ ! -z "$PHP_MEMORY"] && change_php_memory_limit
+
+# Change PHP VARS
+change_php_vars
+
+# start workers
+start_workers
+
+# check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
+[ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
 
 # execute apache
 [ "$CMD_APACHE" != "none" ] && init_apache $CMD_APACHE
