@@ -253,6 +253,7 @@ ENV LANG en_US.UTF-8
 # ADD additionall modules
     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
     RUN pip install pyzmq; \
+        pip3 install pyzmq; \
         pip install redis;
 
 
@@ -270,18 +271,23 @@ ENV LANG en_US.UTF-8
         RUN sudo pecl install ssdeep;
 
         # 7.0 if your PHP 7.0 and you know what to do if you have a different version
-        RUN sudo echo "extension=ssdeep.so" > /etc/php/7.2/mods-available/ssdeep.ini; \
-            sudo phpenmod ssdeep;
+        RUN for FILE in $(ls /etc/php/*/mods-available); \
+            do sudo echo "extension=ssdeep.so" > $FILE/ssdeep.ini; \
+            sudo phpenmod ssdeep; \
+            done;
 
     # pymisp:… Please install pymisp: pip install pymisp
     RUN pip install pymisp
     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-    RUN pip install git+https://github.com/kbandla/pydeep.git
+    RUN pip install git+https://github.com/kbandla/pydeep.git; \
+        pip3 install git+https://github.com/kbandla/pydeep.git;
     # #magic:… Please install python-magic: pip install python-magic.
-    RUN pip install python-magic
+    RUN pip install python-magic; \
+        pip3 install python-magic;
     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
     RUN pip install setuptools --upgrade; \ 
-        pip install lief
+        pip install lief; \
+        pip3 install lief
     # Install maec libraries for STIX
     RUN pip3 install maec
 
