@@ -27,17 +27,19 @@ function init_smime(){
     sudo -u www-data sh -c "chmod 440 /var/www/MISP/app/webroot/public_certificate.pem"
 }
 
+function start_workers(){
+    # start Workers for MISP
+    su -s /bin/bash -c "/var/www/MISP/app/Console/worker/start.sh" www-data
+}
+
 function init_apache() {
     echo "####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
     # Apache gets grumpy about PID files pre-existing
     rm -f /run/apache2/apache2.pid
     #exec apache2 -DFOREGROUND
+    # start workers
+    start_workers
     /usr/sbin/apache2ctl -DFOREGROUND $1
-}
-
-function start_workers(){
-    # start Workers for MISP
-    su -s /bin/bash -c "/var/www/MISP/app/Console/worker/start.sh" www-data
 }
 
 function add_analyze_column(){
@@ -191,6 +193,45 @@ function setup_via_cake_cli(){
     rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
 }
 
+function upgrade(){
+    # OLDEST SUPPORTED VERSION TAG 0.2.0
+    
+    
+    # LIST of VOLUMES:
+    # - misp-vol-server-apache2-config-sites-enabled:/etc/apache2/sites-enabled:ro
+    # - misp-vol-ssl:/etc/apache2/ssl:ro
+    # - misp-vol-pgp:/var/www/MISP/.gnupg
+    # - misp-vol-smime:/var/www/MISP/.smime
+    # - misp-vol-server-MISP-app-Config:/var/www/MISP/app/Config
+    # - misp-vol-server-MISP-cakeresque-config:/var/www/MISP/app/Plugin/CakeResque/Config
+    VOLUMES="/etc/apache2/sites-enabled \
+            /etc/apache2/ssl \
+            /var/www/MISP/.gnupg \
+            /var/www/MISP/.smime \
+            /var/www/MISP/app/Config \
+            /var/www/MISP/app/Plugin/CakeResque/Config \
+            "
+    for v in $VOLUMES
+    do
+        # if no Version Tag exists in VOLUME create one with the current version
+        [ -f $v/$NAME ] || echo "$VERSION" >> $v/$NAME
+
+        case $(echo $v/$NAME) in
+        2.4.92)
+            # Tasks todo in 2.4.92
+            echo "#### Upgrade Volumes from 2.4.92    ####"
+
+        *)
+            echo "Unknown Version, upgrade not possible."
+            exit ()
+        esac
+
+
+
+    done
+
+}
+
 # if secring.pgp exists execute init_pgp
 [ -f "/var/www/MISP/.gnupgp/public.key" ] && init_pgp
 # If certificate exists execute init_smime
@@ -202,11 +243,8 @@ function setup_via_cake_cli(){
 # Change PHP VARS
 change_php_vars
 
-# start workers
-start_workers
-
 # check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
-[ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
+#[ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
 
 # execute apache
 [ "$CMD_APACHE" != "none" ] && init_apache $CMD_APACHE
