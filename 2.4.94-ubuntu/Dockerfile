@@ -349,6 +349,9 @@ RUN wget https://my-netdata.io/kickstart.sh; bash kickstart.sh all --non-interac
     ENV CMD_MYSQL mysqld
     ENV CMD_APACHE none
     ENV CMD_REDIS "redis-server --appendonly yes"
+    # Version + Name
+    ENV NAME ${NAME}
+    ENV VERSION ${VERSION}
     # Environment Variable for Proxy
     ENV HTTP_PROXY=""
     ENV HTTPS_PROXY=""
