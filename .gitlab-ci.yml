@@ -70,8 +70,8 @@ build_2.4.92:
 
 build_2.4.93:
   stage: build
-  only: 
-  - master
+  # only: 
+  # - master
   script:
   - make build v=2.4.93-ubuntu
   - make tags
@@ -79,8 +79,8 @@ build_2.4.93:
 
 build_2.4.94:
   stage: build
-  only: 
-  - master
+  # only: 
+  # - master
   script:
   - make build v=2.4.94-ubuntu
   - make tags
