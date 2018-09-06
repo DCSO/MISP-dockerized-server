@@ -220,10 +220,11 @@ function upgrade(){
         2.4.92)
             # Tasks todo in 2.4.92
             echo "#### Upgrade Volumes from 2.4.92    ####"
-
+            ;;
         *)
             echo "Unknown Version, upgrade not possible."
-            exit ()
+            exit
+            ;;
         esac
 
 
