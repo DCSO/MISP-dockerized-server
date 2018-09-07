@@ -1,6 +1,6 @@
 #!/bin/bash
 # Set an option to exit immediately if any error appears
-set -xe
+set -e
 
 echo  "### Show Images before Tagging:"
 docker images
@@ -8,7 +8,13 @@ docker images
 # Docker Repo e.g. dcso/misp-dockerized-proxy
 [ -z "$(git remote get-url origin|grep git@)" ] || GIT_REPO="$(git remote get-url origin|sed 's,.*:,,'|sed 's,....$,,')"
 [ -z "$(git remote get-url origin|grep http)" ] || GIT_REPO="$(git remote get-url origin|sed 's,.*github.com/,,'|sed 's,....$,,')"
-DOCKER_REPO="dcso/$(echo $GIT_REPO|cut -d / -f 2|tr '[:upper:]' '[:lower:]')"
+[ -z "$GITLAB_HOST" ] || [ -z "$(echo $GIT_REPO|grep $GITLAB_HOST)" ] ||  GIT_REPO="$(git remote get-url origin|sed 's,.*'${GITLAB_HOST}'/'${GITLAB_GROUP}'/,,'|sed 's,....$,,')"
+
+CONTAINER_NAME="$(echo $GIT_REPO|cut -d / -f 2|tr '[:upper:]' '[:lower:]')"
+
+[ -z "$INTERNAL_REGISTRY_HOST" ] && DOCKER_REPO="dcso/$CONTAINER_NAME"
+[ -z "$INTERNAL_REGISTRY_HOST" ] || DOCKER_REPO="$INTERNAL_REGISTRY_HOST/$CONTAINER_NAME"
+
 # Create the Array
 FOLDER_ARRAY=( */)
 FOLDER_ARRAY=( "${FOLDER_ARRAY[@]%/}" )
@@ -26,20 +32,31 @@ LATEST=$(echo ${sorted[$index-1]}|cut -d- -f 1)
 # Lookup to all build versions of the current docker container
 ALL_BUILD_DOCKER_VERSIONS=$(docker images --format '{{.Repository}}={{.Tag}}'|grep $DOCKER_REPO|cut -d = -f 2)
 
+
+
 # Tag Latest + Version Number
 for i in $ALL_BUILD_DOCKER_VERSIONS
 do
     VERSION=$(echo $i|cut -d- -f 1)
     BASE=$(echo $i|cut -d- -f 2)
-    # CHECK Alpine Image
+    # Check image base
     if [ $BASE == "alpine" ] ;then
-        #If avaialble tag always alpine as latest
+        # 1st alpine as latest
         [ $VERSION == $LATEST ] && docker tag $DOCKER_REPO:$i $DOCKER_REPO:latest-dev
-        # docker tag $DOCKER_REPO:$i $DOCKER_REPO:$VERSION-dev
-    else if [ $BASE == "ubuntu" -a ! -d "$VERSION-alpine" ] ;then
-        # If no alpine and debian available tag ubuntu
+    else 
+        if [ $BASE == "debian" -a ! -d "$VERSION-alpine" ] ;then
+        # 2nd debian as latest
         [ $VERSION == $LATEST ] && docker tag $DOCKER_REPO:$i $DOCKER_REPO:latest-dev
-        #docker tag $DOCKER_REPO:$i $DOCKER_REPO:$VERSION-dev
+    
+        else 
+            if [ $BASE == "ubuntu" -a ! -d "$VERSION-alpine" -a ! -d "$VERSION-debian" ] ;then
+            # 3rd ubuntu as latest
+            [ $VERSION == $LATEST ] && docker tag $DOCKER_REPO:$i $DOCKER_REPO:latest-dev
+            
+            else 
+                # 4th all other
+                [ $VERSION == $LATEST ] && docker tag $DOCKER_REPO:$i $DOCKER_REPO:latest-dev
+            fi
         fi
     fi
 done

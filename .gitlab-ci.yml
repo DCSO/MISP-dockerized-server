@@ -1,0 +1,113 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+- build
+- deploy
+
+variables:
+  #CONTAINER_TEST_IMAGE: my-docker-hub/$CI_PROJECT_ID:$CI_BUILD_REF_NAME_test
+  # The following variables are setup via gitlab project group:
+  # DOCKER_HUB_TOKEN
+  # DOCKER_USERNAME
+  # DOCKER_PASSWORD
+  # INTERNAL_REGISTRY_HOST
+  # INTERNAL_REGISTRY_USER
+  # INTERNAL_REGISTRY_PW
+
+before_script:
+- apk add --no-cache make bash sudo git
+- docker login -u "$INTERNAL_REGISTRY_USER" -p "$INTERNAL_REGISTRY_PW" "$INTERNAL_REGISTRY_HOST"
+#- make install
+
+
+.build_2.4.88:
+  stage: build
+  script:
+  - make build v=2.4.88-ubuntu
+  - make tags
+  - make push
+
+.build_2.4.89:
+  stage: build
+  only: 
+  - master
+  script:
+  - make build v=2.4.89-ubuntu
+  - make tags
+  - make push
+
+build_2.4.90:
+  stage: build
+  only: 
+  - master
+  script:
+  - make build v=2.4.90-ubuntu
+  - make tags
+  - make push
+
+build_2.4.91:
+  stage: build
+  only: 
+  - master
+  script:
+  - make build v=2.4.91-ubuntu
+  - make tags
+  - make push
+
+build_2.4.92:
+  stage: build
+  only: 
+  - master
+  script:
+  - make build v=2.4.92-ubuntu
+  - make tags
+  - make push
+
+build_2.4.93:
+  stage: build
+  only: 
+  - master
+  script:
+  - make build v=2.4.93-ubuntu
+  - make tags
+  - make push
+
+build_2.4.94:
+  stage: build
+  script:
+  - make build v=2.4.94-ubuntu
+  - make tags
+  - make push
+
+build_2.4.95:
+  stage: build
+  script:
+  - make build v=2.4.95-ubuntu
+  - make tags
+  - make push
+
+
+.upload_image_internal_registry:
+  stage: deploy
+  only: 
+  - master
+  script:
+    - docker login -u "$INTERNAL_REGISTRY_USER" -p "$INTERNAL_REGISTRY_PW" "$INTERNAL_REGISTRY_HOST"
+    - make push
+
+.upload_image_hub.docker.com:
+  stage: deploy
+  only: 
+  - master
+  script:
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - make push
+
+
+# after_success:
+# # notify Docker Hub to make a new build
+#   only: master
+#   - make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN

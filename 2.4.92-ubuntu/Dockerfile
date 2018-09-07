@@ -1,38 +1,47 @@
 #FROM debian:buster
 FROM ubuntu:16.04
 
-#     Variables:
-# for Labels:
-ARG VENDOR="DCSO GmbH <www.dcso.de>"
-ARG RELEASE_DATE
-ARG IS_PRODUCTION="false"
-ARG MAINTAINER="DCSO MISP <misp@dcso.de>"
+ARG MISP_TAG="2.4.92"
+#     Variables for Labels:
+ARG VENDOR="DCSO GmbH"
+ARG COMPONENT="server"
 ARG BUILD_DATE
-ARG NAME="misp-server"
 ARG GIT_REPO
 ARG VCS_REF
-ARG VERSION
-# for Installation
-ARG MISP_TAG=2.4.92
-ARG python_cybox_TAG=v2.1.0.12
-ARG python_stix_TAG=v1.1.1.4
-ARG mixbox_TAG=v1.0.2
-ARG cake_resque_TAG=4.1.2
+ARG VERSION="${MISP_TAG}"
+ARG NAME="MISP-dockerized-${COMPONENT}"
+ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
+ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
+ARG AUTHOR="DCSO MISP Docker Team <misp.docker@dcso.de>"
+ARG LICENSE="BSD-3-Clause"
 #     END Variables
 
 #########################################
-LABEL vendor=${VENDOR}
-LABEL maintainer=${MAINTAINER}
 LABEL org.label-schema.build-date="${BUILD_DATE}" \
-        org.label-schema.name="MISP-dockerized ${NAME}" \
-        org.label-schema.description="This docker container is part of the DCSO MISP dockerized environment." \
+        org.label-schema.name="${NAME}" \
+        org.label-schema.description="${DESCRIPTION}" \
         org.label-schema.vcs-ref="${VCS_REF}" \
         org.label-schema.vcs-url="${GIT_REPO}" \
+        org.label-schema.url="${GIT_REPO}" \
         org.label-schema.vendor="${VENDOR}" \
-        org.label-schema.version="${MISP_TAG}" \
+        org.label-schema.version="${VERSION}" \
+        org.label-schema.usage="${DOCUMENTATION}" \
         org.label-schema.schema-version="1.0.0-rc1"
 
+LABEL   org.opencontainers.image.created="${BUILD_DATE}" \
+        org.opencontainers.image.url="${GIT_REPO}" \
+        org.opencontainers.image.source="${GIT_REPO}" \
+        org.opencontainers.image.version="${VERSION}" \
+        org.opencontainers.image.revision="${VCS_REF}" \
+        org.opencontainers.image.vendor="${VENDOR}" \
+        org.opencontainers.image.title="${NAME}" \
+        org.opencontainers.image.description="${DESCRIPTION}" \
+        org.opencontainers.image.documentation="${DOCUMENTATION}" \
+        org.opencontainers.image.authors="${AUTHOR}" \
+        org.opencontainers.image.licenses="${LICENSE}"
 #########################################
+
+
 #       Start of MISP Config Part
 
 # Install core components
@@ -44,14 +53,14 @@ RUN apt-get update; apt-get install -y \
 locales \
 iputils-ping \
 net-tools \
-sudo \
 apt-utils \
 wget \
 supervisor \
 gosu \
-sudo \
-gnupg-agent \
+python-pip \
+libfuzzy-dev \
 && apt-get autoremove -y && apt-get clean -y
+## Installation of libfuzzy-dev is required for pydeep
 
 # Set locals
 RUN locale-gen en_US.UTF-8
@@ -201,14 +210,16 @@ ENV LANG en_US.UTF-8
     RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
     COPY files/misp* /etc/apache2/sites-enabled/
     COPY files/ports.conf /etc/apache2/ports.conf
-    RUN chmod 644 /etc/apache2/ports.conf
+    RUN chmod 640 /etc/apache2/ports.conf; \
+        chown root.root /etc/apache2/ports.conf \
+        chmod 640 /etc/apache2/sites-enabled/*; \
+        chown root.root /etc/apache2/sites-enabled/*
     # Configure Apache
     RUN sudo a2dismod status; \
-    sudo a2enmod ssl; \
-    sudo a2enmod rewrite; \
-    sudo a2enmod headers;
-    #sudo a2ensite misp.ssl; \
-    #sudo a2ensite misp;
+        sudo a2enmod ssl; \
+        sudo a2enmod rewrite; \
+        sudo a2enmod headers;
+
 
 
 
@@ -258,6 +269,9 @@ ENV LANG en_US.UTF-8
     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
     RUN pip3 install pyzmq
 
+    # PyMISP
+    RUN pip install pymisp
+
     # For the experimental ssdeep correlations, run the following installation:
     # installing ssdeep
         RUN cd /usr/local/src/; wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz; \
@@ -275,13 +289,17 @@ ENV LANG en_US.UTF-8
         RUN sudo echo "extension=ssdeep.so" > /etc/php/7.0/mods-available/ssdeep.ini; \
             sudo phpenmod ssdeep;
 
+    # pymisp:… Please install pymisp: pip install pymisp
+    RUN pip install pymisp
     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-    RUN pip3 install git+https://github.com/kbandla/pydeep.git
+    RUN pip install git+https://github.com/kbandla/pydeep.git
     # #magic:… Please install python-magic: pip install python-magic.
-    RUN pip3 install python-magic
+    RUN pip install python-magic
     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
     RUN pip install setuptools --upgrade; \ 
-        pip3 install lief
+        pip install lief
+    # Install maec libraries for STIX
+    RUN pip3 install maec
 
 
 #########################################
@@ -316,6 +334,9 @@ COPY files/php.ini /etc/php/7.0/apache2/
 ENV HTTP_PROXY=""
 ENV HTTPS_PROXY=""
 ENV NO_PROXY="0.0.0.0"
+# Version + Name
+ENV NAME ${NAME}
+ENV VERSION ${VERSION}
 
 # CMD
 COPY files/entrypoint*.sh files/init*.sh files/healthcheck.sh /

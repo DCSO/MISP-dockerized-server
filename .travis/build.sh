@@ -23,6 +23,8 @@ fi
 # Find Out Git Hub Repository
 [ -z "$(git remote get-url origin|grep git@)" ] || GIT_REPO="$(git remote get-url origin|sed 's,.*:,,'|sed 's,....$,,')"
 [ -z "$(git remote get-url origin|grep http)" ] || GIT_REPO="$(git remote get-url origin|sed 's,.*github.com/,,'|sed 's,....$,,')"
+[ -z "$(echo $GIT_REPO|grep $GITLAB_HOST)" ] ||  GIT_REPO="$(git remote get-url origin|sed 's,.*'${GITLAB_HOST}'/'${GITLAB_GROUP}'/,,'|sed 's,....$,,')"
+
 GIT_REPO_URL="https://github.com/$GIT_REPO"
 # Dockerifle Settings
 CONTAINER_NAME="$(echo $GIT_REPO|cut -d / -f 2|tr '[:upper:]' '[:lower:]')"
@@ -37,9 +39,17 @@ do
     # load Variables from configuration file
     source $DOCKERFILE_PATH/configuration.sh
     ### Add -dev to tag if dev is set as a second argument
-    [ "$2" == "prod" ] || TAGS="-t $DOCKER_REPO:$FOLD-dev"
-    [ "$2" == "prod" ] && TAGS="-t $DOCKER_REPO:$FOLD"
-
+    if [ "$2" == "prod" ]
+    then
+        # PROD Version
+        TAGS="-t $DOCKER_REPO:$FOLD"
+        [ -z "$INTERNAL_REGISTRY_HOST" ] || TAGS+=" -t $INTERNAL_REGISTRY_HOST/$CONTAINER_NAME:$FOLD"
+    else
+        # DEV Version
+        TAGS="-t $DOCKER_REPO:$FOLD-dev"
+        [ -z "$INTERNAL_REGISTRY_HOST" ] || TAGS+=" -t $INTERNAL_REGISTRY_HOST/$CONTAINER_NAME:$FOLD-dev"
+    fi
+    
     # Default Build Args
     BUILD_ARGS+="
         --build-arg RELEASE_DATE="$(date +"%Y-%m-%d")" \

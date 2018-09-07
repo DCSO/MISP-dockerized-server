@@ -1,6 +1,9 @@
 # Supported tags and respective `Dockerfile` links
 
-- [`2.4.92-ubuntu`, `latest`][5]
+- [`2.4.95-ubuntu`, `latest`][8]
+- [`2.4.94-ubuntu`][7]
+- [`2.4.93-ubuntu`][6]
+- [`2.4.92-ubuntu`][5]
 - [`2.4.91-ubuntu`][4]
 - [`2.4.90-ubuntu`][3]
 - [`2.4.89-ubuntu`][2]
@@ -11,6 +14,9 @@
 [3]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.90-ubuntu/Dockerfile
 [4]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.91-ubuntu/Dockerfile
 [5]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.92-ubuntu/Dockerfile
+[6]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.93-ubuntu/Dockerfile
+[7]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.94-ubuntu/Dockerfile
+[8]: https://github.com/DCSO/MISP-dockerized-server/blob/master/2.4.95-ubuntu/Dockerfile
 
 # Quick reference
 
@@ -40,11 +46,11 @@
 
 [101]: https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=master
 [102]: https://travis-ci.org/DCSO/MISP-dockerized-server
-[103]: https://images.microbadger.com/badges/license/dcso/misp-server.svg
-[104]: https://images.microbadger.com/badges/image/dcso/misp-server.svg
-[105]: https://images.microbadger.com/badges/version/dcso/misp-server.svg
-[106]: https://images.microbadger.com/badges/commit/dcso/misp-server.svg
-[107]: https://microbadger.com/images/dcso/misp-server
+[103]: https://images.microbadger.com/badges/license/dcso/misp-dockerized-server.svg
+[104]: https://images.microbadger.com/badges/image/dcso/misp-dockerized-server.svg
+[105]: https://images.microbadger.com/badges/version/dcso/misp-dockerized-server.svg
+[106]: https://images.microbadger.com/badges/commit/dcso/misp-dockerized-server.svg
+[107]: https://microbadger.com/images/dcso/misp-dockerized-server
 
 
 # How to use this image
