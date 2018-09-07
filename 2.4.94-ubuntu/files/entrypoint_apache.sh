@@ -105,7 +105,7 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "MISP.email" "$SENDER_ADDRESS"
     sudo $CAKE Admin setSetting "MISP.disable_emailing" true
     sudo $CAKE Admin setSetting "MISP.contact" "$SENDER_ADDRESS"
-    #sudo $CAKE Admin setSetting "MISP.disablerestalert" true
+    # sudo $CAKE Admin setSetting "MISP.disablerestalert" true
     # sudo $CAKE Admin setSetting "MISP.showCorrelationsOnIndex" true
     # Provisional Cortex tunes
     # sudo $CAKE Admin setSetting "Plugin.Cortex_services_enable" false
@@ -174,7 +174,7 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "Session.timeout" 600
     sudo $CAKE Admin setSetting "Session.cookie_timeout" 3600
     # Set MISP Live
-    sudo $CAKE Live 1
+    # sudo $CAKE Live 1
     # Update the galaxies…
     # sudo $CAKE Admin updateGalaxies
     # Updating the taxonomies…
