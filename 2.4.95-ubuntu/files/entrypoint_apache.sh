@@ -174,15 +174,15 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "Session.timeout" 600
     sudo $CAKE Admin setSetting "Session.cookie_timeout" 3600
     # Set MISP Live
-    sudo $CAKE Live 1
+    # sudo $CAKE Live 1
     # Update the galaxies…
-    sudo $CAKE Admin updateGalaxies
+    # sudo $CAKE Admin updateGalaxies
     # Updating the taxonomies…
-    sudo $CAKE Admin updateTaxonomies
+    # sudo $CAKE Admin updateTaxonomies
     # Updating the warning lists…
-    sudo $CAKE Admin updateWarningLists
+    # sudo $CAKE Admin updateWarningLists
     # Updating the notice lists…
-    sudo $CAKE Admin updateNoticeLists
+    # sudo $CAKE Admin updateNoticeLists
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
     
     # Updating the object templates…
