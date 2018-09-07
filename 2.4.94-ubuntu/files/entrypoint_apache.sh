@@ -105,70 +105,70 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "MISP.email" "$SENDER_ADDRESS"
     sudo $CAKE Admin setSetting "MISP.disable_emailing" true
     sudo $CAKE Admin setSetting "MISP.contact" "$SENDER_ADDRESS"
-    sudo $CAKE Admin setSetting "MISP.disablerestalert" true
-    sudo $CAKE Admin setSetting "MISP.showCorrelationsOnIndex" true
+    #sudo $CAKE Admin setSetting "MISP.disablerestalert" true
+    # sudo $CAKE Admin setSetting "MISP.showCorrelationsOnIndex" true
     # Provisional Cortex tunes
-    sudo $CAKE Admin setSetting "Plugin.Cortex_services_enable" false
-    sudo $CAKE Admin setSetting "Plugin.Cortex_services_url" "http://127.0.0.1"
-    sudo $CAKE Admin setSetting "Plugin.Cortex_services_port" 9000
-    sudo $CAKE Admin setSetting "Plugin.Cortex_timeout" 120
-    sudo $CAKE Admin setSetting "Plugin.Cortex_services_url" "http://127.0.0.1"
-    sudo $CAKE Admin setSetting "Plugin.Cortex_services_port" 9000
-    sudo $CAKE Admin setSetting "Plugin.Cortex_services_timeout" 120
-    sudo $CAKE Admin setSetting "Plugin.Cortex_services_authkey" ""
-    sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_verify_peer" false
-    sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_verify_host" false
-    sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_allow_self_signed" true
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_services_enable" false
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_services_url" "http://127.0.0.1"
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_services_port" 9000
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_timeout" 120
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_services_url" "http://127.0.0.1"
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_services_port" 9000
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_services_timeout" 120
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_services_authkey" ""
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_verify_peer" false
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_verify_host" false
+    # sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_allow_self_signed" true
     # Various plugin sightings settings
-    sudo $CAKE Admin setSetting "Plugin.Sightings_policy" 0
-    sudo $CAKE Admin setSetting "Plugin.Sightings_anonymise" false
-    sudo $CAKE Admin setSetting "Plugin.Sightings_range" 365
+    # sudo $CAKE Admin setSetting "Plugin.Sightings_policy" 0
+    # sudo $CAKE Admin setSetting "Plugin.Sightings_anonymise" false
+    # sudo $CAKE Admin setSetting "Plugin.Sightings_range" 365
     # Plugin CustomAuth tuneable
-    sudo $CAKE Admin setSetting "Plugin.CustomAuth_disable_logout" false
+    # sudo $CAKE Admin setSetting "Plugin.CustomAuth_disable_logout" false
     # RPZ Plugin settings
-    sudo $CAKE Admin setSetting "Plugin.RPZ_policy" "DROP"
-    sudo $CAKE Admin setSetting "Plugin.RPZ_walled_garden" "127.0.0.1"
-    sudo $CAKE Admin setSetting "Plugin.RPZ_serial" "\$date00"
-    sudo $CAKE Admin setSetting "Plugin.RPZ_refresh" "2h"
-    sudo $CAKE Admin setSetting "Plugin.RPZ_retry" "30m"
-    sudo $CAKE Admin setSetting "Plugin.RPZ_expiry" "30d"
-    sudo $CAKE Admin setSetting "Plugin.RPZ_minimum_ttl" "1h"
-    sudo $CAKE Admin setSetting "Plugin.RPZ_ttl" "1w"
-    sudo $CAKE Admin setSetting "Plugin.RPZ_ns" "localhost."
-    sudo $CAKE Admin setSetting "Plugin.RPZ_ns_alt" ""
-    sudo $CAKE Admin setSetting "Plugin.RPZ_email" "$SENDER_ADDRESS"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_policy" "DROP"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_walled_garden" "127.0.0.1"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_serial" "\$date00"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_refresh" "2h"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_retry" "30m"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_expiry" "30d"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_minimum_ttl" "1h"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_ttl" "1w"
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_ns" "localhost."
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_ns_alt" ""
+    # sudo $CAKE Admin setSetting "Plugin.RPZ_email" "$SENDER_ADDRESS"
     # Force defaults to make MISP Server Settings less RED
     sudo $CAKE Admin setSetting "MISP.language" "eng"
-    sudo $CAKE Admin setSetting "MISP.proposals_block_attributes" false
+    #sudo $CAKE Admin setSetting "MISP.proposals_block_attributes" false
     # Redis block
     sudo $CAKE Admin setSetting "MISP.redis_host" "127.0.0.1"
     sudo $CAKE Admin setSetting "MISP.redis_port" 6379
     sudo $CAKE Admin setSetting "MISP.redis_database" 13
     sudo $CAKE Admin setSetting "MISP.redis_password" ""
     # Force defaults to make MISP Server Settings less YELLOW
-    sudo $CAKE Admin setSetting "MISP.ssdeep_correlation_threshold" 40
-    sudo $CAKE Admin setSetting "MISP.extended_alert_subject" false
-    sudo $CAKE Admin setSetting "MISP.default_event_threat_level" 4
-    sudo $CAKE Admin setSetting "MISP.newUserText" "Dear new MISP user,\\n\\nWe would hereby like to welcome you to the \$org MISP community.\\n\\n Use the credentials below to log into MISP at \$misp, where you will be prompted to manually change your password to something of your own choice.\\n\\nUsername: \$username\\nPassword: \$password\\n\\nIf you have any questions, don't hesitate to contact us at: \$contact.\\n\\nBest regards,\\nYour \$org MISP support team"
-    sudo $CAKE Admin setSetting "MISP.passwordResetText" "Dear MISP user,\\n\\nA password reset has been triggered for your account. Use the below provided temporary password to log into MISP at \$misp, where you will be prompted to manually change your password to something of your own choice.\\n\\nUsername: \$username\\nYour temporary password: \$password\\n\\nIf you have any questions, don't hesitate to contact us at: \$contact.\\n\\nBest regards,\\nYour \$org MISP support team"
-    sudo $CAKE Admin setSetting "MISP.enableEventBlacklisting" true
-    sudo $CAKE Admin setSetting "MISP.enableOrgBlacklisting" true
-    sudo $CAKE Admin setSetting "MISP.log_client_ip" false
-    sudo $CAKE Admin setSetting "MISP.log_auth" false
-    sudo $CAKE Admin setSetting "MISP.disableUserSelfManagement" false
-    sudo $CAKE Admin setSetting "MISP.block_event_alert" false
-    sudo $CAKE Admin setSetting "MISP.block_event_alert_tag" "no-alerts=\"true\""
-    sudo $CAKE Admin setSetting "MISP.block_old_event_alert" false
-    sudo $CAKE Admin setSetting "MISP.block_old_event_alert_age" ""
-    sudo $CAKE Admin setSetting "MISP.incoming_tags_disabled_by_default" false
+    # sudo $CAKE Admin setSetting "MISP.ssdeep_correlation_threshold" 40
+    # sudo $CAKE Admin setSetting "MISP.extended_alert_subject" false
+    # sudo $CAKE Admin setSetting "MISP.default_event_threat_level" 4
+    # sudo $CAKE Admin setSetting "MISP.newUserText" "Dear new MISP user,\\n\\nWe would hereby like to welcome you to the \$org MISP community.\\n\\n Use the credentials below to log into MISP at \$misp, where you will be prompted to manually change your password to something of your own choice.\\n\\nUsername: \$username\\nPassword: \$password\\n\\nIf you have any questions, don't hesitate to contact us at: \$contact.\\n\\nBest regards,\\nYour \$org MISP support team"
+    # sudo $CAKE Admin setSetting "MISP.passwordResetText" "Dear MISP user,\\n\\nA password reset has been triggered for your account. Use the below provided temporary password to log into MISP at \$misp, where you will be prompted to manually change your password to something of your own choice.\\n\\nUsername: \$username\\nYour temporary password: \$password\\n\\nIf you have any questions, don't hesitate to contact us at: \$contact.\\n\\nBest regards,\\nYour \$org MISP support team"
+    # sudo $CAKE Admin setSetting "MISP.enableEventBlacklisting" true
+    # sudo $CAKE Admin setSetting "MISP.enableOrgBlacklisting" true
+    # sudo $CAKE Admin setSetting "MISP.log_client_ip" false
+    # sudo $CAKE Admin setSetting "MISP.log_auth" false
+    # sudo $CAKE Admin setSetting "MISP.disableUserSelfManagement" false
+    # sudo $CAKE Admin setSetting "MISP.block_event_alert" false
+    # sudo $CAKE Admin setSetting "MISP.block_event_alert_tag" "no-alerts=\"true\""
+    # sudo $CAKE Admin setSetting "MISP.block_old_event_alert" false
+    # sudo $CAKE Admin setSetting "MISP.block_old_event_alert_age" ""
+    # sudo $CAKE Admin setSetting "MISP.incoming_tags_disabled_by_default" false
     # sudo $CAKE Admin setSetting "MISP.footermidleft" "This is an initial install"
     # sudo $CAKE Admin setSetting "MISP.footermidright" "Please configure and harden accordingly"
     # sudo $CAKE Admin setSetting "MISP.welcome_text_top" "Initial Install, please configure"
     # sudo $CAKE Admin setSetting "MISP.welcome_text_bottom" "Welcome to MISP, change this message in MISP Settings"
     
     # Force defaults to make MISP Server Settings less GREEN
-    sudo $CAKE Admin setSetting "Security.password_policy_length" 16
-    sudo $CAKE Admin setSetting "Security.password_policy_complexity" '/^((?=.*\d)|(?=.*\W+))(?![\n])(?=.*[A-Z])(?=.*[a-z]).*$|.{16,}/'
+    # sudo $CAKE Admin setSetting "Security.password_policy_length" 16
+    # sudo $CAKE Admin setSetting "Security.password_policy_complexity" '/^((?=.*\d)|(?=.*\W+))(?![\n])(?=.*[A-Z])(?=.*[a-z]).*$|.{16,}/'
     # Tune global time outs
     sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
     sudo $CAKE Admin setSetting "Session.timeout" 600
@@ -176,17 +176,17 @@ function setup_via_cake_cli(){
     # Set MISP Live
     sudo $CAKE Live 1
     # Update the galaxies…
-    sudo $CAKE Admin updateGalaxies
+    # sudo $CAKE Admin updateGalaxies
     # Updating the taxonomies…
-    sudo $CAKE Admin updateTaxonomies
+    # sudo $CAKE Admin updateTaxonomies
     # Updating the warning lists…
-    sudo $CAKE Admin updateWarningLists
+    # sudo $CAKE Admin updateWarningLists
     # Updating the notice lists…
-    sudo $CAKE Admin updateNoticeLists
+    # sudo $CAKE Admin updateNoticeLists
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
     
     # Updating the object templates…
-    sudo $CAKE Admin updateObjectTemplates
+    # sudo $CAKE Admin updateObjectTemplates
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
 
     # Delete the initial decision file:
