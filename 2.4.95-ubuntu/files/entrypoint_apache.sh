@@ -245,7 +245,7 @@ function upgrade(){
 change_php_vars
 
 # check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
-#[ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
+[ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
 
 # execute apache
 [ "$CMD_APACHE" != "none" ] && init_apache $CMD_APACHE
