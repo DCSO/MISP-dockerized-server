@@ -77,7 +77,7 @@ function setup_via_cake_cli(){
     # Enable GnuPG
     sudo $CAKE Admin setSetting "GnuPG.email" "$SENDER_ADDRESS"
     sudo $CAKE Admin setSetting "GnuPG.homedir" "$PATH_TO_MISP/.gnupg"
-    sudo $CAKE Admin setSetting "GnuPG.password" ""
+    #sudo $CAKE Admin setSetting "GnuPG.password" ""
     # Enable Enrichment set better timeouts
     sudo $CAKE Admin setSetting "Plugin.Enrichment_services_enable" true
     sudo $CAKE Admin setSetting "Plugin.Enrichment_hover_enable" true
@@ -105,8 +105,8 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "MISP.email" "$SENDER_ADDRESS"
     sudo $CAKE Admin setSetting "MISP.disable_emailing" true
     sudo $CAKE Admin setSetting "MISP.contact" "$SENDER_ADDRESS"
-    sudo $CAKE Admin setSetting "MISP.disablerestalert" true
-    sudo $CAKE Admin setSetting "MISP.showCorrelationsOnIndex" true
+    # sudo $CAKE Admin setSetting "MISP.disablerestalert" true
+    # sudo $CAKE Admin setSetting "MISP.showCorrelationsOnIndex" true
     # Provisional Cortex tunes
     # sudo $CAKE Admin setSetting "Plugin.Cortex_services_enable" false
     # sudo $CAKE Admin setSetting "Plugin.Cortex_services_url" "http://127.0.0.1"
@@ -124,7 +124,7 @@ function setup_via_cake_cli(){
     # sudo $CAKE Admin setSetting "Plugin.Sightings_anonymise" false
     # sudo $CAKE Admin setSetting "Plugin.Sightings_range" 365
     # Plugin CustomAuth tuneable
-    sudo $CAKE Admin setSetting "Plugin.CustomAuth_disable_logout" false
+    # sudo $CAKE Admin setSetting "Plugin.CustomAuth_disable_logout" false
     # RPZ Plugin settings
     # sudo $CAKE Admin setSetting "Plugin.RPZ_policy" "DROP"
     # sudo $CAKE Admin setSetting "Plugin.RPZ_walled_garden" "127.0.0.1"
@@ -139,7 +139,7 @@ function setup_via_cake_cli(){
     # sudo $CAKE Admin setSetting "Plugin.RPZ_email" "$SENDER_ADDRESS"
     # Force defaults to make MISP Server Settings less RED
     sudo $CAKE Admin setSetting "MISP.language" "eng"
-    # sudo $CAKE Admin setSetting "MISP.proposals_block_attributes" false
+    #sudo $CAKE Admin setSetting "MISP.proposals_block_attributes" false
     # Redis block
     sudo $CAKE Admin setSetting "MISP.redis_host" "127.0.0.1"
     sudo $CAKE Admin setSetting "MISP.redis_port" 6379
@@ -186,7 +186,7 @@ function setup_via_cake_cli(){
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
     
     # Updating the object templates…
-    sudo $CAKE Admin updateObjectTemplates
+    # sudo $CAKE Admin updateObjectTemplates
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
 
     # Delete the initial decision file:

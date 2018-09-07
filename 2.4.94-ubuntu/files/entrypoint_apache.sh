@@ -77,7 +77,7 @@ function setup_via_cake_cli(){
     # Enable GnuPG
     sudo $CAKE Admin setSetting "GnuPG.email" "$SENDER_ADDRESS"
     sudo $CAKE Admin setSetting "GnuPG.homedir" "$PATH_TO_MISP/.gnupg"
-    sudo $CAKE Admin setSetting "GnuPG.password" ""
+    #sudo $CAKE Admin setSetting "GnuPG.password" ""
     # Enable Enrichment set better timeouts
     sudo $CAKE Admin setSetting "Plugin.Enrichment_services_enable" true
     sudo $CAKE Admin setSetting "Plugin.Enrichment_hover_enable" true
