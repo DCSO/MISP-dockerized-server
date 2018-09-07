@@ -1,33 +1,47 @@
 #FROM debian:buster
 FROM ubuntu:16.04
 
-#     Variables:
-# for Labels:
-ARG VENDOR="DCSO GmbH <www.dcso.de>"
-ARG NAME="server"
+ARG MISP_TAG="2.4.92"
+#     Variables for Labels:
+ARG VENDOR="DCSO GmbH"
+ARG COMPONENT="server"
 ARG BUILD_DATE
 ARG GIT_REPO
 ARG VCS_REF
-ARG VERSION
-# for Installation
-ARG MISP_TAG=2.4.92
-ARG python_cybox_TAG=v2.1.0.12
-ARG python_stix_TAG=v1.1.1.4
-ARG mixbox_TAG=v1.0.2
-ARG cake_resque_TAG=4.1.2
+ARG VERSION="${MISP_TAG}"
+ARG NAME="MISP-dockerized-${COMPONENT}"
+ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
+ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
+ARG AUTHOR="DCSO MISP Docker Team <misp.docker@dcso.de>"
+ARG LICENSE="BSD-3-Clause"
 #     END Variables
 
 #########################################
 LABEL org.label-schema.build-date="${BUILD_DATE}" \
-        org.label-schema.name="MISP-dockerized-${NAME}" \
-        org.label-schema.description="This docker container is part of the DCSO MISP dockerized environment." \
+        org.label-schema.name="${NAME}" \
+        org.label-schema.description="${DESCRIPTION}" \
         org.label-schema.vcs-ref="${VCS_REF}" \
         org.label-schema.vcs-url="${GIT_REPO}" \
+        org.label-schema.url="${GIT_REPO}" \
         org.label-schema.vendor="${VENDOR}" \
-        org.label-schema.version="${MISP_TAG}" \
+        org.label-schema.version="${VERSION}" \
+        org.label-schema.usage="${DOCUMENTATION}" \
         org.label-schema.schema-version="1.0.0-rc1"
 
+LABEL   org.opencontainers.image.created="${BUILD_DATE}" \
+        org.opencontainers.image.url="${GIT_REPO}" \
+        org.opencontainers.image.source="${GIT_REPO}" \
+        org.opencontainers.image.version="${VERSION}" \
+        org.opencontainers.image.revision="${VCS_REF}" \
+        org.opencontainers.image.vendor="${VENDOR}" \
+        org.opencontainers.image.title="${NAME}" \
+        org.opencontainers.image.description="${DESCRIPTION}" \
+        org.opencontainers.image.documentation="${DOCUMENTATION}" \
+        org.opencontainers.image.authors="${AUTHOR}" \
+        org.opencontainers.image.licenses="${LICENSE}"
 #########################################
+
+
 #       Start of MISP Config Part
 
 # Install core components
@@ -320,6 +334,9 @@ COPY files/php.ini /etc/php/7.0/apache2/
 ENV HTTP_PROXY=""
 ENV HTTPS_PROXY=""
 ENV NO_PROXY="0.0.0.0"
+# Version + Name
+ENV NAME ${NAME}
+ENV VERSION ${VERSION}
 
 # CMD
 COPY files/entrypoint*.sh files/init*.sh files/healthcheck.sh /
