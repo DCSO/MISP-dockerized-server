@@ -89,6 +89,12 @@ build_2.4.95:
   - make tags
   - make push
 
+build_nightly:
+  stage: build
+  script:
+  - make build v=nightly-ubuntu
+  - make tags
+  - make push
 
 .upload_image_internal_registry:
   stage: deploy
