@@ -10,14 +10,15 @@ env:
   # Docker Hub Token
   - secure: "aJ1I2CaABPgMtrkn2mm8sIbgnXMXa9rSKIVDAWds07U/od5GVzCSBgFZhmYcfkZjxrrs75ArRXhhAEEZHfONeuxsz3S8vCksw+6jh13zWpTPtFOkWEPczhkuxH5K8iY1Fp1AnOVZMSSpkmqNUB2+dNLgvfOpw2pb9y43W4G11GFpdVH0nrwGQeTOfPNsIe24tgR2LrQWCElAjJZgZieB5ptQlIyfKh9fD8MfR0WWL68MBCJZcZagt5oE4BMt0liZEu6ARNdsAW4to0bbuvsfoBcYwztqgMWvoSEWJQkGjpzPUKqMxSqqyEQHr0CVj4yzKpxYufsRtamDJxte86pSV20pNMzgY3iIriXlApDvdEI1kwm55fI2GXLTiuErLpCdwqtreS1ygtuSnYNJ4uYiKHM0OXLfS/ta/hPVScMCStt/ttGolrwumsIpAOOLR0RoMbbV1PjLwxXStomePMsa7bTt2ruCkV3yK2nArRDK5lluENbU8L4x4LPtoOGGlT3J6gPV+ZOdUf676aZVAVZDum20Oq35xvFCqiATn9StytZo0aGXqGHmGNuqz+FUHv4sQ5qN+7SWKUxokQ7A4/gM3lX1pYgDE6D1lgUs9/pOxUxCxCCvsFqU4n2pkcYj0wThy7AcQiFcZf7Z63y2bnQCWAQADEpzPH5mVuPiRDxBx5U="
   matrix:
-  #- VERSION=2.4.88-ubuntu
-  #- VERSION=2.4.89-ubuntu
-  #- VERSION=2.4.90-ubuntu
+  - VERSION=2.4.88-ubuntu
+  - VERSION=2.4.89-ubuntu
+  - VERSION=2.4.90-ubuntu
   - VERSION=2.4.91-ubuntu
   - VERSION=2.4.92-ubuntu
   - VERSION=2.4.93-ubuntu
   - VERSION=2.4.94-ubuntu
   - VERSION=2.4.95-ubuntu
+  - VERSION=2.4.96-ubuntu
 
 before_install:
 - make install
