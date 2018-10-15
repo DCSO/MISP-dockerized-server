@@ -337,9 +337,6 @@ RUN mv /etc/mysql /etc/mysql.orig; \
     # add own mysql config
 COPY files/DCSO.cnf /etc/mysql/
 
-# Copy PHP.ini File for PHP Config
-COPY files/php.ini /etc/php/7.0/apache2/
-
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 

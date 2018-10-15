@@ -1,5 +1,9 @@
 #!/bin/bash
 set -e
+export DEBIAN_FRONTEND=noninteractive
+
+PGP_ENABLE=0
+SMIME_ENABLE=0
 
 function init_pgp(){
     echo "####################################"
@@ -34,11 +38,12 @@ function start_workers(){
 
 function init_apache() {
     echo "####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
+
     # Apache gets grumpy about PID files pre-existing
     rm -f /run/apache2/apache2.pid
-    #exec apache2 -DFOREGROUND
     # start workers
     start_workers
+    # execute APACHE2
     /usr/sbin/apache2ctl -DFOREGROUND $1
 }
 
@@ -61,6 +66,51 @@ function change_php_vars(){
         sed -i "s/upload_max_filesize = .*/upload_max_filesize = 50M/" $FILE
         sed -i "s/post_max_size = .*/post_max_size = 50M/" $FILE
     done
+}
+
+function init_misp_config(){
+    CONFIG_FILE=/var/www/MISP/app/Config/config.php
+    # defaults
+    [ -z $MYSQL_HOST ] && MYSQL_HOST=localhost
+    [ -z $MYSQL_USER ] && MYSQL_USER=misp
+    [ -z $MISP_FQDN ] && MISP_FQDN=`hostname`
+    [ -z $SENDER_ADDRESS ] && SENDER_ADDRESS=`hostname`
+    [ -z $MISP_SALT ] && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
+
+    echo "Configure MISP | Copy MISP default configuration files"
+    [ -f /var/www/MISP/Config/bootstrap.php ] || cp /var/www/MISP/Config/bootstrap.default /var/www/MISP/Config/bootstrap.php
+    [ -f /var/www/MISP/Config/database.php ] || cp /var/www/MISP/Config/database.default /var/www/MISP/Config/database.php
+    [ -f /var/www/MISP/Config/core.php ] || cp /var/www/MISP/Config/core.default /var/www/MISP/Config/core.php
+    [ -f /var/www/MISP/Config/config.php ] || cp /var/www/MISP/Config/config.default /var/www/MISP/Config/config.php
+
+    echo "Configure MISP | Set DB User, Password and Host in database.php"
+    sed -i "s/localhost/$MYSQL_HOST/" /var/www/MISP/Config/database.php
+    sed -i "s/db\s*login/$MYSQL_USER/" /var/www/MISP/Config/database.php
+    sed -i "s/8889/3306/" /var/www/MISP/Config/database.php
+    sed -i "s/db\s*password/$MYSQL_PASSWORD/" /var/www/MISP/Config/database.php
+
+    echo "Configure MISP | Set MISP-Url in config.php"
+    sed -i "s/'baseurl' => '',/'baseurl' => '$MISP_FQDN',/" /var/www/MISP/app/Config/config.php
+
+    echo "Configure MISP | Set Email in config.php"
+    sed -i "s/email@address.com/$SENDER_ADDRESS/" /var/www/MISP/app/Config/config.php
+    
+    echo "Configure MISP | Set Admin Email in config.php"
+    sed -i "s/admin@misp.example.com/$SENDER_ADDRESS/" /var/www/MISP/app/Config/config.php
+
+    echo "Configure MISP | Set GNUPG Homedir in config.php"
+    sed -i "s/'homedir' => ''/'homedir'                        => '/var/www/MISP/.gnupg'/" /var/www/MISP/app/Config/config.php
+
+    echo "Configure MISP | Change Salt in config.php"
+    sed -i "s/'salt'\\s*=>\\s*''/'salt'                        => '$MISP_SALT'/" 
+
+    ##### Check permissions #####
+    echo "Configure MISP | Check permissions"
+    chmod -R 0750 /var/www/MISP
+    chmod -R g+ws /var/www/MISP/app/tmp
+    chmod -R g+ws /var/www/MISP/app/files
+    chown -R www-data.wwww-data /var/www/MISP
+
 }
 
 function setup_via_cake_cli(){
@@ -188,14 +238,11 @@ function setup_via_cake_cli(){
     # Updating the object templates…
     # sudo $CAKE Admin updateObjectTemplates
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
-
-    # Delete the initial decision file:
-    rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
 }
 
 function upgrade(){
     # OLDEST SUPPORTED VERSION TAG 0.2.0
-    
+
     
     # LIST of VOLUMES:
     # - misp-vol-server-apache2-config-sites-enabled:/etc/apache2/sites-enabled:ro
@@ -233,19 +280,64 @@ function upgrade(){
 
 }
 
-# if secring.pgp exists execute init_pgp
-[ -f "/var/www/MISP/.gnupgp/public.key" ] && init_pgp
-# If certificate exists execute init_smime
-[ -f "/var/www/MISP/.smime/cert.pem" ] && init_smime
 
 # If a customer needs a analze column in misp
-[ "$ADD_ANALYZE_COLUMN" == "yes" ] && add_analyze_column
+echo "check if analyze column should be added..."
+    [ "$ADD_ANALYZE_COLUMN" == "yes" ] && add_analyze_column
 
 # Change PHP VARS
-change_php_vars
+echo "check if PHP values should be changed..."
+    change_php_vars
+
+##### PGP configs #####
+echo "check if PGP should be enabled...."
+    [ -z $PGP_ENABLE ] && PGP_ENABLE=0 # false
+    [ $PGP_ENABLE == "y" ] && PGP_ENABLE=1 && init_pgp
+    # if secring.pgp exists execute init_pgp
+    [ -f "/var/www/MISP/.gnupgp/public.key" ] && init_pgp
+
+echo "check if SMIME should be enabled..."
+    [ -z $SMIME_ENABLE ] && SMIME_ENABLE=0 # false 
+    [ $SMIME_ENABLE == "y" ] && SMIME_ENABLE=1 && init_smime
+    # If certificate exists execute init_smime
+    [ -f "/var/www/MISP/.smime/cert.pem" ] && init_smime
+
+##### enable https config and disable http config ####
+echo "check if HTTPS MISP config should be enabled..."
+    [ -f /etc/apache2/sites-enabled/misp.ssl.conf ] || mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
+
+echo "check if HTTP MISP config should be disabled..."
+    [ -f /etc/apache2/sites-enabled/misp.http ] || mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
+
+# initialize MISP-SERVER
+echo "check if misp-config should be initialized..."
+    [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ] && init_misp_config
 
 # check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
-[ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
+echo "check if cake setup should be initialized..."
+    [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
+
+# Delete the initial decision file & reboot misp-server
+echo "check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
+[ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "delete init config file and reboot" && sleep 2 && rm "/var/www/MISP/app/Config/NOT_CONFIGURED" && reboot
+
+
+# Display tips
+cat <<__WELCOME__
+Congratulations!
+Your MISP docker has been successfully booted for the first time.
+" ###########	MISP environment is ready	###########"
+" Please go to: ${MYSQL_HOST}"
+" Login credentials:"
+"      Username: admin@admin.test"
+"      Password: admin"
+	
+" Do not forget to change your SSL certificate with:    make change-ssl"
+" ##########################################################"
+Congratulations!
+Your MISP docker has been successfully booted for the first time.
+__WELCOME__
+
 
 # execute apache
 [ "$CMD_APACHE" != "none" ] && init_apache $CMD_APACHE
