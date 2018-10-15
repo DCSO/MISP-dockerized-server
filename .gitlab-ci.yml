@@ -89,6 +89,13 @@ build_2.4.95:
   - make tags
   - make push
 
+build_2.4.96:
+  stage: build
+  script:
+  - make build v=2.4.96-ubuntu
+  - make tags
+  - make push
+
 
 .upload_image_internal_registry:
   stage: deploy
