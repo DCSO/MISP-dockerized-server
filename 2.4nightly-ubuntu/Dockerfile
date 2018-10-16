@@ -49,7 +49,8 @@ ENV DEBIAN_FRONTEND noninteractive
 #RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 
 # DCSO Required Software
-RUN apt-get update; apt-get upgrade -y; apt-get install -y \ 
+## Installation of libfuzzy-dev is required for pydeep
+RUN apt-get install -y \ 
 locales \
 iputils-ping \
 net-tools \
@@ -61,7 +62,7 @@ python-pip \
 libfuzzy-dev \
 syslog-ng \
 && apt-get autoremove -y && apt-get clean -y
-## Installation of libfuzzy-dev is required for pydeep
+
 
 
 # Set locals

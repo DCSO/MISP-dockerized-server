@@ -41,7 +41,7 @@ do
     BASE=$(echo $i|cut -d- -f 2)
     
     # Check if it is the nightly build and really latest:
-    [ "$VERSION" == *"nightly"* ] || continue
+    [[ "$VERSION" == *"nightly"* ]] || continue
     
     # Check image base
     if [ $BASE == "alpine" ] ;then
