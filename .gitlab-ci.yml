@@ -89,10 +89,10 @@ build_2.4.95:
   - make tags
   - make push
 
-build_nightly:
+build_2.4nightly:
   stage: build
   script:
-  - make build v=nightly-ubuntu
+  - make build v=2.4nightly-ubuntu
   - make tags
   - make push
 
