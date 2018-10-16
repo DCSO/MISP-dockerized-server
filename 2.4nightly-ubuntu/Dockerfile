@@ -50,7 +50,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # DCSO Required Software
 ## Installation of libfuzzy-dev is required for pydeep
-RUN apt-get install -y \ 
+RUN apt-get update -y; apt-get install -y \ 
 locales \
 iputils-ping \
 net-tools \
