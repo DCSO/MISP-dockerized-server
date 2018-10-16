@@ -1,6 +1,6 @@
 #!/bin/bash
 # Set an option to exit immediately if any error appears
-set -e
+set -exv
 
 echo  "### Show Images before Tagging:"
 docker images

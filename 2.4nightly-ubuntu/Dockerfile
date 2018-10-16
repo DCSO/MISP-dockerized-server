@@ -331,9 +331,6 @@ RUN mv /etc/mysql /etc/mysql.orig; \
     # add own mysql config
 COPY files/DCSO.cnf /etc/mysql/
 
-# Copy PHP.ini File for PHP Config
-COPY files/php.ini /etc/php/7.0/apache2/
-
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
@@ -342,9 +339,6 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # Syslog Server
 COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-
-# Add Netdata monitoring
-RUN wget https://my-netdata.io/kickstart.sh; bash kickstart.sh all --non-interactive
 
 # Environment Variables
     # CMD
@@ -358,7 +352,6 @@ RUN wget https://my-netdata.io/kickstart.sh; bash kickstart.sh all --non-interac
     ENV HTTP_PROXY=""
     ENV HTTPS_PROXY=""
     ENV NO_PROXY="0.0.0.0"
-
 
 # Entrypoints
     # CMD
