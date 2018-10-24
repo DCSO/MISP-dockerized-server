@@ -19,7 +19,8 @@ env:
   - VERSION=2.4.94-ubuntu
   - VERSION=2.4.95-ubuntu
   - VERSION=2.4.96-ubuntu
-
+  - VERSION=2.4.nightly-ubuntu
+  
 before_install:
 - make install
 
