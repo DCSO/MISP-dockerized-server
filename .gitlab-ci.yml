@@ -25,6 +25,8 @@ before_script:
 
 .build_2.4.88:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.88-ubuntu
   - make tags
@@ -77,6 +79,8 @@ build_2.4.93:
 
 build_2.4.94:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.94-ubuntu
   - make tags
@@ -84,11 +88,21 @@ build_2.4.94:
 
 build_2.4.95:
   stage: build
+  only: 
+  - master
   script:
   - make build v=2.4.95-ubuntu
   - make tags
   - make push
 
+build_2.4.nightly:
+  stage: build
+  only: 
+  - master
+  script:
+  - make build v=2.4.nightly-ubuntu
+  - make tags
+  - make push
 
 .upload_image_internal_registry:
   stage: deploy

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Set an option to exit immediately if any error appears
-set -e
+set -exv
 
 echo  "### Show Images before Tagging:"
 docker images
@@ -39,6 +39,10 @@ for i in $ALL_BUILD_DOCKER_VERSIONS
 do
     VERSION=$(echo $i|cut -d- -f 1)
     BASE=$(echo $i|cut -d- -f 2)
+    
+    # Check if it is the nightly build and really latest:
+    [[ "$VERSION" == *"nightly"* ]] || continue
+    
     # Check image base
     if [ $BASE == "alpine" ] ;then
         # 1st alpine as latest
