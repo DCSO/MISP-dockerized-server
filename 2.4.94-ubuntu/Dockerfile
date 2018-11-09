@@ -1,5 +1,4 @@
-#FROM debian:buster
-FROM ubuntu:latest
+FROM ubuntu:18.04
 
 ARG MISP_TAG="2.4.94"
 #     Variables for Labels:

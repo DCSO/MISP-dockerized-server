@@ -1,5 +1,5 @@
 #FROM debian:buster
-FROM ubuntu:latest
+FROM ubuntu:18.04
 
 ARG MISP_TAG="2.4.96"
 #     Variables for Labels:
@@ -354,6 +354,7 @@ COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
     # Version + Name
     ENV NAME ${NAME}
     ENV VERSION ${VERSION}
+    ENV RELEASE_DATE ${RELEASE_DATE}
     # Environment Variable for Proxy
     ENV HTTP_PROXY=""
     ENV HTTPS_PROXY=""
