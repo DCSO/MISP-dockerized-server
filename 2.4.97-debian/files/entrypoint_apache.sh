@@ -4,6 +4,18 @@ export DEBIAN_FRONTEND=noninteractive
 
 PGP_ENABLE=0
 SMIME_ENABLE=0
+MISP_APP_PATH=/var/www/MISP/app
+MISP_APP_CONFIG_PATH=$MISP_APP_PATH/Config
+MISP_CONFIG=$MISP_APP_CONFIG_PATH/config.php
+DATABASE_CONFIG=$MISP_APP_CONFIG_PATH/database.php
+EMAIL_CONFIG=$MISP_APP_CONFIG_PATH/email.php
+# defaults
+[ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
+[ -z $MYSQL_USER ] && export MYSQL_USER=misp
+[ -z $MISP_FQDN ] && export MISP_FQDN=`hostname`
+[ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS=`hostname`
+[ -z $MISP_SALT ] && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
+[ -z $CAKE ] && export CAKE="$MISP_APP_PATH/Console/cake"
 
 function init_pgp(){
     echo "####################################"
@@ -69,17 +81,6 @@ function change_php_vars(){
 }
 
 function init_misp_config(){
-    MISP_APP_PATH=/var/www/MISP/app
-    MISP_APP_CONFIG_PATH=$MISP_APP_PATH/Config
-    MISP_CONFIG=$MISP_APP_CONFIG_PATH/config.php
-    DATABASE_CONFIG=$MISP_APP_CONFIG_PATH/database.php
-    # defaults
-    [ -z $MYSQL_HOST ] && MYSQL_HOST=localhost
-    [ -z $MYSQL_USER ] && MYSQL_USER=misp
-    [ -z $MISP_FQDN ] && MISP_FQDN=`hostname`
-    [ -z $SENDER_ADDRESS ] && SENDER_ADDRESS=`hostname`
-    [ -z $MISP_SALT ] && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
-
     echo "Configure MISP | Copy MISP default configuration files"
     [ -f $MISP_APP_CONFIG_PATH/bootstrap.php ] || cp $MISP_APP_CONFIG_PATH/bootstrap.default.php $MISP_APP_CONFIG_PATH/bootstrap.php
     [ -f $MISP_APP_CONFIG_PATH/database.php ] || cp $MISP_APP_CONFIG_PATH/database.default.php $MISP_APP_CONFIG_PATH/database.php
@@ -101,27 +102,30 @@ function init_misp_config(){
     echo "Configure MISP | Set Admin Email in config.php"
     sed -i "s/admin@misp.example.com/$SENDER_ADDRESS/" $MISP_CONFIG
 
-    echo "Configure MISP | Set GNUPG Homedir in config.php"
-    sed -i "s,'homedir' => '/',homedir'                        => '/var/www/MISP/.gnupg'," $MISP_CONFIG
+    # echo "Configure MISP | Set GNUPG Homedir in config.php"
+    # sed -i "s,'homedir' => '/',homedir'                        => '/var/www/MISP/.gnupg'," $MISP_CONFIG
 
     echo "Configure MISP | Change Salt in config.php"
     sed -i "s/'salt'\\s*=>\\s*''/'salt'                        => '$MISP_SALT'/" $MISP_CONFIG
 
+    echo "Configure MISP | Change Mail type from phpmailer to smtp"
+    sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
+
+
     ##### Check permissions #####
     echo "Configure MISP | Check permissions"
+    chown -R www-data.www-data /var/www/MISP
     chmod -R 0750 /var/www/MISP
     chmod -R g+ws /var/www/MISP/app/tmp
     chmod -R g+ws /var/www/MISP/app/files
-    chown -R www-data /var/www/MISP
+    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
 
 }
 
 function setup_via_cake_cli(){
-    PATH_TO_MISP="/var/www/MISP"
-    CAKE="$PATH_TO_MISP/app/Console/cake"
     # Initialize user and fetch Auth Key
     #sudo -E $CAKE userInit -q
-    export AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "SELECT authkey FROM users;" | tail -1)
+    AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | tail -1)
     # Setup some more MISP default via cake CLI
     # Tune global time outs
     sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
@@ -161,7 +165,7 @@ function setup_via_cake_cli(){
     # sudo $CAKE Admin setSetting "MISP.disablerestalert" true
     # sudo $CAKE Admin setSetting "MISP.showCorrelationsOnIndex" true
     # Provisional Cortex tunes
-    # sudo $CAKE Admin setSetting "Plugin.Cortex_services_enable" false
+    sudo $CAKE Admin setSetting "Plugin.Cortex_services_enable" false
     # sudo $CAKE Admin setSetting "Plugin.Cortex_services_url" "http://127.0.0.1"
     # sudo $CAKE Admin setSetting "Plugin.Cortex_services_port" 9000
     # sudo $CAKE Admin setSetting "Plugin.Cortex_timeout" 120
@@ -229,11 +233,11 @@ function setup_via_cake_cli(){
     # Set MISP Live
     # sudo $CAKE Live 1
     # Update the galaxies…
-    # sudo $CAKE Admin updateGalaxies
+    sudo $CAKE Admin updateGalaxies
     # Updating the taxonomies…
-    # sudo $CAKE Admin updateTaxonomies
+    sudo $CAKE Admin updateTaxonomies
     # Updating the warning lists…
-    # sudo $CAKE Admin updateWarningLists
+    sudo $CAKE Admin updateWarningLists
     # Updating the notice lists…
     # sudo $CAKE Admin updateNoticeLists
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
@@ -241,6 +245,26 @@ function setup_via_cake_cli(){
     # Updating the object templates…
     # sudo $CAKE Admin updateObjectTemplates
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
+}
+
+function create_ssl_cert(){
+    # If a valid SSL certificate is not already created for the server, create a self-signed certificate:
+    sudo openssl req -newkey rsa:4096 -days 3650 -nodes -x509 \
+    -subj "/C=${OPENSSL_C}/ST=${OPENSSL_ST}/L=${OPENSSL_L}/O=${OPENSSL_O}/OU=${OPENSSL_OU}/CN=${NAME}/emailAddress=${OPENSSL_EMAILADDRESS}" \
+    -keyout /etc/apache2/ssl/key.pem -out /etc/apache2/ssl/cert.pem
+}
+
+function check_mysql(){
+    # test if mysqld is ready
+    i=0
+    while(true)
+    do
+        [ -z "$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST -e 'select 1;'|tail -1|grep ERROR)" ] && break;
+        echo "Mysql is not ready... [ $i / 10 ]"
+        sleep 3
+        i+=1
+        [ "$i" >= 10 ] && echo "##################### can't start DB ################" && exit 1
+    done
 }
 
 function upgrade(){
@@ -305,27 +329,39 @@ echo "check if SMIME should be enabled..."
     # If certificate exists execute init_smime
     [ -f "/var/www/MISP/.smime/cert.pem" ] && init_smime
 
+##### create a cert if it is required
+echo "check if a cert is required..."
+    [ ! -f /etc/apache2/ssl/SSL_create.pid -a ! -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/ssl/key.pem ] && touch /etc/apache2/ssl/SSL_create.pid && create_ssl_cert && rm /etc/apache2/ssl/SSL_create.pid
+
 ##### enable https config and disable http config ####
 echo "check if HTTPS MISP config should be enabled..."
-    [ -f /etc/apache2/sites-enabled/misp.ssl.conf ] || mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
+    [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] && mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
 
 echo "check if HTTP MISP config should be disabled..."
-    [ -f /etc/apache2/sites-enabled/misp.http ] && mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
+    [ -f /etc/apache2/ssl/cert.pem -a -f /etc/apache2/sites-enabled/misp.http ] && mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
 
-# initialize MISP-SERVER
+##### check MySQL
+echo "check if MySQL is ready..." && check_mysql
+
+##### initialize MISP-SERVER
 echo "check if misp-config should be initialized..."
     [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ] && init_misp_config
 
-# check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
+##### check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
 echo "check if cake setup should be initialized..."
     [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
 
-# Delete the initial decision file & reboot misp-server
+##### Delete the initial decision file & reboot misp-server
 echo "check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
-[ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "delete init config file and reboot" && sleep 2 && rm "/var/www/MISP/app/Config/NOT_CONFIGURED" && reboot
+[ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] \
+        && echo "delete init config file and reboot" \
+        && sleep 2 && rm "/var/www/MISP/app/Config/NOT_CONFIGURED" \
+        && exit
 
 
-# Display tips
+##### Display tips
+echo
+echo "#############################"
 cat <<__WELCOME__
 Congratulations!
 Your MISP docker has been successfully booted for the first time.
@@ -342,6 +378,6 @@ Your MISP docker has been successfully booted for the first time.
 __WELCOME__
 
 
-# execute apache
+##### execute apache
 [ "$CMD_APACHE" != "none" ] && init_apache $CMD_APACHE
 [ "$CMD_APACHE" == "none" ] && init_apache
