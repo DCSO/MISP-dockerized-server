@@ -1,0 +1,146 @@
+###############
+# General
+###############
+
+# Main domain and hostname
+mydomain = {DOMAIN}
+myhostname = {HOSTNAME}
+myorigin = $mydomain
+
+# SMTP Banner
+smtpd_banner = $myhostname ESMTP MISP-dockerized
+#smtpd_banner = $myhostname ESMTP $mail_name
+#smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)
+
+# Relayed networks
+mynetworks = 127.0.0.1/32 [::1]/128 {DOCKER_NETWORK}
+
+# Empty alias list to override the configuration variable and disable NIS
+alias_maps =
+smtp_generic_maps = hash:/etc/postfix/generic_misp
+
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+inet_protocols = all
+
+
+# Accept no Mails
+mydestination =
+
+# Relayhost if any is configured
+relayhost = {RELAYHOST}
+
+
+###############
+# TLS
+###############
+
+# General TLS configuration
+tls_high_cipherlist = EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA256:EECDH:+CAMELLIA128:+AES128:+SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!IDEA:!ECDSA:kEDH:CAMELLIA128-SHA:AES128-SHA
+tls_preempt_cipherlist = yes
+tls_ssl_options = NO_COMPRESSION
+
+# Outgoing TLS is more flexible because 1. not all receiving servers will
+# support TLS, 2. not all will have and up-to-date TLS stack.
+smtp_tls_security_level = may
+smtp_tls_mandatory_protocols = !SSLv2, !SSLv3
+smtp_tls_protocols =!SSLv2,!SSLv3
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/smtp_auth
+smtp_sasl_security_options = noanonymous
+
+###############
+# Restrictions
+###############
+
+# Delay all rejects until all information can be logged
+smtpd_delay_reject = yes
+
+smtpd_recipient_restrictions =
+  permit_mynetworks,
+  reject_non_fqdn_sender,
+  reject_unknown_sender_domain,
+  reject_unknown_recipient_domain,
+  reject_unverified_recipient,
+  permit
+
+
+###############
+# Extra Settings
+###############
+
+# COMPATIBILITY
+#
+# The compatibility_level determines what default settings Postfix
+# will use for main.cf and master.cf settings. These defaults will
+# change over time.
+#
+# To avoid breaking things, Postfix will use backwards-compatible
+# default settings and log where it uses those old backwards-compatible
+# default settings, until the system administrator has determined
+# if any backwards-compatible default settings need to be made
+# permanent in main.cf or master.cf.
+#
+# When this review is complete, update the compatibility_level setting
+# below as recommended in the RELEASE_NOTES file.
+#
+# The level below is what should be used with new (not upgrade) installs.
+#
+compatibility_level = 2
+
+# LOCAL PATHNAME INFORMATION
+#
+# The queue_directory specifies the location of the Postfix queue.
+# This is also the root directory of Postfix daemons that run chrooted.
+# See the files in examples/chroot-setup for setting up Postfix chroot
+# environments on different UNIX systems.
+#
+queue_directory = /var/spool/postfix
+
+# The command_directory parameter specifies the location of all
+# postXXX commands.
+#
+command_directory = /usr/sbin
+
+# The daemon_directory parameter specifies the location of all Postfix
+# daemon programs (i.e. programs listed in the master.cf file). This
+# directory must be owned by root.
+#
+daemon_directory = /usr/lib/postfix/sbin/
+
+# The data_directory parameter specifies the location of Postfix-writable
+# data files (caches, random numbers). This directory must be owned
+# by the mail_owner account (see below).
+#
+data_directory = /var/lib/postfix
+
+# QUEUE AND PROCESS OWNERSHIP
+#
+# The mail_owner parameter specifies the owner of the Postfix queue
+# and of most Postfix daemon processes.  Specify the name of a user
+# account THAT DOES NOT SHARE ITS USER OR GROUP ID WITH OTHER ACCOUNTS
+# AND THAT OWNS NO OTHER FILES OR PROCESSES ON THE SYSTEM.  In
+# particular, don't specify nobody or daemon. PLEASE USE A DEDICATED
+# USER.
+#
+mail_owner = postfix
+
+# DEBUGGING CONTROL
+#
+# The debug_peer_level parameter specifies the increment in verbose
+# logging level when an SMTP client or server host name or address
+# matches a pattern in the debug_peer_list parameter.
+#
+debug_peer_level = 2
+
+# The debug_peer_list parameter specifies an optional list of domain
+# or network patterns, /file/name patterns or type:name tables. When
+# an SMTP client or server host name or address matches a pattern,
+# increase the verbose logging level by the amount specified in the
+# debug_peer_level parameter.
+#
+#debug_peer_list = 127.0.0.1
+#debug_peer_list = some.domain
+{DEBUG_PEER}
