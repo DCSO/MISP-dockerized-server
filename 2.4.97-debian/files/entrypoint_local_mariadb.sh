@@ -4,7 +4,9 @@ set -e
 DATADIR="/var/lib/mysql"
 
 [ -z $MYSQL_DATABASE ] && export MYSQL_DATABASE=misp
+[ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
 [ -z "$MYSQL_ROOT_PASSWORD" ] && export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)" 
+
 
 function start_mysql(){
     if [ -z "$@" ]; then
@@ -18,6 +20,8 @@ function init_mysql(){
 
 echo "########################"
 echo "mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
+echo "chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
+echo "########################"
 echo 'Initializing database'
 # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
 gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
@@ -33,7 +37,7 @@ sleep 2
 i=0
 while(true)
 do
-    [ -z "$(mysql -uroot -h localhost -e 'select 1;'|tail -1|grep ERROR)" ] && break;
+    [ -z "$(mysql -uroot -h $MYSQL_HOST -e 'select 1;'|tail -1|grep ERROR)" ] && break;
     echo "not ready..."
     sleep 3
     i+=1
@@ -117,18 +121,24 @@ echo "########################"
 
 # create socket folder if not exists
 [ ! -d "/var/run/mysqld" ] && echo "mkdir -p /var/run/mysqld" && mkdir -p /var/run/mysqld
+echo "########################"
 ########################################################
 # change ownership to mysql user and group
 echo "chown -R mysql.mysql /var/run/mysqld" && chown -R mysql.mysql /var/run/mysqld
+echo "########################"
+########################################################
+# Initialize mysql daemon
+[ ! -d "$DATADIR/mysql" ] && echo "init mysql..." && init_mysql
+echo "########################"
 ########################################################
 # Stop existing mysql deamon
 echo "stopping mysql..." && service mysql stop
-########################################################
-# Initialize mysql daeom
-[ ! -d "$DATADIR/mysql" ] && echo "init mysql..." && init_mysql
+echo "########################"
 ########################################################
 # Own the directory
-echo "chown -R mysql.mysql $DATADIR/mysql" && chown -R mysql.mysql $DATADIR/mysql
+echo "chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
+echo "########################"
 ########################################################
 # start mysql deamon
 echo "start longtime mysql..." && start_mysql
+echo "########################"
