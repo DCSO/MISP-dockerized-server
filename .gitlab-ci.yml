@@ -22,110 +22,27 @@ before_script:
 - docker login -u "$INTERNAL_REGISTRY_USER" -p "$INTERNAL_REGISTRY_PW" "$INTERNAL_REGISTRY_HOST"
 #- make install
 
-
-.build_2.4.88:
+.build:
   stage: build
-  only: 
+  only:
   - master
   script:
-  - make build v=2.4.88-ubuntu
+  - make build v=$VERSION
   - make tags
   - make push
 
-.build_2.4.89:
-  stage: build
-  only: 
-  - master
-  script:
-  - make build v=2.4.89-ubuntu
-  - make tags
-  - make push
-
-build_2.4.90:
-  stage: build
-  only: 
-  - master
-  script:
-  - make build v=2.4.90-ubuntu
-  - make tags
-  - make push
-
-build_2.4.91:
-  stage: build
-  only: 
-  - master
-  script:
-  - make build v=2.4.91-ubuntu
-  - make tags
-  - make push
-
-build_2.4.92:
-  stage: build
-  only: 
-  - master
-  script:
-  - make build v=2.4.92-ubuntu
-  - make tags
-  - make push
-
-build_2.4.93:
-  stage: build
-  only: 
-  - master
-  script:
-  - make build v=2.4.93-ubuntu
-  - make tags
-  - make push
-
-build_2.4.94:
-  stage: build
-  only: 
-  - master
-  script:
-  - make build v=2.4.94-ubuntu
-  - make tags
-  - make push
-
-build_2.4.95:
-  stage: build
-  only: 
-  - master
-  script:
-  - make build v=2.4.95-ubuntu
-  - make tags
-  - make push
-
-build_2.4.96:
-  stage: build
-  script:
-  - make build v=2.4.96-ubuntu
-  - make tags
-  - make push
-
-build_2.4.nightly:
-  stage: build
-  only: 
-  - master
-  script:
-  - make build v=2.4.nightly-ubuntu
-  - make tags
-  - make push
-
-.upload_image_internal_registry:
-  stage: deploy
-  only: 
-  - master
-  script:
-    - docker login -u "$INTERNAL_REGISTRY_USER" -p "$INTERNAL_REGISTRY_PW" "$INTERNAL_REGISTRY_HOST"
-    - make push
-
-.upload_image_hub.docker.com:
-  stage: deploy
-  only: 
-  - master
-  script:
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - make push
+include:
+  - '2.4.nightly-ubuntu/.gitlab-ci.yml'
+  - '2.4.88-ubuntu/.gitlab-ci.yml'
+  - '2.4.89-ubuntu/.gitlab-ci.yml'
+  - '2.4.90-ubuntu/.gitlab-ci.yml'
+  - '2.4.91-ubuntu/.gitlab-ci.yml'
+  - '2.4.92-ubuntu/.gitlab-ci.yml'
+  - '2.4.93-ubuntu/.gitlab-ci.yml'
+  - '2.4.94-ubuntu/.gitlab-ci.yml'
+  - '2.4.95-ubuntu/.gitlab-ci.yml'
+  - '2.4.96-ubuntu/.gitlab-ci.yml'
+  - '2.4.97-debian/.gitlab-ci.yml'
 
 
 # after_success:
