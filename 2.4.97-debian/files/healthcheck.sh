@@ -2,7 +2,7 @@
 
 
 function check_apache(){
-    curl -f http://localhost/ || exit 1
+    curl -f https://localhost/ || exit 1
 }
 
 function check_mysql(){
