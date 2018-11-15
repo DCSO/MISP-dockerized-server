@@ -9,6 +9,7 @@ MISP_APP_CONFIG_PATH=$MISP_APP_PATH/Config
 MISP_CONFIG=$MISP_APP_CONFIG_PATH/config.php
 DATABASE_CONFIG=$MISP_APP_CONFIG_PATH/database.php
 EMAIL_CONFIG=$MISP_APP_CONFIG_PATH/email.php
+FOLDER_with_VERSIONS="/var/www/MISP/app/tmp /var/www/MISP/app/files /var/www/MISP/app/Plugin/CakeResque/Config /var/www/MISP/app/Config /var/www/MISP/.gnupg /var/www/MISP/.smime /etc/apache2/ssl"
 # defaults
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
 [ -z $MYSQL_USER ] && export MYSQL_USER=misp
@@ -49,12 +50,8 @@ function start_workers(){
 }
 
 function init_apache() {
-    echo "####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
-
     # Apache gets grumpy about PID files pre-existing
     rm -f /run/apache2/apache2.pid
-    # start workers
-    start_workers
     # execute APACHE2
     /usr/sbin/apache2ctl -DFOREGROUND $1
 }
@@ -125,7 +122,7 @@ function init_misp_config(){
 function setup_via_cake_cli(){
     # Initialize user and fetch Auth Key
     #sudo -E $CAKE userInit -q
-    AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | tail -1)
+    AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
     # Setup some more MISP default via cake CLI
     # Tune global time outs
     sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
@@ -255,58 +252,81 @@ function create_ssl_cert(){
 }
 
 function check_mysql(){
-    # test if mysqld is ready
-    i=0
-    while(true)
+    # Test when MySQL is ready
+
+    while (true)
     do
         [ -z "$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST -e 'select 1;'|tail -1|grep ERROR)" ] && break;
-        echo "Mysql is not ready... [ $i / 10 ]"
-        sleep 3
-        i+=1
-        [ "$i" >= 10 ] && echo "##################### can't start DB ################" && exit 1
+        echo "Wait for MySQL..."
+        sleep 2
+    done
+}
+
+function check_redis(){
+    # Test when Redis is ready
+
+    # if no host is give default localhost
+    [ -z $REDIS_HOST ] && REDIS_HOST=localhost
+    while (true)
+    do
+        [ "$(redis-cli -h $REDIS_HOST ping)" == "PONG" ] && break;
+        echo "Wait for Redis..."
+        sleep 2
     done
 }
 
 function upgrade(){
-    # OLDEST SUPPORTED VERSION TAG 0.2.0
-
-    
-    # LIST of VOLUMES:
-    # - misp-vol-server-apache2-config-sites-enabled:/etc/apache2/sites-enabled:ro
-    # - misp-vol-ssl:/etc/apache2/ssl:ro
-    # - misp-vol-pgp:/var/www/MISP/.gnupg
-    # - misp-vol-smime:/var/www/MISP/.smime
-    # - misp-vol-server-MISP-app-Config:/var/www/MISP/app/Config
-    # - misp-vol-server-MISP-cakeresque-config:/var/www/MISP/app/Plugin/CakeResque/Config
-    VOLUMES="/etc/apache2/sites-enabled \
-            /etc/apache2/ssl \
-            /var/www/MISP/.gnupg \
-            /var/www/MISP/.smime \
-            /var/www/MISP/app/Config \
-            /var/www/MISP/app/Plugin/CakeResque/Config \
-            "
-    for v in $VOLUMES
+    for i in $FOLDER_with_VERSIONS
     do
-        # if no Version Tag exists in VOLUME create one with the current version
-        [ -f $v/$NAME ] || echo "$VERSION" >> $v/$NAME
-
-        case $(echo $v/$NAME) in
-        2.4.92)
-            # Tasks todo in 2.4.92
-            echo "#### Upgrade Volumes from 2.4.92    ####"
-            ;;
-        *)
-            echo "Unknown Version, upgrade not possible."
-            exit
-            ;;
-        esac
-
-
-
+        if [ ! -f $i/${NAME} ] 
+        then
+            # File not exist and now it will be created
+            echo ${VERSION} > $i/${NAME}
+        elif [ ! -f $i/${NAME} -a -z "$(cat $i/${NAME})" ]
+        then
+            # File exists, but is empty
+            echo ${VERSION} > $i/${NAME}
+        elif [ "$VERSION" == "$(cat $i/${NAME})" ]
+        then
+            # File exists and the volume is the current version
+            echo "Folder $i is on the newest version."
+        else
+            # upgrade
+            echo "Folder $i should be updated."
+            case $(echo $i/$NAME) in
+            2.4.92)
+                # Tasks todo in 2.4.92
+                echo "#### Upgrade Volumes from 2.4.92 ####"
+                ;;
+            2.4.93)
+                # Tasks todo in 2.4.92
+                echo "#### Upgrade Volumes from 2.4.93 ####"
+                ;;
+            2.4.94)
+                # Tasks todo in 2.4.92
+                echo "#### Upgrade Volumes from 2.4.94 ####"
+                ;;
+            2.4.95)
+                # Tasks todo in 2.4.92
+                echo "#### Upgrade Volumes from 2.4.95 ####"
+                ;;
+            2.4.96)
+                # Tasks todo in 2.4.92
+                echo "#### Upgrade Volumes from 2.4.96 ####"
+                ;;
+            2.4.97)
+                # Tasks todo in 2.4.92
+                echo "#### Upgrade Volumes from 2.4.97 ####"
+                ;;
+            *)
+                echo "Unknown Version, upgrade not possible."
+                exit
+                ;;
+            esac
+            ############ DO ANY!!!
+        fi
     done
-
 }
-
 
 # If a customer needs a analze column in misp
 echo "check if analyze column should be added..."
@@ -343,6 +363,10 @@ echo "check if HTTP MISP config should be disabled..."
 ##### check MySQL
 echo "check if MySQL is ready..." && check_mysql
 
+##### check MySQL
+echo "check if Redis is ready..." && check_redis
+
+
 ##### initialize MISP-SERVER
 echo "check if misp-config should be initialized..."
     [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ] && init_misp_config
@@ -358,6 +382,23 @@ echo "check if misp-server is configured and file /var/www/MISP/app/Config/NOT_C
         && sleep 2 && rm "/var/www/MISP/app/Config/NOT_CONFIGURED" \
         && exit
 
+########################################################
+# check volumes and upgrade if it is required
+echo "upgrade if it is required..." && upgrade
+
+# start workers
+start_workers
+
+
+
+
+
+
+
+
+
+# START APACHE2
+echo "####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
 
 ##### Display tips
 echo

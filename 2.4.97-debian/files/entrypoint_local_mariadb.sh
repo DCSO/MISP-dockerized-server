@@ -2,11 +2,36 @@
 set -e
 
 DATADIR="/var/lib/mysql"
+FOLDER_with_VERSIONS="/var/lib/mysql"
 
 [ -z $MYSQL_DATABASE ] && export MYSQL_DATABASE=misp
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
 [ -z "$MYSQL_ROOT_PASSWORD" ] && export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)" 
 
+
+function upgrade(){
+    for i in $FOLDER_with_VERSIONS
+    do
+        if [ ! -f $i/${NAME} ] 
+        then
+            # File not exist and now it will be created
+            echo ${VERSION} > $i/${NAME}
+        elif [ ! -f $i/${NAME} -a -z "$(cat $i/${NAME})" ]
+        then
+            # File exists, but is empty
+            echo ${VERSION} > $i/${NAME}
+        elif [ "$VERSION" == "$(cat $i/${NAME})" ]
+        then
+            # File exists and the volume is the current version
+            echo "Folder $i is on the newest version."
+        else
+            # upgrade
+            echo "Folder $i should be updated."
+
+            ############ DO ANY!!!
+        fi
+    done
+}
 
 function start_mysql(){
     if [ -z "$@" ]; then
@@ -17,6 +42,7 @@ function start_mysql(){
 }
 
 function init_mysql(){
+
 
 echo "########################"
 echo "mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
@@ -130,6 +156,9 @@ echo "########################"
 # Initialize mysql daemon
 [ ! -d "$DATADIR/mysql" ] && echo "init mysql..." && init_mysql
 echo "########################"
+########################################################
+# check volumes and upgrade if it is required
+echo "upgrade if it is required..." && upgrade
 ########################################################
 # Stop existing mysql deamon
 echo "stopping mysql..." && service mysql stop

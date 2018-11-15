@@ -343,9 +343,9 @@ ENV LANGUAGE=en_US:en
         pip3 install python-magic; \
         # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
         pip3 install setuptools --upgrade; \
-        pip3 install lief;
+        pip3 install lief; \
         # # Install maec libraries for STIX
-        #pip3 install maec
+        pip3 install maec
 
 
 #########################################
@@ -361,9 +361,8 @@ RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
 # for local MySQL Server:
     # delete all config files
 # RUN mv /etc/mysql /etc/mysql.orig; \
-#     mkdir /etc/mysql; \
-    #rm -Rf /var/lib/mysql/*; \
-    #echo "";
+#     mkdir /etc/mysql; 
+RUN rm -Rf /var/lib/mysql/*;
     
     # add own mysql config
 COPY files/DCSO.cnf /etc/mysql/mariadb.conf.d/
@@ -371,17 +370,22 @@ COPY files/DCSO.cnf /etc/mysql/mariadb.conf.d/
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
-# I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
-RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
-
-# Syslog Server
+# Syslog Server & rsyslog
 COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
 COPY files/rsyslog_custom.conf /etc/rsyslog.d/
+
+# Add cron file
+COPY files/cron.sh /
+
+# HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
+COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
 
 # Postfix
 # Copy files to postfix container
 COPY files/postfix/* /etc/postfix/
-        
+
+# I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
+RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # Environment Variables
     # CMD
@@ -419,7 +423,7 @@ COPY files/postfix/* /etc/postfix/
 
 # Entrypoints
     # CMD
-    COPY files/entrypoint*.sh files/init*.sh files/healthcheck.sh /
+    COPY files/entrypoint*.sh files/healthcheck.sh /
     RUN chmod +x /*.sh
 
 # Supervisord
