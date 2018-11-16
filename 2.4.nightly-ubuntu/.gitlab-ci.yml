@@ -1,0 +1,4 @@
+build 2.4.nightly-ubuntu:
+  extends: .build
+  variables:
+    VERSION: "2.4.nightly-ubuntu"

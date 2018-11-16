@@ -1,13 +1,15 @@
-FROM ubuntu:18.04
+FROM debian:stretch-slim
 
-ARG MISP_TAG="2.4.94"
+
 #     Variables for Labels:
 ARG VENDOR="DCSO GmbH"
 ARG COMPONENT="server"
 ARG BUILD_DATE
 ARG GIT_REPO
 ARG VCS_REF
-ARG VERSION="${MISP_TAG}"
+ARG VERSION
+ARG MISP_TAG=${VERSION}
+ARG RELEASE_DATE
 ARG NAME="MISP-dockerized-${COMPONENT}"
 ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
 ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
@@ -48,41 +50,59 @@ ENV DEBIAN_FRONTEND noninteractive
 #RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 
 # DCSO Required Software
-RUN apt-get update; apt-get upgrade -y; apt-get install -y \ 
+RUN apt-get update; apt-get install -y \ 
 locales \
 iputils-ping \
 net-tools \
-apt-utils \
-wget \
 supervisor \
 gosu \
-python-pip \
-libfuzzy-dev \
-syslog-ng \
+wget \
+#syslog-ng \
+rsyslog \
 && apt-get autoremove -y && apt-get clean -y
-## Installation of libfuzzy-dev is required for pydeep
+
 
 
 # Set locals
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
+ARG LANG=en_US.UTF-8
+RUN locale-gen ${LANG}
+ENV LANG ${LANG}
+ENV LANGUAGE=en_US:en
+#ENV LC_ALL ${LANG}
 
 #########################    START  MISP Guide
 
 # 1/ Minimal Ubuntu install
 # -------------------------
     # Upgrade System
-    RUN apt-get update -y && apt-get autoremove -y && apt-get clean -y
+    RUN apt-get update -y && apt-get upgrade -y && apt-get autoremove -y && apt-get clean -y
 
-    # ATTENTION Postfix has its own container!
+
+    # Install Postfix dependency
+    RUN apt-get update -y && apt-get install postfix -y && apt-get autoremove -y && apt-get clean -y
 
 
     # 2/ Install LAMP & dependencies
     # ------------------------------
     # Install required software
+    ## Installation of libfuzzy-dev is required for pydeep
+    
     RUN apt-get install -y \
-        curl gcc git gnupg-agent make python python3 openssl redis-server sudo vim zip \
+        curl gcc git gnupg-agent make python3 openssl sudo vim zip \
+        redis-server \
+        libyara-dev \
         && apt-get autoremove -y && apt-get clean -y
+
+    RUN apt-get install -y \    
+        python3-setuptools python3-dev python3-pip python3-yara python3-redis python3-zmq virtualenv \
+        libpq5 libjpeg-dev libfuzzy-dev ruby asciidoctor \
+        && apt-get autoremove -y && apt-get clean -y
+
+    RUN apt-get install -y \
+        jq jupyter-notebook imagemagick tesseract-ocr \
+        libxml2-dev libxslt1-dev zlib1g-dev \
+        && apt-get autoremove -y && apt-get clean -y
+
 
     # Install MariaDB (a MySQL fork/alternative) | Server has its own container!!!
     RUN apt-get install -y \
@@ -105,15 +125,15 @@ ENV LANG en_US.UTF-8
         libapache2-mod-php \
         php \
         php-cli \
-        php-gnupg \
+        php-mbstring \
         php-dev \
         php-json \
+        php-xml \
         php-mysql \
         php-opcache \
         php-readline \
         php-redis \
-        php-xml \
-        php-mbstring \
+        php-gnupg \
         && apt-get autoremove -y && apt-get clean -y
 
     # ATTENTION restart is not required.
@@ -150,19 +170,21 @@ ENV LANG en_US.UTF-8
         RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/STIXProject/python-stix.git; \
             cd python-stix; python3 setup.py install;
-
         # install mixbox to accomodate the new STIX dependencies:
         RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/CybOXProject/mixbox.git; \
+            cd mixbox; python3 setup.py install;
+        # install python-maec
+        RUN cd /var/www/MISP/app/files/scripts; \
+            git clone https://github.com/MAECProject/python-maec.git; \
             cd mixbox; python3 setup.py install;
 
     
     # install PyMISP
     # pymisp:… Please install pymisp: pip install pymisp
-    RUN pip install pymisp
-    
+    #RUN pip install pymisp
     RUN cd /var/www/MISP/PyMISP; \
-        python3 setup.py install
+        python3 setup.py install;
 
     # install support for STIX 2.0 (Python 3 is required)
     RUN pip3 install stix2
@@ -175,12 +197,13 @@ ENV LANG en_US.UTF-8
 # 4/ CakePHP
 # ------------
     # Once done, install CakeResque along with its dependencies if you intend to use the built in background jobs:
-    RUN cd /var/www/MISP/app; sudo -u www-data php composer.phar require kamisama/cake-resque:4.1.2; \
+    RUN cd /var/www/MISP/app; \
+        php composer.phar require kamisama/cake-resque:4.1.2; \
         php composer.phar config vendor-dir Vendor; \
         php composer.phar install;
 
     # Enable CakeResque with php-redis
-    RUN sudo phpenmod redis
+    RUN phpenmod redis
 
     # To use the scheduler worker for scheduled tasks, do the following:
     RUN cp -fa /var/www/MISP/INSTALL/setup/config.php /var/www/MISP/app/Plugin/CakeResque/Config/config.php
@@ -269,44 +292,60 @@ ENV LANG en_US.UTF-8
 
 # ADD additionall modules
     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
-    RUN pip install pyzmq; \
-        pip3 install pyzmq; \
-        pip install redis;
+    # ZeroMQ depends on the Python client for Redis
+    RUN pip3 install pyzmq; \
+        pip3 install redis;
+    # RUN pip install pyzmq; \
+    #     pip install redis;
 
 
     # For the experimental ssdeep correlations, run the following installation:
     # installing ssdeep
-        RUN cd /usr/local/src/; wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz; \
-        tar zxvf ssdeep-2.13.tar.gz; \
-        cd ssdeep-2.13; \
-        ./configure; \
-        make;    \
-        sudo make install;
-        #ssdeep -h; # test
+        RUN cd /usr/local/src/; \
+            wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz; \
+            tar zxvf ssdeep-2.13.tar.gz; \
+            cd ssdeep-2.13; \
+            ./configure; \
+            make;    \
+            sudo make install; \
+            ssdeep -h; # test
 
         #installing ssdeep_php
         RUN sudo pecl install ssdeep;
 
         # 7.0 if your PHP 7.0 and you know what to do if you have a different version
-        RUN for FILE in $(ls /etc/php/*/mods-available); \
-            do sudo echo "extension=ssdeep.so" > $FILE/ssdeep.ini; \
-            sudo phpenmod ssdeep; \
+        RUN for FILE in $(ls /etc/php/); \
+            do echo "extension=ssdeep.so" > /etc/php/$FILE/mods-available/ssdeep.ini; \
+            phpenmod ssdeep; \
             done;
 
-    # pymisp:… Please install pymisp: pip install pymisp
-    RUN pip install pymisp
-    # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-    RUN pip install git+https://github.com/kbandla/pydeep.git; \
-        pip3 install git+https://github.com/kbandla/pydeep.git;
-    # #magic:… Please install python-magic: pip install python-magic.
-    RUN pip install python-magic; \
-        pip3 install python-magic;
-    # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
-    RUN pip install setuptools --upgrade; \ 
-        pip install lief; \
-        pip3 install lief
-    # Install maec libraries for STIX
-    RUN pip3 install maec
+
+
+    # RUN \
+    #     # pymisp:… Please install pymisp: pip install pymisp
+    #     pip install pymisp \
+    #     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
+    #     pip install git+https://github.com/kbandla/pydeep.git; \
+    #     # #magic:… Please install python-magic: pip install python-magic.
+    #     pip install python-magic; \
+    #     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
+    #     pip install setuptools --upgrade; \ 
+    #     pip install lief; \
+
+
+
+    RUN \
+        # pymisp:… Please install pymisp: pip install pymisp
+        pip3 install pymisp; \
+        # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
+        pip3 install git+https://github.com/kbandla/pydeep.git; \
+        # #magic:… Please install python-magic: pip install python-magic.
+        pip3 install python-magic; \
+        # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
+        pip3 install setuptools --upgrade; \
+        pip3 install lief; \
+        # # Install maec libraries for STIX
+        pip3 install maec
 
 
 #########################################
@@ -321,27 +360,32 @@ RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
     
 # for local MySQL Server:
     # delete all config files
-RUN mv /etc/mysql /etc/mysql.orig; \
-    mkdir /etc/mysql; \
-    rm -Rf /var/lib/mysql/*;
+# RUN mv /etc/mysql /etc/mysql.orig; \
+#     mkdir /etc/mysql; 
+RUN rm -Rf /var/lib/mysql/*;
     
     # add own mysql config
-COPY files/DCSO.cnf /etc/mysql/
-
-# Copy PHP.ini File for PHP Config
-COPY files/php.ini /etc/php/7.0/apache2/
+COPY files/DCSO.cnf /etc/mysql/mariadb.conf.d/
 
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
+# Syslog Server & rsyslog
+COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+COPY files/rsyslog_custom.conf /etc/rsyslog.d/
+
+# Add cron file
+COPY files/cron.sh /
+
+# HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
+COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
+
+# Postfix
+# Copy files to postfix container
+COPY files/postfix/* /etc/postfix/
+
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
 RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
-
-# Syslog Server
-COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-
-# Add Netdata monitoring
-RUN wget https://my-netdata.io/kickstart.sh; bash kickstart.sh all --non-interactive
 
 # Environment Variables
     # CMD
@@ -351,17 +395,36 @@ RUN wget https://my-netdata.io/kickstart.sh; bash kickstart.sh all --non-interac
     # Version + Name
     ENV NAME ${NAME}
     ENV VERSION ${VERSION}
+    ENV RELEASE_DATE ${RELEASE_DATE}
     # Environment Variable for Proxy
     ENV HTTP_PROXY=""
     ENV HTTPS_PROXY=""
     ENV NO_PROXY="0.0.0.0"
 
+    # POSTFIX
+        # Hostname for the Mailserver
+        ENV HOSTNAME=misp
+        # Domain for Outgoing Mail
+        ENV DOMAIN=example.com
+        # Sender for local postfix outgoing Mails
+        ENV SENDER_ADDRESS=admin@example.com
+        # Relahost to Send Mails
+        ENV RELAYHOST=smtp.example.local:587
+        # RELAY User and Password
+        ENV RELAY_USER=misp
+        ENV RELAY_PASSWORD=ChangeMe
+        # Allow only MISP Docker Container Access
+        ENV DOCKER_NETWORK=192.168.47.0/28
+        # You need to get more postfix output for a specified host normally the relayhost or misp-server
+        ENV DEBUG_PEER=none
+
+
+
 
 # Entrypoints
     # CMD
-    COPY files/entrypoint*.sh files/init*.sh files/healthcheck.sh /
+    COPY files/entrypoint*.sh files/healthcheck.sh /
     RUN chmod +x /*.sh
-    #ENTRYPOINT [ "/entrypoint.sh" ]
 
 # Supervisord
     # Copy Supervisord config
