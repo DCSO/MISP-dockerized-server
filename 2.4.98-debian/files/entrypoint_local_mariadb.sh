@@ -168,6 +168,10 @@ echo "########################"
 echo "chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
 echo "########################"
 ########################################################
+# CHMOD the configuration files
+echo "chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
+echo "########################"
+########################################################
 # start mysql deamon
 echo "start longtime mysql..." && start_mysql
 echo "########################"

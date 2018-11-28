@@ -401,6 +401,10 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
     ENV HTTP_PROXY=""
     ENV HTTPS_PROXY=""
     ENV NO_PROXY="0.0.0.0"
+    # MYSQL Vars
+    ENV MYSQL_HOST="localhost"
+    ENV MYSQL_DATABASE="misp"
+    ENV MYSQL_USER="misp"
 
     # POSTFIX
         # Hostname for the Mailserver
