@@ -1,11 +1,18 @@
 #!/bin/bash
 
+set -e
+
+
+CAKE="/var/www/MISP/app/Console/cake"
+
+
+
 # SLEEP 1h
 sleep 3600
 
 
-CAKE="/var/www/MISP/app/Console/cake"
 pushd /var/www/MISP/app
+
 [ -z $AUTH_KEY ] && export AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2|tail -1)
 
 # Wait until database is ready then test    
@@ -48,8 +55,7 @@ do
 
     #FetchFeed: MISP/app/Console/cake Server fetchFeed [user_id] [feed_id|all|csv|text|misp]
     echo "$CAKE Server fetchFeed 1 all..." && $CAKE Server fetchFeed 1 all
-
-
     # Finished
     echo "[ $COUNTER ] Finished MISP-dockerized Cronjob at `date +%Y-%m-%d_%H:%M`... "
+    sleep 3600
 done

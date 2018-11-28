@@ -375,11 +375,8 @@ COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
 COPY files/rsyslog_custom.conf /etc/rsyslog.d/
 
-# Add cron file
-COPY files/cron.sh /
-
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
-COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
+#COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
 
 # Postfix
 # Copy files to postfix container
