@@ -352,11 +352,11 @@ ENV LANGUAGE=en_US:en
 #       Start of DCSO MISP Config Part
 
 # for S/MIME
-RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
-    sudo -u www-data chmod 500 /var/www/MISP/.smime;
+RUN sudo -u www-data mkdir /var/www/MISP/app/.smime; \
+    sudo -u www-data chmod 500 /var/www/MISP/app/.smime;
 # for PGP
-RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
-    sudo -u www-data chmod 700 /var/www/MISP/.gnupg;
+RUN sudo -u www-data mkdir /var/www/MISP/app/.gnupg; \
+    sudo -u www-data chmod 700 /var/www/MISP/app/.gnupg;
     
 # for local MySQL Server:
     # delete all config files
@@ -366,6 +366,7 @@ RUN rm -Rf /var/lib/mysql/*;
     
     # add own mysql config
 COPY files/DCSO.cnf /etc/mysql/mariadb.conf.d/
+RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
 
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /

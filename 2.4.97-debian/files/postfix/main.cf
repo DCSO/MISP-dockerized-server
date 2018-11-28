@@ -143,4 +143,3 @@ debug_peer_level = 2
 #
 #debug_peer_list = 127.0.0.1
 #debug_peer_list = some.domain
-{DEBUG_PEER}

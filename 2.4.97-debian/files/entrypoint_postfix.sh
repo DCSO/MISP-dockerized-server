@@ -6,34 +6,27 @@ POSTFIX_CONFIG="$POSTFIX_PATH/main.cf"
 SMTP_AUTH="$POSTFIX_PATH/smtp_auth"
 GENERIC="$POSTFIX_PATH/generic_misp"
 
-function mysed() {
-    source=$1
-    target=$2
-    file=$3
-    [ "$#" = "2" ] && file=$2 && target=''
-    # This fu nction replace the Keywords ($1) with the content of environment variable ($2) in the file ($3)
-    sed -i 's,{'$source'},'$target',g' $file
-}
-
 # Set Environment Variables in Config
-mysed HOSTNAME $HOSTNAME $POSTFIX_CONFIG
+  postconf myhostname=$HOSTNAME
 # Domain for Outgoing Mail
-mysed DOMAIN $DOMAIN $POSTFIX_CONFIG
-# Sender for local postfix outgoing Mails
-mysed SENDER_ADDRESS $SENDER_ADDRESS $GENERIC
+  postconf mydomain=$DOMAIN
 # Relahost to Send Mails
-mysed RELAYHOST $RELAYHOST $POSTFIX_CONFIG
-mysed RELAYHOST $RELAYHOST $SMTP_AUTH
-# RELAY User and Password
-mysed RELAY_USER $RELAY_USER $SMTP_AUTH
-mysed RELAY_PASSWORD $RELAY_PASSWORD $SMTP_AUTH
+  postconf relayhost=$RELAYHOST
 # Allow only MISP Docker Container Access
-mysed DOCKER_NETWORK $DOCKER_NETWORK $POSTFIX_CONFIG
+  postconf mynetworks="127.0.0.1/32 [::1]/128 $DOCKER_NETWORK"
 # If you need to get more postfix output for a specified host normally the relayhost or misp-server
   # if DEBUG_PEER isn't none set debug peer:
-  [ "$DEBUG_PEER" == "none" ] || mysed DEBUG_PEER $DEBUG_PEER $POSTFIX_CONFIG
-  # if DEBUG_PEER IS none delete it:
-  [ "$DEBUG_PEER" == "none" ] && mysed DEBUG_PEER $POSTFIX_CONFIG
+  [ "$DEBUG_PEER" == "none" ] || postconf debug_peer_list=$DEBUG_PEER
+
+
+# Sender for local postfix outgoing Mails
+#mysed SENDER_ADDRESS $SENDER_ADDRESS $GENERIC
+echo "root $SENDER_ADDRESS" > $GENERIC
+echo "@$DOMAIN $SENDER_ADDRESS" >> $GENERIC
+
+
+# RELAY User and Password
+echo -e "$RELAYHOST $RELAY_USER:$RELAY_PASSWORD" > $SMTP_AUTH
 
 
 # Start Postfix
