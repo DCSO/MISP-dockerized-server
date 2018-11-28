@@ -20,6 +20,7 @@ env:
   - VERSION=2.4.95-ubuntu
   - VERSION=2.4.96-ubuntu
   - VERSION=2.4.97-debian
+  - VERSION=2.4.98-debian
   - VERSION=2.4.nightly-ubuntu
   
 before_install:
