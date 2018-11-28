@@ -352,11 +352,11 @@ ENV LANGUAGE=en_US:en
 #       Start of DCSO MISP Config Part
 
 # for S/MIME
-RUN sudo -u www-data mkdir /var/www/MISP/app/.smime; \
-    sudo -u www-data chmod 500 /var/www/MISP/app/.smime;
+RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
+    sudo -u www-data chmod 500 /var/www/MISP/.smime;
 # for PGP
-RUN sudo -u www-data mkdir /var/www/MISP/app/.gnupg; \
-    sudo -u www-data chmod 700 /var/www/MISP/app/.gnupg;
+RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
+    sudo -u www-data chmod 700 /var/www/MISP/.gnupg;
     
 # for local MySQL Server:
     # delete all config files
