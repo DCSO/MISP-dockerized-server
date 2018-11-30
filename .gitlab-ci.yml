@@ -43,6 +43,7 @@ include:
   - '2.4.95-ubuntu/.gitlab-ci.yml'
   - '2.4.96-ubuntu/.gitlab-ci.yml'
   - '2.4.97-debian/.gitlab-ci.yml'
+  - '2.4.98-debian/.gitlab-ci.yml'
 
 
 # after_success:
