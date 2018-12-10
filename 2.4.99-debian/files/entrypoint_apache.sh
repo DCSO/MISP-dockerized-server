@@ -9,6 +9,8 @@ MISP_APP_CONFIG_PATH=$MISP_APP_PATH/Config
 MISP_CONFIG=$MISP_APP_CONFIG_PATH/config.php
 DATABASE_CONFIG=$MISP_APP_CONFIG_PATH/database.php
 EMAIL_CONFIG=$MISP_APP_CONFIG_PATH/email.php
+SSL_CERT="/etc/apache2/ssl/cert.pem"
+SSL_KEY="/etc/apache2/ssl/key.pem"
 FOLDER_with_VERSIONS="/var/www/MISP/app/tmp /var/www/MISP/app/files /var/www/MISP/app/Plugin/CakeResque/Config /var/www/MISP/app/Config /var/www/MISP/.gnupg /var/www/MISP/.smime /etc/apache2/ssl"
 # defaults
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
@@ -246,9 +248,11 @@ function setup_via_cake_cli(){
 
 function create_ssl_cert(){
     # If a valid SSL certificate is not already created for the server, create a self-signed certificate:
-    sudo openssl req -newkey rsa:4096 -days 3650 -nodes -x509 \
-    -subj "/C=${OPENSSL_C}/ST=${OPENSSL_ST}/L=${OPENSSL_L}/O=${OPENSSL_O}/OU=${OPENSSL_OU}/CN=${NAME}/emailAddress=${OPENSSL_EMAILADDRESS}" \
-    -keyout /etc/apache2/ssl/key.pem -out /etc/apache2/ssl/cert.pem
+    while [ -f $PID_CERT_CREATER ]
+    do
+        echo "`date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
+    done
+    [ ! -f $SSL_CERT -a ! -f $SSL_KEY ] && touch $PID_CERT_CREATER && echo "Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && echo "finished." && rm $PID_CERT_CREATER
 }
 
 function check_mysql(){
