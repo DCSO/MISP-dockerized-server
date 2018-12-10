@@ -2,3 +2,11 @@ build 2.4.98-debian:
   extends: .build
   variables:
     VERSION: "2.4.98-debian"
+
+test 2.4.98-debian:
+  extends: .test
+  variables:
+    VERSION: "2.4.98-debian"
+  only:
+    changes:
+    - 2.4.98-debian/*
