@@ -2,7 +2,7 @@
 
 set -e
 
-
+STARTMSG="[ENTRYPOINT_CRON]"
 CAKE="/var/www/MISP/app/Console/cake"
 
 
@@ -42,20 +42,20 @@ while(true)
 do
     # START the SCRIPT
     COUNTER="`date +%Y-%m-%d_%H:%M`"
-    echo "[ $COUNTER ] Start MISP-dockerized Cronjob at `date +%Y-%m-%d_%H:%M`... "
+    echo "$STARTMSG [ $COUNTER ] Start MISP-dockerized Cronjob at `date +%Y-%m-%d_%H:%M`... "
 
 
     #If you would like to automate tasks such as caching feeds or pulling from server instances, you can do it using the following command line tools. Simply execute the given commands via the command line / create cron jobs easily out of them.:
     #Pull: MISP/app/Console/cake Server pull [user_id] [server_id] [full|update]
 
-    echo "$CAKE Server pull 1 update..." && $CAKE Server pull 1 update
+    echo "$STARTMSG $CAKE Server pull 1 update..." && $CAKE Server pull 1 update
 
     # CacheFeed: MISP/app/Console/cake Server cacheFeed [user_id] [feed_id|all|csv|text|misp]
-    echo "$CAKE Server cacheFeed 1 all..." && $CAKE Server cacheFeed 1 all
+    echo "$STARTMSG $CAKE Server cacheFeed 1 all..." && $CAKE Server cacheFeed 1 all
 
     #FetchFeed: MISP/app/Console/cake Server fetchFeed [user_id] [feed_id|all|csv|text|misp]
-    echo "$CAKE Server fetchFeed 1 all..." && $CAKE Server fetchFeed 1 all
+    echo "$STARTMSG $CAKE Server fetchFeed 1 all..." && $CAKE Server fetchFeed 1 all
     # Finished
-    echo "[ $COUNTER ] Finished MISP-dockerized Cronjob at `date +%Y-%m-%d_%H:%M`... "
+    echo "$STARTMSG [ $COUNTER ] Finished MISP-dockerized Cronjob at `date +%Y-%m-%d_%H:%M`... "
     sleep 3600
 done

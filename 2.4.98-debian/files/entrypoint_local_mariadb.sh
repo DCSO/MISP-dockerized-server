@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+STARTMSG="[ENTRYPOINT_LOCAL_MARIADB]"
 DATADIR="/var/lib/mysql"
 FOLDER_with_VERSIONS="/var/lib/mysql"
 
@@ -23,10 +24,10 @@ function upgrade(){
         elif [ "$VERSION" == "$(cat $i/${NAME})" ]
         then
             # File exists and the volume is the current version
-            echo "Folder $i is on the newest version."
+            echo "$STARTMSG Folder $i is on the newest version."
         else
             # upgrade
-            echo "Folder $i should be updated."
+            echo "$STARTMSG Folder $i should be updated."
 
             ############ DO ANY!!!
         fi
@@ -45,16 +46,16 @@ function init_mysql(){
 
 
 echo "########################"
-echo "mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
-echo "chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
+echo "$STARTMSG mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
+echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
 echo "########################"
-echo 'Initializing database'
+echo "$STARTMSG Initializing database"
 # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
 gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
-echo 'Database initialized'
+echo "$STARTMSG Database initialized"
 
 echo "########################"
-echo "Start mysqld to setup"
+echo "$STARTMSG Start mysqld to setup"
 #"$@" --skip-networking --socket="${SOCKET}" &
 start_mysql &
 pid="$!"
@@ -64,7 +65,7 @@ i=0
 while(true)
 do
     [ -z "$(mysql -uroot -h $MYSQL_HOST -e 'select 1;'|tail -1|grep ERROR)" ] && break;
-    echo "not ready..."
+    echo "$STARTMSG not ready..."
     sleep 3
     i+=1
     [ "$i" >= 10 ] && echo "can't start DB" && exit 1
@@ -102,8 +103,7 @@ EOF
 
 ########################################################
 # import MISP DB Scheme
-echo "########################"
-echo "Import MySQL scheme"
+echo "$STARTMSG Import MySQL scheme"
 mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /var/www/MISP/INSTALL/MYSQL.sql
 
 ########################################################
@@ -129,9 +129,7 @@ EOF
     ########################################################
 
 # Echo default Passwort
-echo "########################"
-echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
-echo "########################"
+echo "$STARTMSG ########    GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD   #########"
 
 }
 
@@ -146,32 +144,25 @@ echo "########################"
 
 
 # create socket folder if not exists
-[ ! -d "/var/run/mysqld" ] && echo "mkdir -p /var/run/mysqld" && mkdir -p /var/run/mysqld
-echo "########################"
+[ ! -d "/var/run/mysqld" ] && echo "$STARTMSG mkdir -p /var/run/mysqld" && mkdir -p /var/run/mysqld
 ########################################################
 # change ownership to mysql user and group
-echo "chown -R mysql.mysql /var/run/mysqld" && chown -R mysql.mysql /var/run/mysqld
-echo "########################"
+echo "$STARTMSG chown -R mysql.mysql /var/run/mysqld" && chown -R mysql.mysql /var/run/mysqld
 ########################################################
 # Initialize mysql daemon
-[ ! -d "$DATADIR/mysql" ] && echo "init mysql..." && init_mysql
-echo "########################"
+[ ! -d "$DATADIR/mysql" ] && echo "$STARTMSG init mysql..." && init_mysql
 ########################################################
 # check volumes and upgrade if it is required
-echo "upgrade if it is required..." && upgrade
+echo "$STARTMSG upgrade if it is required..." && upgrade
 ########################################################
 # Stop existing mysql deamon
-echo "stopping mysql..." && service mysql stop
-echo "########################"
+echo "$STARTMSG stopping mysql..." && service mysql stop
 ########################################################
 # Own the directory
-echo "chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
-echo "########################"
+echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
 ########################################################
 # CHMOD the configuration files
-echo "chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
-echo "########################"
+echo "$STARTMSG chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
 ########################################################
 # start mysql deamon
-echo "start longtime mysql..." && start_mysql
-echo "########################"
+echo "$STARTMSG start longtime mysql..." && start_mysql

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+STARTMSG="[ENTRYPOINT_REDIS]"
+
 function init_redis() {
 	# allow the container to be started with `--user`
 	[ -d "/redis_data_dir" ] || mkdir -p /redis_data_dir
@@ -12,7 +14,7 @@ function init_redis() {
 		exec gosu redis "$0" "$@"
 	fi
 
-	echo -e "####################################\n	started REDIS with cmd: '$CMD_REDIS'	\n####################################"
+	echo -e "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"
 	exec "$@"
 }
 
