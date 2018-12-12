@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function check_apache(){
-    curl -f https://localhost/ || exit 1
+    curl -fk https://localhost/ || exit 1
 }
 
 function check_mysql(){
