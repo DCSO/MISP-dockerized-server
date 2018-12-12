@@ -345,7 +345,6 @@ function upgrade(){
 echo "$STARTMSG wait 30 seconds for DB" && sleep 30
 
 
-
 # If a customer needs a analze column in misp
 echo "$STARTMSG check if analyze column should be added..."
     [ "$ADD_ANALYZE_COLUMN" == "yes" ] && add_analyze_column
