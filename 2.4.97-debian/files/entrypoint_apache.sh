@@ -2,6 +2,8 @@
 set -e
 export DEBIAN_FRONTEND=noninteractive
 
+STARTMSG="[ENTRYPOINT_APACHE]"
+
 PGP_ENABLE=0
 SMIME_ENABLE=0
 MISP_APP_PATH=/var/www/MISP/app
@@ -26,9 +28,7 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 
 
 function init_pgp(){
-    echo "####################################"
-    echo "PGP Key exists and copy it to MISP webroot"
-    echo "####################################"
+    echo "$STARTMSG ###### PGP Key exists and copy it to MISP webroot #######"
 
     # Copy public key to the right place
     sudo -u www-data sh -c "cp /var/www/MISP/.gnupg/public.key /var/www/MISP/app/webroot/gpg.asc"
@@ -37,9 +37,7 @@ function init_pgp(){
 }
 
 function init_smime(){
-    echo "####################################"
-    echo "S/MIME Cert exists and copy it to MISP webroot"
-    echo "####################################"
+    echo "$STARTMSG ###### S/MIME Cert exists and copy it to MISP webroot #######" 
     ### Set permissions
     chown www-data:www-data /var/www/MISP/.smime
     chmod 500 /var/www/MISP/.smime
@@ -85,39 +83,39 @@ function change_php_vars(){
 }
 
 function init_misp_config(){
-    echo "Configure MISP | Copy MISP default configuration files"
+    echo "$STARTMSG Configure MISP | Copy MISP default configuration files"
     [ -f $MISP_APP_CONFIG_PATH/bootstrap.php ] || cp $MISP_APP_CONFIG_PATH/bootstrap.default.php $MISP_APP_CONFIG_PATH/bootstrap.php
     [ -f $MISP_APP_CONFIG_PATH/database.php ] || cp $MISP_APP_CONFIG_PATH/database.default.php $MISP_APP_CONFIG_PATH/database.php
     [ -f $MISP_APP_CONFIG_PATH/core.php ] || cp $MISP_APP_CONFIG_PATH/core.default.php $MISP_APP_CONFIG_PATH/core.php
     [ -f $MISP_APP_CONFIG_PATH/config.php ] || cp $MISP_APP_CONFIG_PATH/config.default.php $MISP_APP_CONFIG_PATH/config.php
 
-    echo "Configure MISP | Set DB User, Password and Host in database.php"
+    echo "$STARTMSG Configure MISP | Set DB User, Password and Host in database.php"
     sed -i "s/localhost/$MYSQL_HOST/" $DATABASE_CONFIG
     sed -i "s/db\s*login/$MYSQL_USER/" $DATABASE_CONFIG
     sed -i "s/8889/3306/" $DATABASE_CONFIG
     sed -i "s/db\s*password/$MYSQL_PASSWORD/" $DATABASE_CONFIG
 
-    echo "Configure MISP | Set MISP-Url in config.php"
+    echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
     sed -i "s/'baseurl' => '',/'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
 
-    echo "Configure MISP | Set Email in config.php"
+    echo "$STARTMSG Configure MISP | Set Email in config.php"
     sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG
     
-    echo "Configure MISP | Set Admin Email in config.php"
+    echo "$STARTMSG Configure MISP | Set Admin Email in config.php"
     sed -i "s/admin@misp.example.com/$SENDER_ADDRESS/" $MISP_CONFIG
 
     # echo "Configure MISP | Set GNUPG Homedir in config.php"
     # sed -i "s,'homedir' => '/',homedir'                        => '/var/www/MISP/.gnupg'," $MISP_CONFIG
 
-    echo "Configure MISP | Change Salt in config.php"
+    echo "$STARTMSG Configure MISP | Change Salt in config.php"
     sed -i "s/'salt'\\s*=>\\s*''/'salt'                        => '$MISP_SALT'/" $MISP_CONFIG
 
-    echo "Configure MISP | Change Mail type from phpmailer to smtp"
+    echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
     sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
 
 
     ##### Check permissions #####
-    echo "Configure MISP | Check permissions"
+    echo "$STARTMSG Configure MISP | Check permissions"
     chown -R www-data.www-data /var/www/MISP
     chmod -R 0750 /var/www/MISP
     chmod -R g+ws /var/www/MISP/app/tmp
@@ -255,10 +253,15 @@ function create_ssl_cert(){
     # If a valid SSL certificate is not already created for the server, create a self-signed certificate:
     while [ -f $PID_CERT_CREATER.proxy ]
     do
-        echo "`date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
+        echo "$STARTMSG `date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
         sleep 2
     done
     [ ! -f $SSL_CERT -a ! -f $SSL_KEY ] && touch $PID_CERT_CREATER.server && echo "Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && echo "finished." && rm $PID_CERT_CREATER.server
+}
+
+function SSL_generate_DH(){
+    [ ! -f $SSL_DH_FILE ] && echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048
+    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
 function check_mysql(){
@@ -267,7 +270,7 @@ function check_mysql(){
     while (true)
     do
         [ -z "$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST -e 'select 1;'|tail -1|grep ERROR)" ] && break;
-        echo "Wait for MySQL..."
+        echo "$STARTMSG Wait for MySQL..."
         sleep 2
     done
 }
@@ -280,7 +283,7 @@ function check_redis(){
     while (true)
     do
         [ "$(redis-cli -h $REDIS_HOST ping)" == "PONG" ] && break;
-        echo "Wait for Redis..."
+        echo "$STARTMSG Wait for Redis..."
         sleep 2
     done
 }
@@ -299,37 +302,37 @@ function upgrade(){
         elif [ "$VERSION" == "$(cat $i/${NAME})" ]
         then
             # File exists and the volume is the current version
-            echo "Folder $i is on the newest version."
+            echo "$STARTMSG Folder $i is on the newest version."
         else
             # upgrade
-            echo "Folder $i should be updated."
+            echo "$STARTMSG Folder $i should be updated."
             case $(echo $i/$NAME) in
             2.4.92)
                 # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.92 ####"
+                echo "$STARTMSG #### Upgrade Volumes from 2.4.92 ####"
                 ;;
             2.4.93)
                 # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.93 ####"
+                echo "$STARTMSG #### Upgrade Volumes from 2.4.93 ####"
                 ;;
             2.4.94)
                 # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.94 ####"
+                echo "$STARTMSG #### Upgrade Volumes from 2.4.94 ####"
                 ;;
             2.4.95)
                 # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.95 ####"
+                echo "$STARTMSG #### Upgrade Volumes from 2.4.95 ####"
                 ;;
             2.4.96)
                 # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.96 ####"
+                echo "$STARTMSG #### Upgrade Volumes from 2.4.96 ####"
                 ;;
             2.4.97)
                 # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.97 ####"
+                echo "$STARTMSG #### Upgrade Volumes from 2.4.97 ####"
                 ;;
             *)
-                echo "Unknown Version, upgrade not possible."
+                echo "$STARTMSG Unknown Version, upgrade not possible."
                 exit
                 ;;
             esac
@@ -338,59 +341,63 @@ function upgrade(){
     done
 }
 
-
 ##############   MAIN   #################
-echo "wait 30 seconds for DB" && sleep 30
+echo "$STARTMSG wait 30 seconds for DB" && sleep 30
+
+
 
 # If a customer needs a analze column in misp
-echo "check if analyze column should be added..."
+echo "$STARTMSG check if analyze column should be added..."
     [ "$ADD_ANALYZE_COLUMN" == "yes" ] && add_analyze_column
 
 # Change PHP VARS
-echo "check if PHP values should be changed..."
+echo "$STARTMSG check if PHP values should be changed..."
     change_php_vars
 
 ##### PGP configs #####
-echo "check if PGP should be enabled...."
+echo "$STARTMSG check if PGP should be enabled...."
     [ -z $PGP_ENABLE ] && PGP_ENABLE=0 # false
     [ $PGP_ENABLE == "y" ] && PGP_ENABLE=1 && init_pgp
     # if secring.pgp exists execute init_pgp
     [ -f "/var/www/MISP/.gnupgp/public.key" ] && init_pgp
 
-echo "check if SMIME should be enabled..."
+echo "$STARTMSG check if SMIME should be enabled..."
     [ -z $SMIME_ENABLE ] && SMIME_ENABLE=0 # false 
     [ $SMIME_ENABLE == "y" ] && SMIME_ENABLE=1 && init_smime
     # If certificate exists execute init_smime
     [ -f "/var/www/MISP/.smime/cert.pem" ] && init_smime
 
 ##### create a cert if it is required
-echo "check if a cert is required..."
-    [ ! -f /etc/apache2/ssl/SSL_create.pid -a ! -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/ssl/key.pem ] && touch /etc/apache2/ssl/SSL_create.pid && create_ssl_cert && rm /etc/apache2/ssl/SSL_create.pid
+echo "$STARTMSG check if a cert is required..."
+    create_ssl_cert && rm /etc/apache2/ssl/SSL_create.pid
 
+# check if DH file is required to generate
+echo "$STARTMSG check if a dh file is required"
+    SSL_generate_DH
 ##### enable https config and disable http config ####
-echo "check if HTTPS MISP config should be enabled..."
+echo "$STARTMSG check if HTTPS MISP config should be enabled..."
     [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] && mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
 
-echo "check if HTTP MISP config should be disabled..."
+echo "$STARTMSG check if HTTP MISP config should be disabled..."
     [ -f /etc/apache2/ssl/cert.pem -a -f /etc/apache2/sites-enabled/misp.http ] && mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
 
 ##### check MySQL
-echo "check if MySQL is ready..." && check_mysql
+echo "$STARTMSG check if MySQL is ready..." && check_mysql
 
 ##### check MySQL
-echo "check if Redis is ready..." && check_redis
+echo "$STARTMSG check if Redis is ready..." && check_redis
 
 
 ##### initialize MISP-SERVER
-echo "check if misp-config should be initialized..."
+echo "$STARTMSG check if misp-config should be initialized..."
     [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ] && init_misp_config
 
 ##### check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
-echo "check if cake setup should be initialized..."
+echo "$STARTMSG check if cake setup should be initialized..."
     [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" -a -f "/var/www/MISP/app/Config/database.php"  ] && setup_via_cake_cli
 
 ##### Delete the initial decision file & reboot misp-server
-echo "check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
+echo "$STARTMSG check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
 [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] \
         && echo "delete init config file and reboot" \
         && sleep 2 && rm "/var/www/MISP/app/Config/NOT_CONFIGURED" \
@@ -398,7 +405,7 @@ echo "check if misp-server is configured and file /var/www/MISP/app/Config/NOT_C
 
 ########################################################
 # check volumes and upgrade if it is required
-echo "upgrade if it is required..." && upgrade
+echo "$STARTMSG upgrade if it is required..." && upgrade
 
 # start workers
 start_workers
@@ -412,11 +419,11 @@ start_workers
 
 
 # START APACHE2
-echo "####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
+echo "$STARTMSG ####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
 
 ##### Display tips
 echo
-echo "#############################"
+echo
 cat <<__WELCOME__
 Congratulations!
 Your MISP docker has been successfully booted for the first time.

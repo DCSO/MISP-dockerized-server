@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+STARTMSG="[ENTRYPOINT_POSTFIX]"
 POSTFIX_PATH="/etc/postfix"
 POSTFIX_CONFIG="$POSTFIX_PATH/main.cf"
 SMTP_AUTH="$POSTFIX_PATH/smtp_auth"
@@ -40,9 +41,9 @@ postmap $GENERIC
 postconf -c /etc/postfix/
 
 if [[ $? != 0 ]]; then
-  echo "Postfix configuration error, refusing to start."
+  echo "$STARTMS GPostfix configuration error, refusing to start."
   exit 1
 else
-  postfix -c /etc/postfix/ start
+  echo "$STARTMSG Start Postfix..." && postfix -c /etc/postfix/ start
   sleep 126144000
 fi
