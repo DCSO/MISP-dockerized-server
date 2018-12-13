@@ -1,9 +1,10 @@
 #!/bin/bash
-set -e
+set -exv
 export DEBIAN_FRONTEND=noninteractive
 
 STARTMSG="[ENTRYPOINT_APACHE]"
 
+export MISP_FQDN=$HOSTNAME
 PGP_ENABLE=0
 SMIME_ENABLE=0
 MISP_APP_PATH=/var/www/MISP/app
@@ -20,8 +21,8 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 # defaults
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
 [ -z $MYSQL_USER ] && export MYSQL_USER=misp
-[ -z $MISP_FQDN ] && export MISP_FQDN=`hostname`
-[ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS=`hostname`
+[ -z $MISP_FQDN ] && export MISP_FQDN=`hostname -f`
+[ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS="no-reply@$MISP_FQDN"
 [ -z $MISP_SALT ] && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
 [ -z $CAKE ] && export CAKE="$MISP_APP_PATH/Console/cake"
 
@@ -85,10 +86,11 @@ function change_php_vars(){
 
 function init_misp_config(){
     echo "$STARTMSG Configure MISP | Copy MISP default configuration files"
+    
     [ -f $MISP_APP_CONFIG_PATH/bootstrap.php ] || cp $MISP_APP_CONFIG_PATH/bootstrap.default.php $MISP_APP_CONFIG_PATH/bootstrap.php
-    [ -f $MISP_APP_CONFIG_PATH/database.php ] || cp $MISP_APP_CONFIG_PATH/database.default.php $MISP_APP_CONFIG_PATH/database.php
+    [ -f $DATABASE_CONFIG ] || cp $MISP_APP_CONFIG_PATH/database.default.php $DATABASE_CONFIG
     [ -f $MISP_APP_CONFIG_PATH/core.php ] || cp $MISP_APP_CONFIG_PATH/core.default.php $MISP_APP_CONFIG_PATH/core.php
-    [ -f $MISP_APP_CONFIG_PATH/config.php ] || cp $MISP_APP_CONFIG_PATH/config.default.php $MISP_APP_CONFIG_PATH/config.php
+    [ -f $MISP_CONFIG ] || cp $MISP_APP_CONFIG_PATH/config.default.php $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Set DB User, Password and Host in database.php"
     sed -i "s/localhost/$MYSQL_HOST/" $DATABASE_CONFIG
@@ -97,7 +99,7 @@ function init_misp_config(){
     sed -i "s/db\s*password/$MYSQL_PASSWORD/" $DATABASE_CONFIG
 
     echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
-    sed -i "s/'baseurl' => '',/'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
+    sed -i "s/'baseurl'.*=>.*'' ,/'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Set Email in config.php"
     sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG

@@ -4,6 +4,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 STARTMSG="[ENTRYPOINT_APACHE]"
 
+export MISP_FQDN=$HOSTNAME
 PGP_ENABLE=0
 SMIME_ENABLE=0
 MISP_APP_PATH=/var/www/MISP/app
@@ -20,8 +21,8 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 # defaults
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
 [ -z $MYSQL_USER ] && export MYSQL_USER=misp
-[ -z $MISP_FQDN ] && export MISP_FQDN=`hostname`
-[ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS=`hostname`
+[ -z $MISP_FQDN ] && export MISP_FQDN=`hostname -f`
+[ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS="no-reply@$MISP_FQDN"
 [ -z $MISP_SALT ] && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
 [ -z $CAKE ] && export CAKE="$MISP_APP_PATH/Console/cake"
 
@@ -257,7 +258,7 @@ function create_ssl_cert(){
         echo "$STARTMSG `date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
         sleep 2
     done
-    [ ! -f $SSL_CERT -a ! -f $SSL_KEY ] && touch $PID_CERT_CREATER.server && echo "Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && echo "finished." && rm $PID_CERT_CREATER.server
+    [ ! -f $SSL_CERT -a ! -f $SSL_KEY ] && touch ${PID_CERT_CREATER}.server && echo "Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && echo "finished." && rm ${PID_CERT_CREATER}.server
 }
 
 function SSL_generate_DH(){
@@ -266,7 +267,7 @@ function SSL_generate_DH(){
         echo "$STARTMSG `date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
         sleep 2
     done
-    [ ! -f $SSL_DH_FILE ] && touch $PID_CERT_CREATER.server  && echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048 && rm $PID_CERT_CREATER.server
+    [ ! -f $SSL_DH_FILE ] && touch ${PID_CERT_CREATER}.server  && echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048 && rm ${PID_CERT_CREATER}.server
     echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
@@ -349,6 +350,7 @@ function upgrade(){
 
 ##############   MAIN   #################
 echo "$STARTMSG wait 30 seconds for DB" && sleep 30
+
 
 # If a customer needs a analze column in misp
 echo "$STARTMSG check if analyze column should be added..."

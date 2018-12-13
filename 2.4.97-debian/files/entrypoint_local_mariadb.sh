@@ -7,7 +7,7 @@ FOLDER_with_VERSIONS="/var/lib/mysql"
 
 [ -z $MYSQL_DATABASE ] && export MYSQL_DATABASE=misp
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
-[ -z "$MYSQL_ROOT_PASSWORD" ] && export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)" 
+[ -z "$MYSQL_ROOT_PASSWORD" ] && echo "$STARTMSG No MYSQL_ROOT_PASSWORD is set. Exit now." && exit 1
 
 
 function upgrade(){
@@ -124,9 +124,6 @@ basedir  = /usr
 EOF
     ########################################################
 
-# Echo default Passwort
-echo "$STARTMSG ########    GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD   #########"
-
 }
 
 
@@ -140,10 +137,10 @@ echo "$STARTMSG ########    GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD   ####
 
 
 # create socket folder if not exists
-[ ! -d "/var/run/mysqld" ] && && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
+[ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
 ########################################################
 # Initialize mysql daemon
-[ ! -d "$DATADIR/mysql" ] &&  && init_mysql
+[ ! -d "$DATADIR/mysql" ] && init_mysql
 ########################################################
 # check volumes and upgrade if it is required
 echo "$STARTMSG upgrade if it is required..." && upgrade
