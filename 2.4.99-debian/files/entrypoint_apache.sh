@@ -99,7 +99,7 @@ function init_misp_config(){
     sed -i "s/db\s*password/$MYSQL_PASSWORD/" $DATABASE_CONFIG
 
     echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
-    sed -i "s/'baseurl'.*=>.*'' ,/'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
+    sed -i "s/.*baseurl.*=>.*,/    'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Set Email in config.php"
     sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG
