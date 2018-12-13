@@ -1,5 +1,5 @@
 #!/bin/bash
-set -exv
+set -e
 export DEBIAN_FRONTEND=noninteractive
 
 STARTMSG="[ENTRYPOINT_APACHE]"
