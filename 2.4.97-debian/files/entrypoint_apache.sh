@@ -13,6 +13,7 @@ DATABASE_CONFIG=$MISP_APP_CONFIG_PATH/database.php
 EMAIL_CONFIG=$MISP_APP_CONFIG_PATH/email.php
 SSL_CERT="/etc/apache2/ssl/cert.pem"
 SSL_KEY="/etc/apache2/ssl/key.pem"
+SSL_DH_FILE="/etc/apache2/ssl/dhparams.pem"
 FOLDER_with_VERSIONS="/var/www/MISP/app/tmp /var/www/MISP/app/files /var/www/MISP/app/Plugin/CakeResque/Config /var/www/MISP/app/Config /var/www/MISP/.gnupg /var/www/MISP/.smime /etc/apache2/ssl"
 PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 
@@ -260,7 +261,12 @@ function create_ssl_cert(){
 }
 
 function SSL_generate_DH(){
-    [ ! -f $SSL_DH_FILE ] && echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048
+    while [ -f $PID_CERT_CREATER.proxy ]
+    do
+        echo "$STARTMSG `date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
+        sleep 2
+    done
+    [ ! -f $SSL_DH_FILE ] && touch $PID_CERT_CREATER.server  && echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048 && rm $PID_CERT_CREATER.server
     echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
