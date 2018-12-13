@@ -7,6 +7,7 @@ STARTMSG="[ENTRYPOINT_APACHE]"
 export MISP_FQDN=$HOSTNAME
 PGP_ENABLE=0
 SMIME_ENABLE=0
+MISP_BASE_PATH=/var/www/MISP
 MISP_APP_PATH=/var/www/MISP/app
 MISP_APP_CONFIG_PATH=$MISP_APP_PATH/Config
 MISP_CONFIG=$MISP_APP_CONFIG_PATH/config.php
@@ -33,9 +34,10 @@ function init_pgp(){
     echo "$STARTMSG ###### PGP Key exists and copy it to MISP webroot #######"
 
     # Copy public key to the right place
-    sudo -u www-data sh -c "cp /var/www/MISP/.gnupg/public.key /var/www/MISP/app/webroot/gpg.asc"
-    ### IS DONE VIA ANSIBLE: # And export the public key to the webroot
-    ### IS DONE VIA ANSIBLE: #sudo -u www-data sh -c "gpg --homedir /var/www/MISP/.gnupg --export --armor $SENDER_ADDRESS > /var/www/MISP/app/webroot/gpg.asc"
+    [ -f /var/www/MISP/.gnupg/public.key ] || echo "GNU PGP Key isn't existing. Please add them." && return
+    [ -f /var/www/MISP/.gnupg/public.key ] && sudo -u www-data sh -c "cp /var/www/MISP/.gnupg/public.key /var/www/MISP/app/webroot/gpg.asc"
+
+    #sudo -u www-data sh -c "gpg --homedir /var/www/MISP/.gnupg --export --armor $SENDER_ADDRESS > /var/www/MISP/app/webroot/gpg.asc"
 }
 
 function init_smime(){
@@ -138,7 +140,7 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "Session.cookie_timeout" 3600
     # Enable GnuPG
     sudo $CAKE Admin setSetting "GnuPG.email" "$SENDER_ADDRESS"
-    sudo $CAKE Admin setSetting "GnuPG.homedir" "$MISP_APP_PATH/.gnupg"
+    sudo $CAKE Admin setSetting "GnuPG.homedir" "$MISP_BASE_PATH/.gnupg"
     #sudo $CAKE Admin setSetting "GnuPG.password" ""
     # Enable Enrichment set better timeouts
     sudo $CAKE Admin setSetting "Plugin.Enrichment_services_enable" true
