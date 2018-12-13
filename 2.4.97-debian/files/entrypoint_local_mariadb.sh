@@ -44,17 +44,13 @@ function start_mysql(){
 
 function init_mysql(){
 
-
-echo "########################"
+echo "$STARTMSG Initializing database"
 echo "$STARTMSG mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
 echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
-echo "########################"
-echo "$STARTMSG Initializing database"
 # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
 gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
 echo "$STARTMSG Database initialized"
 
-echo "########################"
 echo "$STARTMSG Start mysqld to setup"
 #"$@" --skip-networking --socket="${SOCKET}" &
 start_mysql &
@@ -144,13 +140,10 @@ echo "$STARTMSG ########    GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD   ####
 
 
 # create socket folder if not exists
-[ ! -d "/var/run/mysqld" ] && echo "$STARTMSG mkdir -p /var/run/mysqld" && mkdir -p /var/run/mysqld
-########################################################
-# change ownership to mysql user and group
-echo "$STARTMSG chown -R mysql.mysql /var/run/mysqld" && chown -R mysql.mysql /var/run/mysqld
+[ ! -d "/var/run/mysqld" ] && && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
 ########################################################
 # Initialize mysql daemon
-[ ! -d "$DATADIR/mysql" ] && echo "$STARTMSG init mysql..." && init_mysql
+[ ! -d "$DATADIR/mysql" ] &&  && init_mysql
 ########################################################
 # check volumes and upgrade if it is required
 echo "$STARTMSG upgrade if it is required..." && upgrade
