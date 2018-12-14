@@ -117,7 +117,8 @@ function init_misp_config(){
 
     echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
     sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
-
+    
+    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
 function setup_via_cake_cli(){
@@ -252,7 +253,8 @@ function create_ssl_cert(){
         echo "$STARTMSG `date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
         sleep 2
     done
-    [ ! -f $SSL_CERT -a ! -f $SSL_KEY ] && touch ${PID_CERT_CREATER}.server && echo "Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && echo "finished." && rm ${PID_CERT_CREATER}.server
+    [ ! -f $SSL_CERT -a ! -f $SSL_KEY ] && touch ${PID_CERT_CREATER}.server && echo "$STARTMSG Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && rm ${PID_CERT_CREATER}.server
+    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
 function SSL_generate_DH(){
@@ -261,7 +263,7 @@ function SSL_generate_DH(){
         echo "$STARTMSG `date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
         sleep 2
     done
-    [ ! -f $SSL_DH_FILE ] && touch ${PID_CERT_CREATER}.server  && echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048 && rm ${PID_CERT_CREATER}.server
+    [ ! -f $SSL_DH_FILE ] && touch ${PID_CERT_CREATER}.server  && echo "$STARTMSG Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048 && rm ${PID_CERT_CREATER}.server
     echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
@@ -399,10 +401,7 @@ echo "$STARTMSG check if cake setup should be initialized..."
 
 ##### Delete the initial decision file & reboot misp-server
 echo "$STARTMSG check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
-[ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] \
-        && echo "delete init config file and reboot" \
-        && sleep 2 && rm "/var/www/MISP/app/Config/NOT_CONFIGURED" \
-        && exit
+    [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "$STARTMSG delete init config file and reboot" && rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 ########################################################
 # check volumes and upgrade if it is required
