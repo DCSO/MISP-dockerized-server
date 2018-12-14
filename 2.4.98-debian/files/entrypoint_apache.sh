@@ -118,21 +118,12 @@ function init_misp_config(){
     echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
     sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
 
-
-    ##### Check permissions #####
-    echo "$STARTMSG Configure MISP | Check permissions"
-    chown -R www-data.www-data /var/www/MISP
-    chmod -R 0750 /var/www/MISP
-    chmod -R g+ws /var/www/MISP/app/tmp
-    chmod -R g+ws /var/www/MISP/app/files
-    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
-
 }
 
 function setup_via_cake_cli(){
     # Initialize user and fetch Auth Key
     #sudo -E $CAKE userInit -q
-    AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
+    #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
     # Setup some more MISP default via cake CLI
     # Tune global time outs
     sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
@@ -240,11 +231,11 @@ function setup_via_cake_cli(){
     # Set MISP Live
     # sudo $CAKE Live 1
     # Update the galaxies…
-    sudo $CAKE Admin updateGalaxies
+    #sudo $CAKE Admin updateGalaxies
     # Updating the taxonomies…
-    sudo $CAKE Admin updateTaxonomies
+    #sudo $CAKE Admin updateTaxonomies
     # Updating the warning lists…
-    sudo $CAKE Admin updateWarningLists
+    #sudo $CAKE Admin updateWarningLists
     # Updating the notice lists…
     # sudo $CAKE Admin updateNoticeLists
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
@@ -378,11 +369,12 @@ echo "$STARTMSG check if SMIME should be enabled..."
 
 ##### create a cert if it is required
 echo "$STARTMSG check if a cert is required..."
-    create_ssl_cert && rm /etc/apache2/ssl/SSL_create.pid
+    create_ssl_cert
 
 # check if DH file is required to generate
 echo "$STARTMSG check if a dh file is required"
     SSL_generate_DH
+
 ##### enable https config and disable http config ####
 echo "$STARTMSG check if HTTPS MISP config should be enabled..."
     [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] && mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
@@ -416,12 +408,16 @@ echo "$STARTMSG check if misp-server is configured and file /var/www/MISP/app/Co
 # check volumes and upgrade if it is required
 echo "$STARTMSG upgrade if it is required..." && upgrade
 
+##### Check permissions #####
+    echo "$STARTMSG Configure MISP | Check permissions"
+    chown -R www-data.www-data /var/www/MISP
+    chmod -R 0750 /var/www/MISP
+    chmod -R g+ws /var/www/MISP/app/tmp
+    chmod -R g+ws /var/www/MISP/app/files
+    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+
 # start workers
 start_workers
-
-
-
-
 
 
 
