@@ -236,8 +236,8 @@ ENV LANGUAGE=en_US:en
 # ------------------
     # add HTTP MISP Config
     RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
-    COPY files/misp* /etc/apache2/sites-enabled/
-    COPY files/ports.conf /etc/apache2/ports.conf
+    COPY files/etc/apache2/sites-enabled/* /etc/apache2/sites-enabled/
+    COPY files/etc/apache2/ports.conf /etc/apache2/ports.conf
     RUN chmod 640 /etc/apache2/ports.conf; \
         chown root.root /etc/apache2/ports.conf; \
         chmod 640 /etc/apache2/sites-enabled/*; \
@@ -365,22 +365,22 @@ RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
 RUN rm -Rf /var/lib/mysql/*;
     
     # add own mysql config
-COPY files/DCSO.cnf /etc/mysql/mariadb.conf.d/
+COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
 RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
 
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # Syslog Server & rsyslog
-COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-COPY files/rsyslog_custom.conf /etc/rsyslog.d/
+COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
 
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
 #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
 
 # Postfix
 # Copy files to postfix container
-COPY files/postfix/* /etc/postfix/
+COPY files/etc/postfix/* /etc/postfix/
 
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
 RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
@@ -425,7 +425,7 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # Entrypoints
     # CMD
-    COPY files/entrypoint*.sh files/healthcheck.sh /
+    COPY files/entrypoint*.sh files/healthcheck.sh files/update_misp.sh /
     RUN chmod +x /*.sh
 
 # Supervisord
