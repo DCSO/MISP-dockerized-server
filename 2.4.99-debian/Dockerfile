@@ -235,13 +235,13 @@ ENV LANGUAGE=en_US:en
 # 7 Configure Apache
 # ------------------
     # add HTTP MISP Config
-    RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
+    RUN rm /etc/apache2/sites-enabled/*;
     COPY files/etc/apache2/sites-enabled/* /etc/apache2/sites-enabled/
     COPY files/etc/apache2/ports.conf /etc/apache2/ports.conf
     RUN chmod 640 /etc/apache2/ports.conf; \
         chown root.root /etc/apache2/ports.conf; \
-        chmod 640 /etc/apache2/sites-enabled/*; \
-        chown root.root /etc/apache2/sites-enabled/*
+        chmod 640 /etc/apache2/sites-available/*; \
+        chown root.root /etc/apache2/sites-available/*
     # Configure Apache
     RUN sudo a2dismod status; \
         sudo a2enmod ssl; \
@@ -430,7 +430,7 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # Supervisord
     # Copy Supervisord config
-    COPY files/supervisord.conf /etc/supervisor/supervisord.conf
+    COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
     # Execute Supervisord after start:
     CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
 
