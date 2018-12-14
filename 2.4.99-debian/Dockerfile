@@ -295,8 +295,8 @@ ENV LANGUAGE=en_US:en
     # ZeroMQ depends on the Python client for Redis
     RUN pip3 install pyzmq; \
         pip3 install redis;
-    # RUN pip install pyzmq; \
-    #     pip install redis;
+    RUN pip install pyzmq; \
+        pip install redis;
 
 
     # For the experimental ssdeep correlations, run the following installation:
@@ -321,16 +321,18 @@ ENV LANGUAGE=en_US:en
 
 
 
-    # RUN \
-    #     # pymisp:… Please install pymisp: pip install pymisp
-    #     pip install pymisp \
-    #     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-    #     pip install git+https://github.com/kbandla/pydeep.git; \
-    #     # #magic:… Please install python-magic: pip install python-magic.
-    #     pip install python-magic; \
-    #     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
-    #     pip install setuptools --upgrade; \ 
-    #     pip install lief; \
+    RUN \
+        # pymisp:… Please install pymisp: pip install pymisp
+        pip install pymisp \
+        # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
+        pip install git+https://github.com/kbandla/pydeep.git; \
+        # #magic:… Please install python-magic: pip install python-magic.
+        pip install python-magic; \
+        # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
+        pip install setuptools --upgrade; \ 
+        pip install lief; \
+        # # Install maec libraries for STIX
+        pip install maec
 
 
 
@@ -360,8 +362,6 @@ RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
     
 # for local MySQL Server:
     # delete all config files
-# RUN mv /etc/mysql /etc/mysql.orig; \
-#     mkdir /etc/mysql; 
 RUN rm -Rf /var/lib/mysql/*;
     
     # add own mysql config
