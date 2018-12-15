@@ -99,7 +99,7 @@ ENV LANGUAGE=en_US:en
         && apt-get autoremove -y && apt-get clean -y
 
     RUN apt-get install -y \
-        jq jupyter-notebook imagemagick tesseract-ocr \
+        python-pip jq jupyter-notebook imagemagick tesseract-ocr \
         libxml2-dev libxslt1-dev zlib1g-dev \
         && apt-get autoremove -y && apt-get clean -y
 
