@@ -20,7 +20,6 @@ variables:
 before_script:
 - apk add --no-cache make bash sudo git
 - docker login -u "$INTERNAL_REGISTRY_USER" -p "$INTERNAL_REGISTRY_PW" "$INTERNAL_REGISTRY_HOST"
-#- make install
 
 .test:
   stage: test

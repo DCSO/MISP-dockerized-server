@@ -4,8 +4,10 @@ export DEBIAN_FRONTEND=noninteractive
 
 STARTMSG="[ENTRYPOINT_APACHE]"
 
+export MISP_FQDN=$HOSTNAME
 PGP_ENABLE=0
 SMIME_ENABLE=0
+MISP_BASE_PATH=/var/www/MISP
 MISP_APP_PATH=/var/www/MISP/app
 MISP_APP_CONFIG_PATH=$MISP_APP_PATH/Config
 MISP_CONFIG=$MISP_APP_CONFIG_PATH/config.php
@@ -13,14 +15,15 @@ DATABASE_CONFIG=$MISP_APP_CONFIG_PATH/database.php
 EMAIL_CONFIG=$MISP_APP_CONFIG_PATH/email.php
 SSL_CERT="/etc/apache2/ssl/cert.pem"
 SSL_KEY="/etc/apache2/ssl/key.pem"
+SSL_DH_FILE="/etc/apache2/ssl/dhparams.pem"
 FOLDER_with_VERSIONS="/var/www/MISP/app/tmp /var/www/MISP/app/files /var/www/MISP/app/Plugin/CakeResque/Config /var/www/MISP/app/Config /var/www/MISP/.gnupg /var/www/MISP/.smime /etc/apache2/ssl"
 PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 
 # defaults
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
 [ -z $MYSQL_USER ] && export MYSQL_USER=misp
-[ -z $MISP_FQDN ] && export MISP_FQDN=`hostname`
-[ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS=`hostname`
+[ -z $MISP_FQDN ] && export MISP_FQDN=`hostname -f`
+[ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS="no-reply@$MISP_FQDN"
 [ -z $MISP_SALT ] && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
 [ -z $CAKE ] && export CAKE="$MISP_APP_PATH/Console/cake"
 
@@ -31,9 +34,10 @@ function init_pgp(){
     echo "$STARTMSG ###### PGP Key exists and copy it to MISP webroot #######"
 
     # Copy public key to the right place
-    sudo -u www-data sh -c "cp /var/www/MISP/.gnupg/public.key /var/www/MISP/app/webroot/gpg.asc"
-    ### IS DONE VIA ANSIBLE: # And export the public key to the webroot
-    ### IS DONE VIA ANSIBLE: #sudo -u www-data sh -c "gpg --homedir /var/www/MISP/.gnupg --export --armor $SENDER_ADDRESS > /var/www/MISP/app/webroot/gpg.asc"
+    [ -f /var/www/MISP/.gnupg/public.key ] || echo "GNU PGP Key isn't existing. Please add them." && return
+    [ -f /var/www/MISP/.gnupg/public.key ] && sudo -u www-data sh -c "cp /var/www/MISP/.gnupg/public.key /var/www/MISP/app/webroot/gpg.asc"
+
+    #sudo -u www-data sh -c "gpg --homedir /var/www/MISP/.gnupg --export --armor $SENDER_ADDRESS > /var/www/MISP/app/webroot/gpg.asc"
 }
 
 function init_smime(){
@@ -84,10 +88,11 @@ function change_php_vars(){
 
 function init_misp_config(){
     echo "$STARTMSG Configure MISP | Copy MISP default configuration files"
+    
     [ -f $MISP_APP_CONFIG_PATH/bootstrap.php ] || cp $MISP_APP_CONFIG_PATH/bootstrap.default.php $MISP_APP_CONFIG_PATH/bootstrap.php
-    [ -f $MISP_APP_CONFIG_PATH/database.php ] || cp $MISP_APP_CONFIG_PATH/database.default.php $MISP_APP_CONFIG_PATH/database.php
+    [ -f $DATABASE_CONFIG ] || cp $MISP_APP_CONFIG_PATH/database.default.php $DATABASE_CONFIG
     [ -f $MISP_APP_CONFIG_PATH/core.php ] || cp $MISP_APP_CONFIG_PATH/core.default.php $MISP_APP_CONFIG_PATH/core.php
-    [ -f $MISP_APP_CONFIG_PATH/config.php ] || cp $MISP_APP_CONFIG_PATH/config.default.php $MISP_APP_CONFIG_PATH/config.php
+    [ -f $MISP_CONFIG ] || cp $MISP_APP_CONFIG_PATH/config.default.php $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Set DB User, Password and Host in database.php"
     sed -i "s/localhost/$MYSQL_HOST/" $DATABASE_CONFIG
@@ -96,7 +101,7 @@ function init_misp_config(){
     sed -i "s/db\s*password/$MYSQL_PASSWORD/" $DATABASE_CONFIG
 
     echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
-    sed -i "s/'baseurl' => '',/'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
+    sed -i "s/.*baseurl.*=>.*,/    'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Set Email in config.php"
     sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG
@@ -112,22 +117,14 @@ function init_misp_config(){
 
     echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
     sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
-
-
-    ##### Check permissions #####
-    echo "$STARTMSG Configure MISP | Check permissions"
-    chown -R www-data.www-data /var/www/MISP
-    chmod -R 0750 /var/www/MISP
-    chmod -R g+ws /var/www/MISP/app/tmp
-    chmod -R g+ws /var/www/MISP/app/files
-    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
-
+    
+    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
 function setup_via_cake_cli(){
     # Initialize user and fetch Auth Key
     #sudo -E $CAKE userInit -q
-    AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
+    #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
     # Setup some more MISP default via cake CLI
     # Tune global time outs
     sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
@@ -135,7 +132,7 @@ function setup_via_cake_cli(){
     sudo $CAKE Admin setSetting "Session.cookie_timeout" 3600
     # Enable GnuPG
     sudo $CAKE Admin setSetting "GnuPG.email" "$SENDER_ADDRESS"
-    sudo $CAKE Admin setSetting "GnuPG.homedir" "$MISP_APP_PATH/.gnupg"
+    sudo $CAKE Admin setSetting "GnuPG.homedir" "$MISP_BASE_PATH/.gnupg"
     #sudo $CAKE Admin setSetting "GnuPG.password" ""
     # Enable Enrichment set better timeouts
     sudo $CAKE Admin setSetting "Plugin.Enrichment_services_enable" true
@@ -235,11 +232,11 @@ function setup_via_cake_cli(){
     # Set MISP Live
     # sudo $CAKE Live 1
     # Update the galaxies…
-    sudo $CAKE Admin updateGalaxies
+    #sudo $CAKE Admin updateGalaxies
     # Updating the taxonomies…
-    sudo $CAKE Admin updateTaxonomies
+    #sudo $CAKE Admin updateTaxonomies
     # Updating the warning lists…
-    sudo $CAKE Admin updateWarningLists
+    #sudo $CAKE Admin updateWarningLists
     # Updating the notice lists…
     # sudo $CAKE Admin updateNoticeLists
     #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
@@ -256,11 +253,17 @@ function create_ssl_cert(){
         echo "$STARTMSG `date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
         sleep 2
     done
-    [ ! -f $SSL_CERT -a ! -f $SSL_KEY ] && touch $PID_CERT_CREATER.server && echo "Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && echo "finished." && rm $PID_CERT_CREATER.server
+    [ ! -f $SSL_CERT -a ! -f $SSL_KEY ] && touch ${PID_CERT_CREATER}.server && echo "$STARTMSG Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && rm ${PID_CERT_CREATER}.server
+    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
 function SSL_generate_DH(){
-    [ ! -f $SSL_DH_FILE ] && echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048
+    while [ -f $PID_CERT_CREATER.proxy ]
+    do
+        echo "$STARTMSG `date +%T` -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
+        sleep 2
+    done
+    [ ! -f $SSL_DH_FILE ] && touch ${PID_CERT_CREATER}.server  && echo "$STARTMSG Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048 && rm ${PID_CERT_CREATER}.server
     echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
@@ -344,6 +347,7 @@ function upgrade(){
 ##############   MAIN   #################
 echo "$STARTMSG wait 30 seconds for DB" && sleep 30
 
+
 # If a customer needs a analze column in misp
 echo "$STARTMSG check if analyze column should be added..."
     [ "$ADD_ANALYZE_COLUMN" == "yes" ] && add_analyze_column
@@ -367,11 +371,12 @@ echo "$STARTMSG check if SMIME should be enabled..."
 
 ##### create a cert if it is required
 echo "$STARTMSG check if a cert is required..."
-    create_ssl_cert && rm /etc/apache2/ssl/SSL_create.pid
+    create_ssl_cert
 
 # check if DH file is required to generate
 echo "$STARTMSG check if a dh file is required"
     SSL_generate_DH
+
 ##### enable https config and disable http config ####
 echo "$STARTMSG check if HTTPS MISP config should be enabled..."
     [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] && mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
@@ -396,21 +401,22 @@ echo "$STARTMSG check if cake setup should be initialized..."
 
 ##### Delete the initial decision file & reboot misp-server
 echo "$STARTMSG check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
-[ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] \
-        && echo "delete init config file and reboot" \
-        && sleep 2 && rm "/var/www/MISP/app/Config/NOT_CONFIGURED" \
-        && exit
+    [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "$STARTMSG delete init config file and reboot" && rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 ########################################################
 # check volumes and upgrade if it is required
 echo "$STARTMSG upgrade if it is required..." && upgrade
 
+##### Check permissions #####
+    echo "$STARTMSG Configure MISP | Check permissions"
+    chown -R www-data.www-data /var/www/MISP
+    chmod -R 0750 /var/www/MISP
+    chmod -R g+ws /var/www/MISP/app/tmp
+    chmod -R g+ws /var/www/MISP/app/files
+    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+
 # start workers
 start_workers
-
-
-
-
 
 
 

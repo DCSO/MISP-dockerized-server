@@ -7,7 +7,7 @@ FOLDER_with_VERSIONS="/var/lib/mysql"
 
 [ -z $MYSQL_DATABASE ] && export MYSQL_DATABASE=misp
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
-[ -z "$MYSQL_ROOT_PASSWORD" ] && export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)" 
+[ -z "$MYSQL_ROOT_PASSWORD" ] && echo "$STARTMSG No MYSQL_ROOT_PASSWORD is set. Exit now." && exit 1
 
 
 function upgrade(){
@@ -44,17 +44,13 @@ function start_mysql(){
 
 function init_mysql(){
 
-
-echo "########################"
+echo "$STARTMSG Initializing database"
 echo "$STARTMSG mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
 echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
-echo "########################"
-echo "$STARTMSG Initializing database"
 # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
 gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
 echo "$STARTMSG Database initialized"
 
-echo "########################"
 echo "$STARTMSG Start mysqld to setup"
 #"$@" --skip-networking --socket="${SOCKET}" &
 start_mysql &
@@ -128,9 +124,6 @@ basedir  = /usr
 EOF
     ########################################################
 
-# Echo default Passwort
-echo "$STARTMSG ########    GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD   #########"
-
 }
 
 
@@ -144,13 +137,10 @@ echo "$STARTMSG ########    GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD   ####
 
 
 # create socket folder if not exists
-[ ! -d "/var/run/mysqld" ] && echo "$STARTMSG mkdir -p /var/run/mysqld" && mkdir -p /var/run/mysqld
-########################################################
-# change ownership to mysql user and group
-echo "$STARTMSG chown -R mysql.mysql /var/run/mysqld" && chown -R mysql.mysql /var/run/mysqld
+[ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
 ########################################################
 # Initialize mysql daemon
-[ ! -d "$DATADIR/mysql" ] && echo "$STARTMSG init mysql..." && init_mysql
+[ ! -d "$DATADIR/mysql" ] && init_mysql
 ########################################################
 # check volumes and upgrade if it is required
 echo "$STARTMSG upgrade if it is required..." && upgrade

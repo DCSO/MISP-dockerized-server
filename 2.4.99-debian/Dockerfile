@@ -99,7 +99,7 @@ ENV LANGUAGE=en_US:en
         && apt-get autoremove -y && apt-get clean -y
 
     RUN apt-get install -y \
-        jq jupyter-notebook imagemagick tesseract-ocr \
+        python-pip jq jupyter-notebook imagemagick tesseract-ocr \
         libxml2-dev libxslt1-dev zlib1g-dev \
         && apt-get autoremove -y && apt-get clean -y
 
@@ -235,13 +235,13 @@ ENV LANGUAGE=en_US:en
 # 7 Configure Apache
 # ------------------
     # add HTTP MISP Config
-    RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
-    COPY files/misp* /etc/apache2/sites-enabled/
-    COPY files/ports.conf /etc/apache2/ports.conf
+    RUN rm /etc/apache2/sites-enabled/*;
+    COPY files/etc/apache2/sites-enabled/* /etc/apache2/sites-enabled/
+    COPY files/etc/apache2/ports.conf /etc/apache2/ports.conf
     RUN chmod 640 /etc/apache2/ports.conf; \
         chown root.root /etc/apache2/ports.conf; \
-        chmod 640 /etc/apache2/sites-enabled/*; \
-        chown root.root /etc/apache2/sites-enabled/*
+        chmod 640 /etc/apache2/sites-available/*; \
+        chown root.root /etc/apache2/sites-available/*
     # Configure Apache
     RUN sudo a2dismod status; \
         sudo a2enmod ssl; \
@@ -295,8 +295,8 @@ ENV LANGUAGE=en_US:en
     # ZeroMQ depends on the Python client for Redis
     RUN pip3 install pyzmq; \
         pip3 install redis;
-    # RUN pip install pyzmq; \
-    #     pip install redis;
+    RUN pip install pyzmq; \
+        pip install redis;
 
 
     # For the experimental ssdeep correlations, run the following installation:
@@ -321,16 +321,18 @@ ENV LANGUAGE=en_US:en
 
 
 
-    # RUN \
-    #     # pymisp:… Please install pymisp: pip install pymisp
-    #     pip install pymisp \
-    #     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-    #     pip install git+https://github.com/kbandla/pydeep.git; \
-    #     # #magic:… Please install python-magic: pip install python-magic.
-    #     pip install python-magic; \
-    #     # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
-    #     pip install setuptools --upgrade; \ 
-    #     pip install lief; \
+    RUN \
+        # pymisp:… Please install pymisp: pip install pymisp
+        pip install pymisp \
+        # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
+        pip install git+https://github.com/kbandla/pydeep.git; \
+        # #magic:… Please install python-magic: pip install python-magic.
+        pip install python-magic; \
+        # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
+        pip install setuptools --upgrade; \ 
+        pip install lief; \
+        # # Install maec libraries for STIX
+        pip install maec
 
 
 
@@ -360,27 +362,25 @@ RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
     
 # for local MySQL Server:
     # delete all config files
-# RUN mv /etc/mysql /etc/mysql.orig; \
-#     mkdir /etc/mysql; 
 RUN rm -Rf /var/lib/mysql/*;
     
     # add own mysql config
-COPY files/DCSO.cnf /etc/mysql/mariadb.conf.d/
+COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
 RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
 
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # Syslog Server & rsyslog
-COPY files/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-COPY files/rsyslog_custom.conf /etc/rsyslog.d/
+COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
 
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
 #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
 
 # Postfix
 # Copy files to postfix container
-COPY files/postfix/* /etc/postfix/
+COPY files/etc/postfix/* /etc/postfix/
 
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
 RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
@@ -425,12 +425,12 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # Entrypoints
     # CMD
-    COPY files/entrypoint*.sh files/healthcheck.sh /
+    COPY files/entrypoint*.sh files/healthcheck.sh files/update_misp.sh /
     RUN chmod +x /*.sh
 
 # Supervisord
     # Copy Supervisord config
-    COPY files/supervisord.conf /etc/supervisor/supervisord.conf
+    COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
     # Execute Supervisord after start:
     CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
 
