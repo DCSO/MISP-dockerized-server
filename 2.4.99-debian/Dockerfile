@@ -67,6 +67,7 @@ rsyslog \
 ARG LANG=en_US.UTF-8
 RUN locale-gen ${LANG}
 ENV LANG ${LANG}
+ENV LC_ALL ${LANG}
 ENV LANGUAGE=en_US:en
 #ENV LC_ALL ${LANG}
 
@@ -162,6 +163,14 @@ ENV LANGUAGE=en_US:en
         RUN apt-get install -y python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools
         # Upgrade
         #RUN pip3 install setuptools --upgrade;
+        # install mixbox to accomodate the new STIX dependencies:
+        RUN cd /var/www/MISP/app/files/scripts; \
+            git clone https://github.com/CybOXProject/mixbox.git; \
+            cd mixbox; python3 setup.py install;
+        # install python-maec
+        RUN cd /var/www/MISP/app/files/scripts; \
+            git clone https://github.com/MAECProject/python-maec.git; \
+            cd python-maec; python3 setup.py install;
         # install python-cybox
         RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/CybOXProject/python-cybox.git; \
@@ -170,14 +179,6 @@ ENV LANGUAGE=en_US:en
         RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/STIXProject/python-stix.git; \
             cd python-stix; python3 setup.py install;
-        # install mixbox to accomodate the new STIX dependencies:
-        RUN cd /var/www/MISP/app/files/scripts; \
-            git clone https://github.com/CybOXProject/mixbox.git; \
-            cd mixbox; python3 setup.py install;
-        # install python-maec
-        RUN cd /var/www/MISP/app/files/scripts; \
-            git clone https://github.com/MAECProject/python-maec.git; \
-            cd mixbox; python3 setup.py install;
 
     
     # install PyMISP

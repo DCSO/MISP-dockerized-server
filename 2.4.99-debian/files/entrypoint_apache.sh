@@ -4,9 +4,6 @@ export DEBIAN_FRONTEND=noninteractive
 
 STARTMSG="[ENTRYPOINT_APACHE]"
 
-export MISP_FQDN=$HOSTNAME
-PGP_ENABLE=0
-SMIME_ENABLE=0
 MISP_BASE_PATH=/var/www/MISP
 MISP_APP_PATH=/var/www/MISP/app
 MISP_APP_CONFIG_PATH=$MISP_APP_PATH/Config
@@ -20,11 +17,15 @@ FOLDER_with_VERSIONS="/var/www/MISP/app/tmp /var/www/MISP/app/files /var/www/MIS
 PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 
 # defaults
+
+[ -z $MISP_FQDN ] && export MISP_FQDN="https://$HOSTNAME"
+[ -z $PGP_ENABLE ] && export PGP_ENABLE=0
+[ -z $SMIME_ENABLE ] && export SMIME_ENABLE=0
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
 [ -z $MYSQL_USER ] && export MYSQL_USER=misp
 [ -z $MISP_FQDN ] && export MISP_FQDN=`hostname -f`
 [ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS="no-reply@$MISP_FQDN"
-[ -z $MISP_SALT ] && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
+[ -z $MISP_SALT ] && export MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
 [ -z $CAKE ] && export CAKE="$MISP_APP_PATH/Console/cake"
 
 
@@ -101,7 +102,7 @@ function init_misp_config(){
     sed -i "s/db\s*password/$MYSQL_PASSWORD/" $DATABASE_CONFIG
 
     echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
-    sed -i "s/.*baseurl.*=>.*,/    'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
+    sed -i "s/.*baseurl.*=>.*/    'baseurl' => '$MISP_FQDN',/" $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Set Email in config.php"
     sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG
@@ -126,6 +127,7 @@ function setup_via_cake_cli(){
     #sudo -E $CAKE userInit -q
     #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
     # Setup some more MISP default via cake CLI
+    sudo $CAKE baseurl "$MISP_FQDN"
     # Tune global time outs
     sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
     sudo $CAKE Admin setSetting "Session.timeout" 600
@@ -382,7 +384,7 @@ echo "$STARTMSG check if HTTPS MISP config should be enabled..."
     [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] && mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
 
 echo "$STARTMSG check if HTTP MISP config should be disabled..."
-    [ -f /etc/apache2/ssl/cert.pem -a -f /etc/apache2/sites-enabled/misp.http ] && mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
+    [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.http ] && mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
 
 ##### check MySQL
 echo "$STARTMSG check if MySQL is ready..." && check_mysql
