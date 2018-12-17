@@ -18,12 +18,12 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 
 # defaults
 
-[ -z $MISP_FQDN ] && export MISP_FQDN="https://$HOSTNAME"
+[ -z $MISP_URL -a -z $MISP_FQDN ] && echo "Please set 'MISP_FQDN' environment variable in docker-compose.override.yml file for misp-server!!!" && exit
+[ -z $MISP_URL -a ! -z $MISP_FQDN ] && export MISP_URL="https://$(echo $MISP_FQDN|cut -d '/' -f 3)"
 [ -z $PGP_ENABLE ] && export PGP_ENABLE=0
 [ -z $SMIME_ENABLE ] && export SMIME_ENABLE=0
 [ -z $MYSQL_HOST ] && export MYSQL_HOST=localhost
 [ -z $MYSQL_USER ] && export MYSQL_USER=misp
-[ -z $MISP_FQDN ] && export MISP_FQDN=`hostname -f`
 [ -z $SENDER_ADDRESS ] && export SENDER_ADDRESS="no-reply@$MISP_FQDN"
 [ -z $MISP_SALT ] && export MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
 [ -z $CAKE ] && export CAKE="$MISP_APP_PATH/Console/cake"
@@ -102,8 +102,8 @@ function init_misp_config(){
     sed -i "s/db\s*password/$MYSQL_PASSWORD/" $DATABASE_CONFIG
 
     echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
-    sed -i "s_.*baseurl.*=>.*_    \'baseurl\' => \'$MISP_FQDN\',_" $MISP_CONFIG
-    sudo $CAKE baseurl "$MISP_FQDN"
+    sed -i "s_.*baseurl.*=>.*_    \'baseurl\' => \'$MISP_URL\',_" $MISP_CONFIG
+    sudo $CAKE baseurl "$MISP_URL"
 
     echo "$STARTMSG Configure MISP | Set Email in config.php"
     sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG
@@ -128,7 +128,7 @@ function setup_via_cake_cli(){
     #sudo -E $CAKE userInit -q
     #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
     # Setup some more MISP default via cake CLI
-    sudo $CAKE baseurl "$MISP_FQDN"
+    sudo $CAKE baseurl "$MISP_URL"
     # Tune global time outs
     sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
     sudo $CAKE Admin setSetting "Session.timeout" 600
@@ -395,8 +395,8 @@ echo "$STARTMSG check if Redis is ready..." && check_redis
 
 
 ##### initialize MISP-SERVER
-echo "$STARTMSG check if misp-config should be initialized..."
-    [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ] && init_misp_config
+echo "$STARTMSG initialize misp base config..."
+    init_misp_config
 
 ##### check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
 echo "$STARTMSG check if cake setup should be initialized..."
