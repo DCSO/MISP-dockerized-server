@@ -8,7 +8,7 @@ CAKE="/var/www/MISP/app/Console/cake"
 
 
 # SLEEP 1h
-sleep 3600
+sleep 1800
 
 [ -z $AUTH_KEY ] && export AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2|tail -1)
 
@@ -45,7 +45,7 @@ do
     #If you would like to automate tasks such as caching feeds or pulling from server instances, you can do it using the following command line tools. Simply execute the given commands via the command line / create cron jobs easily out of them.:
     #Pull: MISP/app/Console/cake Server pull [user_id] [server_id] [full|update]
 
-    echo "$STARTMSG $CAKE Server pull 1 update..." && sudo -u www-data $CAKE Server pull 1 update
+    echo "$STARTMSG $CAKE Server pull 1 update..." && sudo -u www-data $CAKE Server pull 1
 
     # CacheFeed: MISP/app/Console/cake Server cacheFeed [user_id] [feed_id|all|csv|text|misp]
     echo "$STARTMSG $CAKE Server cacheFeed 1 all..." && sudo -u www-data  $CAKE Server cacheFeed 1 all
