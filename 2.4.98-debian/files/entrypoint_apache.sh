@@ -18,7 +18,7 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 
 # defaults
 
-[ -z $MISP_URL -a -z $MISP_FQDN ] && echo "Please set 'MISP_FQDN' environment variable in docker-compose.override.yml file for misp-server!!!" && exit
+[ -z $MISP_URL -a -z $MISP_FQDN ] && echo "Please set 'MISP_FQDN' or 'MISP_URL' environment variable in docker-compose.override.yml file for misp-server!!!" && exit
 [ -z $MISP_URL -a ! -z $MISP_FQDN ] && export MISP_URL="https://$(echo $MISP_FQDN|cut -d '/' -f 3)"
 [ -z $PGP_ENABLE ] && export PGP_ENABLE=0
 [ -z $SMIME_ENABLE ] && export SMIME_ENABLE=0
@@ -432,8 +432,6 @@ echo "$STARTMSG ####################################  started Apache2 with cmd: 
 echo
 echo
 cat <<__WELCOME__
-Congratulations!
-Your MISP docker has been successfully booted for the first time.
 " ###########	MISP environment is ready	###########"
 " Please go to: ${MYSQL_HOST}"
 " Login credentials:"
@@ -443,7 +441,7 @@ Your MISP docker has been successfully booted for the first time.
 " Do not forget to change your SSL certificate with:    make change-ssl"
 " ##########################################################"
 Congratulations!
-Your MISP docker has been successfully booted for the first time.
+Your MISP-dockerized server has been successfully booted.
 __WELCOME__
 
 
