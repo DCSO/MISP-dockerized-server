@@ -179,14 +179,14 @@ ENV LANGUAGE=en_US:en
         RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/STIXProject/python-stix.git; \
             cd python-stix; python3 setup.py install;
-        # install STIX2.0 library to support STIX 2.0 export:
-        RUN cd /var/www/MISP/app/files/scripts; \
-            cd cti-python-stix2; python3 setup.py install;
-
+        
+    # install STIX2.0 library to support STIX 2.0 export:
+    RUN cd /var/www/MISP/; \
+        cd cti-python-stix2; python3 setup.py install;
     
     # install PyMISP
-    RUN cd /var/www/MISP/PyMISP; \
-        python3 setup.py install;
+    RUN cd /var/www/MISP/; \
+        cd PyMISP; python3 setup.py install;
 
     # # install support for STIX 2.0 (Python 3 is required)
     # RUN pip3 install stix2
