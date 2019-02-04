@@ -8,7 +8,7 @@ test 2.4.101-debian:
   extends: .test
   variables:
     VERSION: "2.4.101-debian"
-  # only:
-  #   changes:
-  #   - 2.4.101-debian/*
+  only:
+    changes:
+    - 2.4.101-debian/*
     
