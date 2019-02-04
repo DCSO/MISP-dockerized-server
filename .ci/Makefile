@@ -23,4 +23,4 @@ push:
 	@bash 04_push.sh $(REPO) $(USER) $(PW)
 
 notify-hub-docker-com:
-	@bash 05_notify_hub.docker.com.sh $(TOKEN)
+	@bash 05_notify_hub.docker.com.sh $(REPO) $(TOKEN)
