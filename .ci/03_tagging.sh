@@ -26,7 +26,7 @@ SOURCE_REPO="not2push"
 
 # Search the latest image
     # Create the Array
-    FOLDER_ARRAY=( */)
+    FOLDER_ARRAY=( ../*/)
     FOLDER_ARRAY=( "${FOLDER_ARRAY[@]%/}" )
     # How many items in your Array:
     index=${#FOLDER_ARRAY[@]}       
