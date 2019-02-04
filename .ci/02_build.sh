@@ -1,6 +1,11 @@
 #!/bin/bash
-# Set an option to exit immediately if any error appears
-set -xe
+STARTMSG="[build]"
+
+[ -z "$1" ] && echo "$STARTMSG No parameter with the image version. Exit now." && exit 1
+[ "$1" == "dev" ] && echo "$STARTMSG False first argument. Abort." && exit 1
+
+VERSION="$1"
+ENVIRONMENT="$2"
 
 #################   MANUAL VARIABLES #################
 # path of the script
@@ -8,58 +13,71 @@ SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 # dockerfile name:
 DOCKERFILE_NAME=Dockerfile
 # Which Folder the script should use
-[ "$1" == "dev" ] && echo "false first argument. Abort." && exit 1
+
+echo "$STARTMSG Index all versions..."
 if [ -z $1 ] ;then
     	# build all you find
         FOLDER=( */)
         FOLDER=( "${FOLDER[@]%/}" )
 else
     # build only the argumented one
-    FOLDER=$1
+    FOLDER="$VERSION"
 fi
 #########################################################
 
 #################   AUTOMATIC VARIABLES #################
 # Find Out Git Hub Repository
-[ -z "$(git remote get-url origin|grep git@)" ] || GIT_REPO="$(git remote get-url origin|sed 's,.*:,,'|sed 's,....$,,')"
-[ -z "$(git remote get-url origin|grep http)" ] || GIT_REPO="$(git remote get-url origin|sed 's,.*github.com/,,'|sed 's,....$,,')"
-[ -z "$(echo $GIT_REPO|grep $GITLAB_HOST)" ] ||  GIT_REPO="$(git remote get-url origin|sed 's,.*'${GITLAB_HOST}'/'${GITLAB_GROUP}'/,,'|sed 's,....$,,')"
+echo "$STARTMSG Set GIT_REPO..."
+if [ ! -z "$(git remote get-url origin|grep git@)" ]
+then
+    GIT_REPO="$(git remote get-url origin|sed 's,.*:,,'|sed 's,....$,,')"
+elif [ ! -z "$(git remote get-url origin|grep http)" ] 
+then    
+    GIT_REPO="$(git remote get-url origin|sed 's,http.*//.*/,,'|sed 's,....$,,')"
+elif [ ! -z "$(echo $GIT_REPO|grep $GITLAB_HOST)" ] 
+then
+    GIT_REPO="$(git remote get-url origin|sed 's,.*'${GITLAB_HOST}'/'${GITLAB_GROUP}'/,,'|sed 's,....$,,')"
+else
+    echo "Can not found the Git URL. Exit now."
+    exit 1
+fi
 
 GIT_REPO_URL="https://github.com/$GIT_REPO"
 # Dockerifle Settings
 CONTAINER_NAME="$(echo $GIT_REPO|cut -d / -f 2|tr '[:upper:]' '[:lower:]')"
-DOCKER_REPO="dcso/$CONTAINER_NAME"
+DOCKER_REPO="not2push/$CONTAINER_NAME"
 #########################################################
 
+echo "$STARTMSG Start image building..."
 for FOLD in ${FOLDER[@]}
 do  
-    #Find Out Version from folder
+    # Find Out Version from folder
     VERSION=$(echo $FOLD|cut -d- -f 1)
     DOCKERFILE_PATH="$SCRIPTPATH/../$FOLD"
-    # load Variables from configuration file
+    # Load Variables from configuration file
     source $DOCKERFILE_PATH/configuration.sh
-    ### Add -dev to tag if dev is set as a second argument
-    if [ "$2" == "prod" ]
+    # Default mode add "-dev" tag.
+    if [ "$ENVIRONMENT" == "true" ]
     then
         # PROD Version
         TAGS="-t $DOCKER_REPO:$FOLD"
-        [ -z "$INTERNAL_REGISTRY_HOST" ] || TAGS+=" -t $INTERNAL_REGISTRY_HOST/$CONTAINER_NAME:$FOLD"
     else
         # DEV Version
         TAGS="-t $DOCKER_REPO:$FOLD-dev"
-        [ -z "$INTERNAL_REGISTRY_HOST" ] || TAGS+=" -t $INTERNAL_REGISTRY_HOST/$CONTAINER_NAME:$FOLD-dev"
     fi
     
-    # Default Build Args
+    # Default build args
     BUILD_ARGS+="
-        --build-arg BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+        --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")" \
         --build-arg NAME="$CONTAINER_NAME" \
         --build-arg GIT_REPO="$GIT_REPO_URL" \
         --build-arg VCS_REF=$(git rev-parse --short HEAD) \
         --build-arg VERSION="$VERSION" \
     "
-    # build container
+    # build image
     docker build \
             $BUILD_ARGS \
         -f $DOCKERFILE_PATH/$DOCKERFILE_NAME $TAGS $DOCKERFILE_PATH/
 done
+
+echo "$STARTMSG $0 is finished."
