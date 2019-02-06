@@ -1,5 +1,8 @@
-sudo: required
-services: docker
+dist: xenial
+addons:
+  apt:
+    sources:
+      - docker-xenial
 
 env:
   global:
@@ -9,6 +12,14 @@ env:
   - secure: "wNg+wZNIFwFkG6iFrrplyx0UjzG4uc/OD+pzWxLqyye/Xc3mNZkdgsLtxmollR1/ppzcguOcamjux5uAHXECSrBstqlMAXuf6diR1Z9LSfLL3K5vwLRNEKeryGq/5LkLZoNLPs4OFEEzbFOofP5Coq9ER1qv9T7FD5w3TAhpnjj1XCQm1hhMZAdRwX0U4pDBFQ8DhhzHkCIZkgmog8ibTxCHM7ltLGngFw0Jwn02cL2Ro6yIERr/8deXJ5uNn+f2IT0g6Qx+Y/IqFfaHIhUg7p+48WWR5SVgYWeBq25iz46yRfMWPi6ujN0Nk7bH5dWjwe/Q6lwc3rtPBl5HBtksrhtF0sWBSHmEuTDRuyax0/EMUkk2oIhQPeg6GyZhWINyfildCyd2MIju4KI7KtByC5RlFhKtNaHxvvjeiCypcRk9MHvmxP5Gq+ctJt2uKv3k9Sc/TRY6M92EJ27fBPoRjNeifksUKP0FcVnjwGXegux4ORA7rkCQ0lEWNaUvKAHJvWBI/waHJHaTzM7MvGQmbOXeGkYpUtjQLCIs5xmfRpfCa0/V/Xi4tKIwqFnvbk9nR3J5q+HOdSlZXPrR4yt77eI18Jn1EIt7lIFoZcnwuGVSTGLP5rvqjnXPY3v8W3LPD0Yz+zVQdoiXUybrZLOZiG8xNyTlZSYhdjem6JP7jVw="
   # Docker Hub Token
   - secure: "aJ1I2CaABPgMtrkn2mm8sIbgnXMXa9rSKIVDAWds07U/od5GVzCSBgFZhmYcfkZjxrrs75ArRXhhAEEZHfONeuxsz3S8vCksw+6jh13zWpTPtFOkWEPczhkuxH5K8iY1Fp1AnOVZMSSpkmqNUB2+dNLgvfOpw2pb9y43W4G11GFpdVH0nrwGQeTOfPNsIe24tgR2LrQWCElAjJZgZieB5ptQlIyfKh9fD8MfR0WWL68MBCJZcZagt5oE4BMt0liZEu6ARNdsAW4to0bbuvsfoBcYwztqgMWvoSEWJQkGjpzPUKqMxSqqyEQHr0CVj4yzKpxYufsRtamDJxte86pSV20pNMzgY3iIriXlApDvdEI1kwm55fI2GXLTiuErLpCdwqtreS1ygtuSnYNJ4uYiKHM0OXLfS/ta/hPVScMCStt/ttGolrwumsIpAOOLR0RoMbbV1PjLwxXStomePMsa7bTt2ruCkV3yK2nArRDK5lluENbU8L4x4LPtoOGGlT3J6gPV+ZOdUf676aZVAVZDum20Oq35xvFCqiATn9StytZo0aGXqGHmGNuqz+FUHv4sQ5qN+7SWKUxokQ7A4/gM3lX1pYgDE6D1lgUs9/pOxUxCxCCvsFqU4n2pkcYj0wThy7AcQiFcZf7Z63y2bnQCWAQADEpzPH5mVuPiRDxBx5U="
+  # The following variables are setup via gitlab project group:
+  # - DOCKER_HUB_TOKEN
+  # - DOCKER_SLUG
+  # - DOCKER_USERNAME
+  # - DOCKER_PASSWORD
+  # - CUSTOM_REGISTRY_URL
+  # - CUSTOM_REGISTRY_USER
+  # - CUSTOM_REGISTRY_PW
   matrix:
   - VERSION=2.4.88-ubuntu
   - VERSION=2.4.89-ubuntu
@@ -23,35 +34,39 @@ env:
   - VERSION=2.4.98-debian
   - VERSION=2.4.99-debian
   - VERSION=2.4.100-debian
+  - VERSION=2.4.101-debian
   - VERSION=2.4.nightly-ubuntu
   
+#
+# Install dependencies
+#
 before_install:
-- make install
+- sudo .ci/01_before_install.sh
 
+#
+# Build and tag our image
+#
 script:
-- travis_retry make build v=${VERSION} dev=dev
-- make tags
+- make -C .ci build v=${VERSION} prod=false      # Set prod=true, if you want to build NO '-dev' tag
+- make -C .ci tags REPO=$DOCKER_SLUG prod=false  # Set prod=true, if you want tags NO '-dev' tag
 
-after_script:
-- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-# check if branch=master and the current build is no pull request, then push it to docker hub
-#- [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make push;
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
-    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
-      make push;
-    fi; 
-  fi
+#
+# Push all Images found with the current Docker container name to the Docker registries
+#
+# deploy:
+#   provider: script
+#   script: 
+#   - make -C .ci push REPO=$DOCKER_SLUG USER=$DOCKER_USERNAME PW=$DOCKER_PASSWORD
+#   on:
+#     branch: master
 
+#
+# Trigger hub.docker.com automatic_build queue to update Readme
+#
 after_success:
-# notify Docker Hub to make a new build
-#- [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then 
-    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then 
-      make notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN
+# [OPTIONAL] Notify Docker hub about a new Readme and update the content 
+#- if [[ "$TRAVIS_BRANCH" == "master" ]]; then make -C .ci notify-hub-docker-com TOKEN=$DOCKER_HUB_TOKEN;  fi; 
 
-    fi; 
-  fi
-
-# don't notify me when things fail
 notifications:
+  # don't notify me when things fail
   email: false

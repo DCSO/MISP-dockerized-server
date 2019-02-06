@@ -385,7 +385,7 @@ echo "$STARTMSG check if HTTPS MISP config should be enabled..."
     [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] && mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
 
 echo "$STARTMSG check if HTTP MISP config should be disabled..."
-    [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.http ] && mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
+    [ -f /etc/apache2/ssl/cert.pem -a ! -f /etc/apache2/sites-enabled/misp.conf ] && mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
 
 ##### check MySQL
 echo "$STARTMSG check if MySQL is ready..." && check_mysql
