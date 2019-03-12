@@ -391,7 +391,7 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
     # CMD
     ENV CMD_MYSQL mysqld
     ENV CMD_APACHE none
-    ENV CMD_REDIS "redis-server --appendonly yes"
+    ENV CMD_REDIS "--appendonly yes"
     # Version + Name
     ENV NAME ${NAME}
     ENV VERSION ${VERSION}
@@ -434,7 +434,8 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
     # Copy Supervisord config
     COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
     # Execute Supervisord after start:
-    CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+    #CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+    ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf" ]
 
 # Add Healthcheck Config
 HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
