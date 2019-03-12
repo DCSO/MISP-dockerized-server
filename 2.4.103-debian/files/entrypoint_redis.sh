@@ -9,7 +9,7 @@ function init_redis() {
 	# change directory
 	pushd /redis_data_dir
 	# check if script is started as user redis if not do it!
-	if [ "$1" = 'redis-server' -a "$(id -u)" = '0' ]; then
+	if [ "$1" = 'redis-server' ] && [ "$(id -u)" = '0' ]; then
 		chown -R redis .
 		exec gosu redis "$0" "$@"
 	fi
@@ -18,4 +18,4 @@ function init_redis() {
 	exec "$@"
 }
 
-init_redis $CMD_REDIS
+init_redis "$CMD_REDIS"
