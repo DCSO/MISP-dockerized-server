@@ -33,10 +33,10 @@ before_script:
   # - master
   script:
   - make -C .ci build v=$VERSION 
-  - make -C .ci tags REPO=$CUSTOM_REGISTRY_URL
-  - make -C .ci tags REPO=$DOCKER_SLUG
-  - make -C .ci push REPO=$CUSTOM_REGISTRY_URL USER=$CUSTOM_REGISTRY_USER PW=$CUSTOM_REGISTRY_PW
-  - make -C .ci push REPO=$DOCKER_SLUG USER=$DOCKER_USERNAME PW=$DOCKER_PASSWORD
+  - make -C .ci tags REPOURL=$CUSTOM_REGISTRY_URL
+  - make -C .ci tags REPOURL=$DOCKER_SLUG
+  - make -C .ci push REPOURL=$CUSTOM_REGISTRY_URL USER=$CUSTOM_REGISTRY_USER PW=$CUSTOM_REGISTRY_PW
+  - make -C .ci push REPOURL=$DOCKER_SLUG USER=$DOCKER_USERNAME PW=$DOCKER_PASSWORD
   - make -C .ci notify-hub-docker-com URL=$DOCKER_HUB_NOTIFY_URL
 
 

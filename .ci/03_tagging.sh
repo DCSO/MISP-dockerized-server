@@ -78,11 +78,11 @@ do
         #
 
         # Add custom Docker registry tag
-        docker tag "$SOURCE_REPO/$CONTAINER_NAME":"$i" "$DOCKER_REPO":"$VERSION"-"$BASE"
+        docker tag "$SOURCE_REPO/$CONTAINER_NAME:$i" "$DOCKER_REPO:$VERSION-$BASE"
 
         # Add latest tag
         if [ "$VERSION" == "$LATEST" ]; then
-            docker tag "$SOURCE_REPO/$CONTAINER_NAME":"$i" "$DOCKER_REPO":latest
+            docker tag "$SOURCE_REPO/$CONTAINER_NAME:$i" "$DOCKER_REPO":latest
         fi
 
         # Add latest Major Version Tag

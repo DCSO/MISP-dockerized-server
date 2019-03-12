@@ -1,14 +1,14 @@
-build 2.4.101-debian:
+build 2.4.102-debian:
   extends: .build
   variables:
-    VERSION: "2.4.101-debian"
+    VERSION: "2.4.102-debian"
 
 
-test 2.4.101-debian:
+test 2.4.102-debian:
   extends: .test
   variables:
-    VERSION: "2.4.101-debian"
+    VERSION: "2.4.102-debian"
   only:
     changes:
-    - 2.4.101-debian/*
+    - 2.4.102-debian/*
     
