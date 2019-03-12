@@ -5,19 +5,44 @@ set -e
 STARTMSG="[ENTRYPOINT_CRON]"
 CAKE="/var/www/MISP/app/Console/cake"
 
+[ -z "$MYSQL_DATABASE" ] && export MYSQL_DATABASE=misp
+[ -z "$MYSQL_HOST" ] && export MYSQL_HOST=misp-db
+[ -z "$MYSQL_ROOT_PASSWORD" ] && echo "$STARTMSG No MYSQL_ROOT_PASSWORD is set. Exit now." && exit 1
+[ -z "$MYSQL_PORT" ] && export MYSQL_PORT=3306
+[ -z "$MYSQL_USER" ] && export MYSQL_USER=misp
 
+[ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -p $MYSQL_PORT -h $MYSQL_HOST -r -N"
+
+check_mysql(){
+    # Test when MySQL is ready    
+
+    # wait for Database come ready
+    isDBup () {
+        echo "SHOW STATUS" | $MYSQLCMD 1>/dev/null
+        echo $?
+    }
+
+    RETRY=10
+    until [ $(isDBup) -eq 0 ] || [ $RETRY -le 0 ] ; do
+        echo "Waiting for database to come up"
+        sleep 5
+        RETRY=$(( $RETRY - 1))
+    done
+    if [ $RETRY -le 0 ]; then
+        >&2 echo "Error: Could not connect to Database on $MYSQL_HOST:$MYSQL_PORT"
+        exit 1
+    fi
+
+}
 
 # SLEEP 1h
 sleep 3600
 
-[ -z $AUTH_KEY ] && export AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2|tail -1)
+# Wait until MySQL is ready
+check_mysql
 
-# Wait until database is ready then test    
-while(true)
-do
-    [ -z "$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST -e 'select 1;'|tail -1|grep ERROR)" ] && [ ! -z "$($CAKE Admin getSetting MISP.baseurl|grep value)" ] && break;
-    sleep 3
-done
+
+[ -z "$AUTH_KEY" ] && export AUTH_KEY=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -e "SELECT authkey FROM users;" | head -2|tail -1)
 
 # Administering MISP via the CLI
     # Certain administrative tasks are exposed to the API, these help with maintaining and configuring MISP in an automated way / via external tools.:
