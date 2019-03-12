@@ -1,21 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 STARTMSG="[ENTRYPOINT_REDIS]"
+REDIS_DATA="/redis_data_dir"
 
-function init_redis() {
-	# allow the container to be started with `--user`
-	[ -d "/redis_data_dir" ] || mkdir -p /redis_data_dir
-	# change directory
-	pushd /redis_data_dir
-	# check if script is started as user redis if not do it!
-	if [ "$1" = 'redis-server' ] && [ "$(id -u)" = '0' ]; then
-		chown -R redis .
-		exec gosu redis "$0" "$@"
-	fi
+# allow the container to be started with `--user`
+[ -d "$REDIS_DATA" ] || mkdir -p "$REDIS_DATA"
+# change directory
+cd "$REDIS_DATA"
+# check if script is started as user redis if not do it!
+if [ "$(id -u)" = '0' ]; then
+	chown -R redis "$REDIS_DATA"
+	exec gosu redis "$0" "$CMD_REDIS"
+fi
 
-	echo -e "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"
-	exec "$@"
-}
+echo "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"
 
-init_redis "$CMD_REDIS"
+redis-server "$CMD_REDIS"
