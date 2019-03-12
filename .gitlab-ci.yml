@@ -59,4 +59,5 @@ include:
   # - '2.4.99-debian/.gitlab-ci.yml'
   # - '2.4.100-debian/.gitlab-ci.yml'
   # - '2.4.101-debian/.gitlab-ci.yml'
-  - '2.4.102-debian/.gitlab-ci.yml'
+  #- '2.4.102-debian/.gitlab-ci.yml'
+  - '2.4.103-debian/.gitlab-ci.yml'
