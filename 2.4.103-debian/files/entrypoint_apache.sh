@@ -319,7 +319,7 @@ check_mysql(){
         echo $?
     }
 
-    RETRY=10
+    RETRY=100
     until [ $(isDBup) -eq 0 ] || [ $RETRY -le 0 ] ; do
         echo "Waiting for database to come up"
         sleep 5
