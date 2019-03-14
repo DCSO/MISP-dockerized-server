@@ -60,7 +60,7 @@ sleep 2
 i=0
 while(true)
 do
-    [ -z "$(mysql -uroot -h $MYSQL_HOST -e 'select 1;'|tail -1|grep ERROR)" ] && break;
+    [ -z "$(mysql -uroot -h $MYSQL_HOST -p$MYSQL_ROOT_PASSWORD -e 'select 1;'|tail -1|grep ERROR)" ] && break;
     echo "$STARTMSG not ready..."
     sleep 3
     i+=1
