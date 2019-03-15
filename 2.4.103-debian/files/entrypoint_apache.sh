@@ -313,6 +313,13 @@ SSL_generate_DH(){
 check_mysql(){
     # Test when MySQL is ready    
 
+    # Test if entrypoint_local_mariadb.sh is ready
+    sleep 5
+    while (true)
+    do
+        [ ! -f /varlib/mysql/entrypoint_local_mariadb.sh.pid ] && continue
+    done
+
     # wait for Database come ready
     isDBup () {
         echo "SHOW STATUS" | $MYSQLCMD 1>/dev/null
@@ -333,13 +340,12 @@ check_mysql(){
 }
 
 init_mysql(){
-    ########################################################
+    #####################################################################
     echo "$STARTMSG Check if MySQL is ready, before import SQL scheme..."
     check_mysql
     # import MISP DB Scheme
     echo "$STARTMSG Import MySQL scheme"
     "$MYSQLCMD" "$MYSQL_DATABASE" < /var/www/MISP/INSTALL/MYSQL.sql
-
 }
 
 check_redis(){

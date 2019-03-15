@@ -4,6 +4,9 @@ set -e
 STARTMSG="[ENTRYPOINT_LOCAL_MARIADB]"
 DATADIR="/var/lib/mysql"
 FOLDER_with_VERSIONS="/var/lib/mysql"
+    # create an pid file for the entrypoint script.
+    # entrypoint_apache start only if file is not in place.
+touch "$DATADIR/$0.pid"
 
 [ -z "$MYSQL_DATABASE" ] && export MYSQL_DATABASE=misp
 [ -z "$MYSQL_HOST" ] && export MYSQL_HOST=localhost
@@ -167,4 +170,7 @@ echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADI
 echo "$STARTMSG chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
 ########################################################
 # start mysql deamon
+    # delete PID file
+rm "$DATADIR/$0.pid"
+    # start daemon
 echo "$STARTMSG start longtime mysql..." && start_mysql
