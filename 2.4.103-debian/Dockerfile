@@ -374,7 +374,7 @@ RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # Syslog Server & rsyslog
-COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+#COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
 COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
 
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
