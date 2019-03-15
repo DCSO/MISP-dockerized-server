@@ -9,7 +9,7 @@ stages:
 
 variables:
   # The following variables are setup via gitlab project group:
-  # DOCKER_HUB_TOKEN
+  # DOCKER_HUB_NOTIFY_URL
   # DOCKER_SLUG
   # DOCKER_USERNAME
   # DOCKER_PASSWORD
@@ -17,54 +17,46 @@ variables:
   # CUSTOM_REGISTRY_USER
   # CUSTOM_REGISTRY_PW
 
-#
-# Install dependencies
-#
 before_script:
 - .ci/01_before_install.sh
 
-#
-# Build image for a short test to see if image can be build
-#
 .test:
   stage: test
   except: 
   - master  
   script:
-  - make -C .ci build v=$VERSION # build an 8ear/CONTAINERNAME image, if you want to change the slug please set DOCKER_SLUG=<Your slug>
+  - make -C .ci build v=$VERSION
 
-#
-# Build, tag, and push our image + trigger hub.docker.com automatic_build queue to update Readme
-#
 .build:
   stage: build
-  only: 
-  - master
+  # only: 
+  # - master
   script:
   - make -C .ci build v=$VERSION 
-  - make -C .ci tags REPO=$CUSTOM_REGISTRY_URL
-  - make -C .ci tags REPO=$DOCKER_SLUG
-  - make -C .ci push REPO=$CUSTOM_REGISTRY_URL USER=$CUSTOM_REGISTRY_USER PW=$CUSTOM_REGISTRY_PW
-  - make -C .ci push REPO=$DOCKER_SLUG USER=$DOCKER_USERNAME PW=$DOCKER_PASSWORD
-  - make -C .ci notify-hub-docker-com REPO=$DOCKER_SLUG TOKEN=$DOCKER_HUB_TOKEN
+  - make -C .ci tags REPOURL=$CUSTOM_REGISTRY_URL
+  - make -C .ci tags REPOURL=$DOCKER_SLUG
+  - make -C .ci push REPOURL=$CUSTOM_REGISTRY_URL USER=$CUSTOM_REGISTRY_USER PW=$CUSTOM_REGISTRY_PW
+  - make -C .ci push REPOURL=$DOCKER_SLUG USER=$DOCKER_USERNAME PW=$DOCKER_PASSWORD
+  - make -C .ci notify-hub-docker-com URL=$DOCKER_HUB_NOTIFY_URL
 
 
 #
 # For a cleaner Gitlab CI file include all subfolder which should be build:
 #
 include:
-  - '2.4.nightly-ubuntu/.gitlab-ci.yml'
-  - '2.4.88-ubuntu/.gitlab-ci.yml'
-  - '2.4.89-ubuntu/.gitlab-ci.yml'
-  - '2.4.90-ubuntu/.gitlab-ci.yml'
-  - '2.4.91-ubuntu/.gitlab-ci.yml'
-  - '2.4.92-ubuntu/.gitlab-ci.yml'
-  - '2.4.93-ubuntu/.gitlab-ci.yml'
-  - '2.4.94-ubuntu/.gitlab-ci.yml'
-  - '2.4.95-ubuntu/.gitlab-ci.yml'
-  - '2.4.96-ubuntu/.gitlab-ci.yml'
-  - '2.4.97-debian/.gitlab-ci.yml'
-  - '2.4.98-debian/.gitlab-ci.yml'
-  - '2.4.99-debian/.gitlab-ci.yml'
-  - '2.4.100-debian/.gitlab-ci.yml'
-  - '2.4.101-debian/.gitlab-ci.yml'
+  # - '2.4.nightly-ubuntu/.gitlab-ci.yml'
+  # - '2.4.88-ubuntu/.gitlab-ci.yml'
+  # - '2.4.89-ubuntu/.gitlab-ci.yml'
+  # - '2.4.90-ubuntu/.gitlab-ci.yml'
+  # - '2.4.91-ubuntu/.gitlab-ci.yml'
+  # - '2.4.92-ubuntu/.gitlab-ci.yml'
+  # - '2.4.93-ubuntu/.gitlab-ci.yml'
+  # - '2.4.94-ubuntu/.gitlab-ci.yml'
+  # - '2.4.95-ubuntu/.gitlab-ci.yml'
+  # - '2.4.96-ubuntu/.gitlab-ci.yml'
+  # - '2.4.97-debian/.gitlab-ci.yml'
+  # - '2.4.98-debian/.gitlab-ci.yml'
+  # - '2.4.99-debian/.gitlab-ci.yml'
+  # - '2.4.100-debian/.gitlab-ci.yml'
+  # - '2.4.101-debian/.gitlab-ci.yml'
+  - '2.4.102-debian/.gitlab-ci.yml'
