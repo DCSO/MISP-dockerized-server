@@ -12,9 +12,6 @@ env:
   # - DOCKER_SLUG
   # - DOCKER_USERNAME
   # - DOCKER_PASSWORD
-  # - CUSTOM_REGISTRY_URL
-  # - CUSTOM_REGISTRY_USER
-  # - CUSTOM_REGISTRY_PW
   matrix:
   - VERSION=2.4.88-ubuntu
   - VERSION=2.4.89-ubuntu

@@ -29,8 +29,9 @@ before_script:
 
 .build:
   stage: build
-  # only: 
-  # - master
+  only: 
+  - master
+  - feat/MDD-189
   script:
   - make -C .ci build v=$VERSION 
   - make -C .ci tags REPOURL=$CUSTOM_REGISTRY_URL
