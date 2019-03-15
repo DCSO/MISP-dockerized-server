@@ -42,15 +42,15 @@ check_mysql(){
 upgrade(){
     for i in $FOLDER_with_VERSIONS
     do
-        if [ ! -f $i/${NAME} ] 
+        if [ ! -f "$i/${NAME}" ] 
         then
             # File not exist and now it will be created
-            echo ${VERSION} > $i/${NAME}
-        elif [ ! -f $i/${NAME} -a -z "$(cat $i/${NAME})" ]
+            echo "$STARTMSG No version file exists. Will be created."
+        elif [ ! -f "$i/${NAME}" -a -z "$(cat "$i/${NAME}")" ]
         then
             # File exists, but is empty
-            echo ${VERSION} > $i/${NAME}
-        elif [ "$VERSION" == "$(cat $i/${NAME})" ]
+            echo "$STARTMSG Version file exists, but is empty."
+        elif [ "$VERSION" = "$(cat "$i/${NAME}")" ]
         then
             # File exists and the volume is the current version
             echo "$STARTMSG Folder $i is on the newest version."
@@ -142,13 +142,12 @@ EOF
 }
 
 
-########################################################
-########################################################
+
+
 ########################################################
 # START MAIN
 ########################################################
-########################################################
-########################################################
+
 
 
 # create socket folder if not exists
@@ -158,7 +157,7 @@ EOF
 [ ! -d "$DATADIR/mysql" ] && init_mysql
 ########################################################
 # check volumes and upgrade if it is required
-echo "$STARTMSG upgrade if it is required..." && upgrade
+#echo "$STARTMSG upgrade if it is required..." && upgrade
 ########################################################
 # Stop existing mysql deamon
 echo "$STARTMSG stopping mysql..." && service mysql stop
@@ -173,4 +172,4 @@ echo "$STARTMSG chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
     # delete PID file
 rm "$DATADIR/$0.pid"
     # start daemon
-echo "$STARTMSG start longtime mysql..." && start_mysql
+echo "$STARTMSG start longtime mysql..." && start_mysql $@
