@@ -29,17 +29,17 @@ done
 
 
 # Update the galaxies…
-echo "$STARTMSG Update Galaxies..." && sudo $CAKE Admin updateGalaxies
+echo "$STARTMSG Update Galaxies..." && sudo "$CAKE" Admin updateGalaxies
 # Updating the taxonomies…
-echo "$STARTMSG Update Taxonomies..." && sudo $CAKE Admin updateTaxonomies
+echo "$STARTMSG Update Taxonomies..." && sudo "$CAKE" Admin updateTaxonomies
 # Updating the warning lists…
-echo "$STARTMSG Update WarningLists..." && sudo $CAKE Admin updateWarningLists
+echo "$STARTMSG Update WarningLists..." && sudo "$CAKE" Admin updateWarningLists
 # Updating the notice lists…
-echo "$STARTMSG Update NoticeLists..." && sudo $CAKE Admin updateNoticeLists
+echo "$STARTMSG Update NoticeLists..." && sudo "$CAKE" Admin updateNoticeLists
 #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
 
 # Updating the object templates…
-echo "$STARTMSG Update Object Templates..." && sudo $CAKE Admin updateObjectTemplates
+echo "$STARTMSG Update Object Templates..." && sudo "$CAKE" Admin updateObjectTemplates
 #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
 
 exit
