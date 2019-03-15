@@ -17,3 +17,4 @@ fi
 echo "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"
 
 redis-server "$CMD_REDIS"
+

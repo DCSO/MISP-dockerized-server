@@ -1,4 +1,5 @@
 #!/bin/sh
+
 set -e
 
 STARTMSG="[ENTRYPOINT_LOCAL_MARIADB]"
@@ -68,7 +69,6 @@ start_mysql(){
 }
 
 init_mysql(){
-
 echo "$STARTMSG Initializing database"
 echo "$STARTMSG mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
 echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
