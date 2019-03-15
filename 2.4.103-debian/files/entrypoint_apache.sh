@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e
 export DEBIAN_FRONTEND=noninteractive
+
 STARTMSG="[ENTRYPOINT_APACHE]"
 
 # --help, --version
 [ "$1" = "--help" ] || [ "$1" = "--version" ] && exec start_apache "$1"
 # treat everything except -- as exec cmd
 [ "${1:0:2}" != "--" ] && exec "$@"
-
 
 MISP_BASE_PATH=/var/www/MISP
 MISP_APP_PATH=/var/www/MISP/app

@@ -35,6 +35,7 @@ check_mysql(){
 
 }
 
+
 # SLEEP 1h
 sleep 3600
 
@@ -43,6 +44,7 @@ check_mysql
 
 
 [ -z "$AUTH_KEY" ] && export AUTH_KEY=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -e "SELECT authkey FROM users;" | head -2|tail -1)
+
 
 # Administering MISP via the CLI
     # Certain administrative tasks are exposed to the API, these help with maintaining and configuring MISP in an automated way / via external tools.:

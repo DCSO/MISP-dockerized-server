@@ -51,6 +51,7 @@ check_worker(){
     for i in default cache prio email
     do
         [ -z "$(pgrep -ax QUEUE=\'$i\')" ] && echo "$STARTMSG No active $i worker found."  && exit 1
+
     done
 }
 
