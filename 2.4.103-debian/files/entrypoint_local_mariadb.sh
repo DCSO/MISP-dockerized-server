@@ -76,7 +76,7 @@ echo "$STARTMSG Initializing database"
 echo "$STARTMSG mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
 echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
 # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
-gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
+gosu mysql mysql_install_db --datadir="$DATADIR" --rpm ${@:2}
 echo "$STARTMSG Database initialized"
 
 echo "$STARTMSG Start mysqld to setup"
