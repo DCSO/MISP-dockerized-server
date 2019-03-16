@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+# bash is required for mysql init "${@:2}" only available in bash
 
 set -e
 
@@ -15,15 +17,14 @@ touch "$DATADIR/$0.pid"
 [ -z "$MYSQL_PORT" ] && export MYSQL_PORT=3306
 [ -z "$MYSQL_USER" ] && export MYSQL_USER=misp
 
-[ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -p $MYSQL_PORT -h $MYSQL_HOST -r -N"
+# Initial CMD has no password.
+[ -z "$MYSQL_INIT_CMD" ] && export MYSQL_INIT_CMD="mysql -u root -P $MYSQL_PORT -h $MYSQL_HOST -r -N"
 
 check_mysql(){
-    # Test when MySQL is ready    
-
     # wait for Database come ready
     isDBup () {
-        echo "SHOW STATUS" | $MYSQLCMD 1>/dev/null
-        echo $?
+        echo "SHOW STATUS" | $MYSQL_INIT_CMD 1>/dev/null
+        return $?
     }
 
     RETRY=10
@@ -72,23 +73,21 @@ start_mysql(){
 }
 
 init_mysql(){
-echo "$STARTMSG Initializing database"
+echo "$STARTMSG Initializing database..."
 echo "$STARTMSG mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
 echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
 # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
-gosu mysql mysql_install_db --datadir="$DATADIR" --rpm ${@:2}
+gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
 echo "$STARTMSG Database initialized"
 
 echo "$STARTMSG Start mysqld to setup"
 #"$@" --skip-networking --socket="${SOCKET}" &
 start_mysql &
-pid="$!"
-sleep 2
 # test if mysqld is ready
 check_mysql
 ########################################################
 
-mysql -uroot -h localhost << EOF
+$MYSQL_INIT_CMD << EOF
 -- What's done in this file shouldn't be replicated
 --  or products like mysql-fabric won't work
 SET @@SESSION.SQL_LOG_BIN=0;
@@ -132,7 +131,7 @@ socket   = /var/run/mysqld/mysqld.sock
 [mysql_upgrade]
 #host     = localhost
 user     = root
-password = $(echo $MYSQL_ROOT_PASSWORD)
+password = $(echo "$MYSQL_ROOT_PASSWORD")
 socket   = /var/run/mysqld/mysqld.sock
 basedir  = /usr
 
@@ -154,7 +153,7 @@ EOF
 [ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
 ########################################################
 # Initialize mysql daemon
-[ ! -d "$DATADIR/mysql" ] && init_mysql
+[ ! -d "$DATADIR/mysql" ] && init_mysql "$@"
 ########################################################
 # check volumes and upgrade if it is required
 #echo "$STARTMSG upgrade if it is required..." && upgrade
@@ -172,4 +171,4 @@ echo "$STARTMSG chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
     # delete PID file
 rm "$DATADIR/$0.pid"
     # start daemon
-echo "$STARTMSG start longtime mysql..." && start_mysql $@
+echo "$STARTMSG start longtime mysql..." && start_mysql "$@"
