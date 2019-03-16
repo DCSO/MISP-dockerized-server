@@ -427,8 +427,10 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # Entrypoints
     # CMD
-    COPY files/entrypoint*.sh files/healthcheck.sh files/update_misp.sh /
-    RUN chmod +x /*.sh
+    COPY files/entrypoint*.sh /
+    COPY files/healthcheck.sh /
+    COPY files/misp_update.sh /
+    COPY files/misp_cron.sh /
 
 # Supervisord
     # Copy Supervisord config
