@@ -36,33 +36,33 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 [ -z "$MISP_SALT" ] && export MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
 
 [ -z "$CAKE" ] && export CAKE="$MISP_APP_PATH/Console/cake"
-[ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -p $MYSQL_PORT -h $MYSQL_HOST -r -N"
+[ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N  $MYSQL_DATABASE"
 
 [ -z "${PHP_MEMORY}" ] && PHP_MEMORY="512M"
 [ -z "${PHP_MAX_EXECUTION_TIME}" ] && PHP_MAX_EXECUTION_TIME="300"
 [ -z "${PHP_UPLOAD_MAX_FILESIZE}" ] && PHP_UPLOAD_MAX_FILESIZE="50M"
 [ -z "${PHP_POST_MAX_SIZE}" ] && PHP_POST_MAX_SIZE="50M"
 
-[ -z "$REDIS_HOST" ] && REDIS_HOST=localhost
+[ -z "$REDIS_FQDN" ] && REDIS_FQDN=localhost
 
 
 init_pgp(){
     local FOLDER="/var/www/MISP/.gnupgp/public.key"
     
     if [ ! $PGP_ENABLE == "y" ]; then
-        # if pgp should not be activated exit
+        # if pgp should not be activated return
         echo "$STARTMSG PGP should not be activated."
-        exit
+        return
     elif [ ! -f "$FOLDER" ]; then
-        # if secring.pgp do not exists exit
+        # if secring.pgp do not exists return
         echo "$STARTMSG No public PGP key found in $FOLDER."
-        exit
+        return
     else
         export PGP_ENABLE=true
         echo "$STARTMSG ###### PGP Key exists and copy it to MISP webroot #######"
 
         # Copy public key to the right place
-        [ -f /var/www/MISP/.gnupg/public.key ] || echo "$STARTMSG GNU PGP Key isn't existing. Please add them." && exit 1
+        [ -f /var/www/MISP/.gnupg/public.key ] || echo "$STARTMSG GNU PGP Key isn't existing. Please add them. sleep 120 seconds" && sleep 120 && exit 1
         [ -f /var/www/MISP/.gnupg/public.key ] && sudo -u www-data sh -c "cp /var/www/MISP/.gnupg/public.key /var/www/MISP/app/webroot/gpg.asc"
     fi
 }
@@ -72,11 +72,11 @@ init_smime(){
       
     if [ ! $SMIME_ENABLE == "y" ]; then 
         echo "$STARTMSG S/MIME should not be activated."
-        exit
+        return
     elif [ -f "$FOLDER" ]; then
         # If certificate do not exists exit
         echo "$STARTMSG No Certificate found in $FOLDER."
-        exit
+        return
     else
         SMIME_ENABLE=1
         echo "$STARTMSG ###### S/MIME Cert exists and copy it to MISP webroot #######" 
@@ -141,7 +141,7 @@ init_misp_config(){
 
     echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
     sed -i "s_.*baseurl.*=>.*_    \'baseurl\' => \'$MISP_URL\',_" $MISP_CONFIG
-    sudo $CAKE baseurl "$MISP_URL"
+    #sudo $CAKE baseurl "$MISP_URL"
 
     echo "$STARTMSG Configure MISP | Set Email in config.php"
     sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG
@@ -162,15 +162,15 @@ init_misp_config(){
 }
 
 setup_via_cake_cli(){
-    [ -f "/var/www/MISP/app/Config/database.php"  ] && echo "$STARTMSG File /var/www/MISP/app/Config/database.php not found. Exit now." && exit 1
+    [ -f "/var/www/MISP/app/Config/database.php"  ] || (echo "$STARTMSG File /var/www/MISP/app/Config/database.php not found. Exit now." && exit 1)
     if [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ]; then
         # Initialize user and fetch Auth Key
-        #sudo -E $CAKE userInit -q
+        sudo -E $CAKE userInit -q
         #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
         # Setup some more MISP default via cake CLI
         sudo $CAKE baseurl "$MISP_URL"
         # Tune global time outs
-        sudo $CAKE Admin setSetting "Session.autoRegenerate" 0
+        sudo $CAKE Admin setSetting "Session.autoRegenerate" 1
         sudo $CAKE Admin setSetting "Session.timeout" 600
         sudo $CAKE Admin setSetting "Session.cookie_timeout" 3600
         # Enable GnuPG
@@ -240,7 +240,7 @@ setup_via_cake_cli(){
         sudo $CAKE Admin setSetting "MISP.language" "eng"
         #sudo $CAKE Admin setSetting "MISP.proposals_block_attributes" false
         # Redis block
-        sudo $CAKE Admin setSetting "MISP.redis_host" "$REDIS_HOST" 
+        sudo $CAKE Admin setSetting "MISP.redis_host" "$REDIS_FQDN" 
         sudo $CAKE Admin setSetting "MISP.redis_port" 6379
         sudo $CAKE Admin setSetting "MISP.redis_database" 13
         sudo $CAKE Admin setSetting "MISP.redis_password" ""
@@ -304,7 +304,7 @@ SSL_generate_DH(){
     while [ -f $PID_CERT_CREATER.proxy ]
     do
         echo "$STARTMSG $(date +%T) -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
-        sleep 2
+        sleep 5
     done
     [ ! -f $SSL_DH_FILE ] && touch ${PID_CERT_CREATER}.server  && echo "$STARTMSG Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048 && rm ${PID_CERT_CREATER}.server
     echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
@@ -317,7 +317,8 @@ check_mysql(){
     sleep 5
     while (true)
     do
-        [ ! -f /varlib/mysql/entrypoint_local_mariadb.sh.pid ] && continue
+        [ ! -f /var/lib/mysql/entrypoint_local_mariadb.sh.pid ] && break
+        sleep 5
     done
 
     # wait for Database come ready
@@ -352,7 +353,7 @@ check_redis(){
     # Test when Redis is ready
     while (true)
     do
-        [ "$(redis-cli -h "$REDIS_HOST" ping)" == "PONG" ] && break;
+        [ "$(redis-cli -h "$REDIS_FQDN" ping)" == "PONG" ] && break;
         echo "$STARTMSG Wait for Redis..."
         sleep 2
     done
