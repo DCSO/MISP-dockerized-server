@@ -61,15 +61,9 @@ wget \
 rsyslog \
 && apt-get autoremove -y && apt-get clean -y
 
-
-
 # Set locals
 ARG LANG=en_US.UTF-8
 RUN locale-gen ${LANG}
-ENV LANG ${LANG}
-ENV LC_ALL ${LANG}
-ENV LANGUAGE=en_US:en
-#ENV LC_ALL ${LANG}
 
 #########################    START  MISP Guide
 
@@ -387,6 +381,31 @@ COPY files/etc/postfix/* /etc/postfix/
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
 RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
+
+# Entrypoints
+    # CMD
+    COPY files/healthcheck.sh /
+    COPY files/misp_update.sh /usr/local/bin/
+    COPY files/misp_cron.sh /usr/local/bin/
+    COPY files/entrypoint_apache.sh /
+    COPY files/entrypoint_cron.sh /
+    COPY files/entrypoint_local_mariadb.sh /
+    COPY files/entrypoint_postfix.sh /
+    COPY files/entrypoint_redis.sh /
+    COPY files/entrypoint_rsyslog.sh /
+
+# Supervisord
+    # Copy Supervisord config
+    COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
+    # Execute Supervisord after start:
+    #CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+    ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf" ]
+
+# Add Healthcheck Config
+HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
+
+
+
 # Environment Variables
     # CMD
     ENV CMD_MYSQL mysqld
@@ -422,26 +441,16 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
         # You need to get more postfix output for a specified host normally the relayhost or misp-server
         ENV DEBUG_PEER=none
 
+# Set locals
+# ARG LANG=en_US.UTF-8
+# RUN locale-gen ${LANG}
+# ENV LANG ${LANG}
+# ENV LC_ALL ${LANG}
+# ENV LANGUAGE=en_US:en
+# #ENV LC_ALL ${LANG}
 
 
-
-# Entrypoints
-    # CMD
-    COPY files/entrypoint*.sh /
-    COPY files/healthcheck.sh /
-    COPY files/misp_update.sh /
-    COPY files/misp_cron.sh /
-
-# Supervisord
-    # Copy Supervisord config
-    COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
-    # Execute Supervisord after start:
-    #CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
-    ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf" ]
-
-# Add Healthcheck Config
-HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
-
+WORKDIR /var/www/MISP
 
 #       End of DCSO MISP Config Part
 #########################################
