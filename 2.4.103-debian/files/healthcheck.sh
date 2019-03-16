@@ -12,7 +12,7 @@ check_mysql(){
     [ -z "$MYSQL_PORT" ] && export MYSQL_PORT=3306
     [ -z "$MYSQL_USER" ] && export MYSQL_USER=misp
 
-    [ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -p $MYSQL_PORT -h $MYSQL_HOST -r -N"
+    [ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N"
 
     check_mysql(){
         # Test when MySQL is ready    
