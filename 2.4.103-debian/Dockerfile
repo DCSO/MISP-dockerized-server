@@ -69,12 +69,12 @@ RUN locale-gen ${LANG}
 
 # 1/ Minimal Ubuntu install
 # -------------------------
-    # Upgrade System
-    RUN apt-get update -y && apt-get upgrade -y && apt-get autoremove -y && apt-get clean -y
-
 
     # Install Postfix dependency
-    RUN apt-get update -y && apt-get install postfix -y && apt-get autoremove -y && apt-get clean -y
+    RUN apt-get update -y \
+        && apt-get install postfix -y \
+        && apt-get autoremove -y \
+        && apt-get clean -y
 
 
     # 2/ Install LAMP & dependencies
@@ -83,7 +83,7 @@ RUN locale-gen ${LANG}
     ## Installation of libfuzzy-dev is required for pydeep
     
     RUN apt-get install -y \
-        curl gcc git gnupg-agent make python3 openssl sudo vim zip \
+        curl gcc git gnupg-agent gnupg2 make python3 openssl sudo vim zip \
         redis-server \
         libyara-dev \
         && apt-get autoremove -y && apt-get clean -y
@@ -376,34 +376,33 @@ COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
 
 # Postfix
 # Copy files to postfix container
-COPY files/etc/postfix/* /etc/postfix/
+    COPY files/etc/postfix/* /etc/postfix/
 
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
-RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
+    RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
+# MISP Update and MISP Cron
+    COPY files/usr/local/bin/misp_update.sh /usr/local/bin/
+    COPY files/usr/local/bin/misp_cron.sh /usr/local/bin/
+# MISP worker start fix
+    COPY files/var/www/MISP/app/Console/worker/fix_worker_start.sh /var/www/MISP/app/Console/worker/
+
+# Healthcheck
+    COPY files/healthcheck.sh /
+    HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
 
 # Entrypoints
-    # CMD
-    COPY files/healthcheck.sh /
-    COPY files/misp_update.sh /usr/local/bin/
-    COPY files/misp_cron.sh /usr/local/bin/
     COPY files/entrypoint_apache.sh /
     COPY files/entrypoint_cron.sh /
     COPY files/entrypoint_local_mariadb.sh /
     COPY files/entrypoint_postfix.sh /
     COPY files/entrypoint_redis.sh /
     COPY files/entrypoint_rsyslog.sh /
+    COPY files/entrypoint_workers.sh /
+    COPY files/entrypoint.sh /
 
 # Supervisord
-    # Copy Supervisord config
-    COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
-    # Execute Supervisord after start:
-    #CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
-    ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf" ]
-
-# Add Healthcheck Config
-HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
-
+    ENTRYPOINT [ "/entrypoint.sh" ]
 
 
 # Environment Variables
@@ -419,10 +418,12 @@ HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
     ENV HTTP_PROXY=""
     ENV HTTPS_PROXY=""
     ENV NO_PROXY="0.0.0.0"
+    
     # MYSQL Vars
-    ENV MYSQL_HOST="localhost"
-    ENV MYSQL_DATABASE="misp"
-    ENV MYSQL_USER="misp"
+        ENV MYSQL_HOST="localhost"
+        ENV MYSQL_DATABASE="misp"
+        ENV MYSQL_USER="misp"
+        ENV MYSQL_PASSWORD="ChangeMe123!"
 
     # POSTFIX
         # Hostname for the Mailserver
@@ -442,8 +443,6 @@ HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
         ENV DEBUG_PEER=none
 
 # Set locals
-# ARG LANG=en_US.UTF-8
-# RUN locale-gen ${LANG}
 # ENV LANG ${LANG}
 # ENV LC_ALL ${LANG}
 # ENV LANGUAGE=en_US:en
