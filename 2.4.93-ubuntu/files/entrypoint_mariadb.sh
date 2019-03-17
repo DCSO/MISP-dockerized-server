@@ -1,74 +1,107 @@
 #!/bin/bash
+
+# bash is required for mysql init "${@:2}" only available in bash
+
 set -e
 
+NC='\033[0m' # No Color
+Light_Green='\033[1;32m'  
+echo (){
+    command echo -e $1
+}
+
+STARTMSG="${Light_Green}[ENTRYPOINT_LOCAL_MARIADB]${NC}"
+
+
+if [ "$MYSQL_HOST" != "localhost" ] && [ "$MYSQL_HOST" != "misp-server" ] && [ -n "$MYSQL_HOST" ]; then
+    echo "$STARTMSG Deactivate MariaDB Entrypoint because MYSQL_HOST='$MYSQL_HOST'."
+    exit 0
+fi
+
+
 DATADIR="/var/lib/mysql"
+FOLDER_with_VERSIONS="/var/lib/mysql"
+    # create an pid file for the entrypoint script.
+    # entrypoint_apache start only if file is not in place.
+touch "$DATADIR/$0.pid"
 
-function check_and_link_error(){
-    [ -e $1 ] && rm $1;
-    ln -s /dev/stderr $1
+[ -z "$MYSQL_DATABASE" ] && export MYSQL_DATABASE=misp
+[ -z "$MYSQL_HOST" ] && export MYSQL_HOST=localhost
+[ -z "$MYSQL_ROOT_PASSWORD" ] && echo "$STARTMSG No MYSQL_ROOT_PASSWORD is set. Exit now." && exit 1
+[ -z "$MYSQL_PORT" ] && export MYSQL_PORT=3306
+[ -z "$MYSQL_USER" ] && export MYSQL_USER=misp
+
+# Initial CMD has no password.
+[ -z "$MYSQL_INIT_CMD" ] && export MYSQL_INIT_CMD="mysql -u root -P $MYSQL_PORT -h $MYSQL_HOST -r -N"
+
+check_mysql(){
+    # wait for Database come ready
+    isDBup () {
+        echo "SHOW STATUS" | $MYSQL_INIT_CMD 1>/dev/null
+        echo $?
+    }
+
+    RETRY=10
+    until [ $(isDBup) -eq 0 ] || [ $RETRY -le 0 ] ; do
+        echo "Waiting for database to come up"
+        sleep 5
+        RETRY=$(( $RETRY - 1))
+    done
+    if [ $RETRY -le 0 ]; then
+        >&2 echo "Error: Could not connect to Database on $MYSQL_HOST:$MYSQL_PORT"
+        exit 1
+    fi
+
 }
-function check_and_link_out(){
-    [ -e $1 ] && rm $1;
-    ln -s /dev/stdout $1
+
+upgrade(){
+    for i in $FOLDER_with_VERSIONS
+    do
+        if [ ! -f "$i/${NAME}" ] 
+        then
+            # File not exist and now it will be created
+            echo "$STARTMSG No version file exists. Will be created."
+        elif [ ! -f "$i/${NAME}" -a -z "$(cat "$i/${NAME}")" ]
+        then
+            # File exists, but is empty
+            echo "$STARTMSG Version file exists, but is empty."
+        elif [ "$VERSION" = "$(cat "$i/${NAME}")" ]
+        then
+            # File exists and the volume is the current version
+            echo "$STARTMSG Folder $i is on the newest version."
+        else
+            # upgrade
+            echo "$STARTMSG Folder $i should be updated."
+
+            ############ DO ANY!!!
+        fi
+    done
 }
-
-check_and_link_error "/var/log/mysql/error.log"
-
-MYSQL_DATABASE=$MYSQL_DATABASE
 
 start_mysql(){
-    if [ -z "$@" ]; then
+    if [ -z "$*" ]; then
         gosu mysql mysqld 
     else
-        gosu mysql $@
+        gosu mysql "$@"
     fi
 }
 
+init_mysql(){
+echo "$STARTMSG Initializing database..."
+echo "$STARTMSG mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
+echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
+# "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
+gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
+echo "$STARTMSG Database initialized"
+
+echo "$STARTMSG Start mysqld to setup"
+#"$@" --skip-networking --socket="${SOCKET}" &
+start_mysql &
+# test if mysqld is ready
+check_mysql
 ########################################################
-# create socket folder
-[ ! -d "/var/run/mysqld" ] && echo "mkdir -p /var/run/mysqld" && mkdir -p /var/run/mysqld
-########################################################
-# change ownership to mysql user and group
-echo "chown -R mysql.mysql /var/run/mysqld" && chown -R mysql.mysql /var/run/mysqld
-########################################################
-# create Directory
-echo "########################"
-if [ ! -d "$DATADIR/mysql" ] 
-    then
-        echo "mkdir -p $DATADIR/mysql" && mkdir -p $DATADIR/mysql
-        echo "chown -R mysql.mysql $DATADIR/mysql" && chown -R mysql.mysql $DATADIR/mysql
-        echo 'Initializing database'
-        # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
-        gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
-        echo 'Database initialized'
 
-        echo "########################"
-        echo "Start mysqld to setup"
-        #"$@" --skip-networking --socket="${SOCKET}" &
-        start_mysql &
-        pid="$!"
-        sleep 2
-        # test if mysqld is ready
-        i=0
-        while(true)
-        do
-            [ -z "$(mysql -uroot -h localhost -e 'select 1;'|tail -1|grep ERROR)" ] && break;
-            echo "not ready..."
-            sleep 3
-            i+=1
-            [ "$i" >= 10 ] && echo "can't start DB" && exit 1
-        done
-        ########################################################
-        echo "########################"
-        # Create Root Password if none is given
-        if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-            export MYSQL_ROOT_PASSWORD="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 28)"
-            echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
-        fi
-
-
-        mysql -uroot -h localhost << EOF
-
+$MYSQL_INIT_CMD << EOF
 -- What's done in this file shouldn't be replicated
 --  or products like mysql-fabric won't work
 SET @@SESSION.SQL_LOG_BIN=0;
@@ -97,13 +130,6 @@ DROP DATABASE IF EXISTS test ;
 FLUSH PRIVILEGES ;
 EOF
 
-        # import MISP DB Scheme
-        echo "########################"
-        echo "Import MySQL scheme"
-        mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE < /var/www/MISP/INSTALL/MYSQL.sql
-        #############################
-fi
-
 ########################################################
 # create debian.cnf
 debian_conf=/etc/mysql/debian.cnf
@@ -112,24 +138,51 @@ debian_conf=/etc/mysql/debian.cnf
 cat << EOF > $debian_conf
 #	MYSQL Configuration from DCSO
 [client]
-#host     = localhost
+host     = localhost
 user     = root
 password = $(echo $MYSQL_ROOT_PASSWORD)
 socket   = /var/run/mysqld/mysqld.sock
 [mysql_upgrade]
 #host     = localhost
 user     = root
-password = $(echo $MYSQL_ROOT_PASSWORD)
+password = $(echo "$MYSQL_ROOT_PASSWORD")
 socket   = /var/run/mysqld/mysqld.sock
 basedir  = /usr
 
 EOF
+    ########################################################
+
+}
+
+
+
+
+########################################################
+# START MAIN
 ########################################################
 
 
 
-echo "########################"
-echo "stopping mysql..."
-service mysql stop
-echo "start longtime mysql..."
-start_mysql
+# create socket folder if not exists
+[ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
+########################################################
+# Initialize mysql daemon
+[ ! -d "$DATADIR/mysql" ] && init_mysql "$@"
+########################################################
+# check volumes and upgrade if it is required
+#echo "$STARTMSG upgrade if it is required..." && upgrade
+########################################################
+# Stop existing mysql deamon
+echo "$STARTMSG stopping mysql..." && service mysql stop
+########################################################
+# Own the directory
+echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
+########################################################
+# CHMOD the configuration files
+echo "$STARTMSG chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
+########################################################
+# start mysql deamon
+    # delete PID file
+rm "$DATADIR/$0.pid"
+    # start daemon
+echo "$STARTMSG start longtime mysql..." && start_mysql "$@"

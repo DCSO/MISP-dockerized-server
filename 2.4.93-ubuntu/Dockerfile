@@ -49,30 +49,25 @@ ENV DEBIAN_FRONTEND noninteractive
 #RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 
 # DCSO Required Software
-RUN apt-get update; apt-get upgrade -y; apt-get install -y \ 
+RUN apt-get update; apt-get install -y \ 
 locales \
 iputils-ping \
 net-tools \
-apt-utils \
-wget \
 supervisor \
 gosu \
-python-pip \
-libfuzzy-dev \
+wget \
+#syslog-ng \
+rsyslog \
 && apt-get autoremove -y && apt-get clean -y
-## Installation of libfuzzy-dev is required for pydeep
-
 
 # Set locals
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
+ARG LANG=en_US.UTF-8
+RUN locale-gen ${LANG}
 
 #########################    START  MISP Guide
 
 # 1/ Minimal Ubuntu install
 # -------------------------
-    # Upgrade System
-    RUN apt-get update -y && apt-get autoremove -y && apt-get clean -y
 
     # ATTENTION Postfix has its own container!
 
@@ -82,6 +77,7 @@ ENV LANG en_US.UTF-8
     # Install required software
     RUN apt-get install -y \
         curl gcc git gnupg-agent make python python3 openssl redis-server sudo vim zip \
+        python-pip python3-pip \
         && apt-get autoremove -y && apt-get clean -y
 
     # Install MariaDB (a MySQL fork/alternative) | Server has its own container!!!
@@ -155,8 +151,6 @@ ENV LANG en_US.UTF-8
         git clone https://github.com/CybOXProject/mixbox.git; \
         cd mixbox; python3 setup.py install;
 
-    # pymisp:… Please install pymisp: pip install pymisp
-    RUN pip install pymisp
     # install PyMISP
     RUN cd /var/www/MISP/PyMISP; \
         python3 setup.py install
@@ -165,14 +159,11 @@ ENV LANG en_US.UTF-8
     RUN pip3 install stix2
 
 
-
-
-
-
 # 4/ CakePHP
 # ------------
     # Once done, install CakeResque along with its dependencies if you intend to use the built in background jobs:
-    RUN cd /var/www/MISP/app; sudo -u www-data php composer.phar require kamisama/cake-resque:4.1.2; \
+    RUN cd /var/www/MISP/app; \
+        sudo -u www-data php composer.phar require kamisama/cake-resque:4.1.2; \
         php composer.phar config vendor-dir Vendor; \
         php composer.phar install;
 
@@ -213,7 +204,7 @@ ENV LANG en_US.UTF-8
     COPY files/misp* /etc/apache2/sites-enabled/
     COPY files/ports.conf /etc/apache2/ports.conf
     RUN chmod 640 /etc/apache2/ports.conf; \
-        chown root.root /etc/apache2/ports.conf \
+        chown root.root /etc/apache2/ports.conf; \
         chmod 640 /etc/apache2/sites-enabled/*; \
         chown root.root /etc/apache2/sites-enabled/*
     # Configure Apache
@@ -287,8 +278,6 @@ ENV LANG en_US.UTF-8
         RUN sudo echo "extension=ssdeep.so" > /etc/php/7.0/mods-available/ssdeep.ini; \
             sudo phpenmod ssdeep;
 
-    # pymisp:… Please install pymisp: pip install pymisp
-    RUN pip install pymisp
     # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
     RUN pip install git+https://github.com/kbandla/pydeep.git
     # #magic:… Please install python-magic: pip install python-magic.
@@ -297,7 +286,7 @@ ENV LANG en_US.UTF-8
     RUN pip install setuptools --upgrade; \ 
         pip install lief
     # Install maec libraries for STIX
-    RUN pip3 install maec
+    RUN pip3 install maec==4.1.0.13
 
 
 #########################################
@@ -319,11 +308,12 @@ RUN mv /etc/mysql /etc/mysql.orig; \
 # add own mysql config
 COPY files/DCSO.cnf /etc/mysql/
 
-# Copy PHP.ini File for PHP Config
-COPY files/php.ini /etc/php/7.0/apache2/
-
 # Copy patch File for MISP Events Page with additional Analyse Column
 COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
+
+# I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
+    RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
+
 
 # Environment Variables
     # CMD
