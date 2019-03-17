@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e 
+
 STARTMSG="[HEALTHCHECK]"
 
 check_apache(){
