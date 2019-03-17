@@ -2,7 +2,15 @@
 set -e
 export DEBIAN_FRONTEND=noninteractive
 
-STARTMSG="[ENTRYPOINT_APACHE]"
+NC='\033[0m' # No Color
+Light_Green='\033[1;32m'  
+echo (){
+    command echo -e $1
+}
+
+STARTMSG="${Light_Green}[ENTRYPOINT_APACHE]${NC}"
+ENTRYPOINT_PID_FILE="/entrypoint_apache.install"
+[ ! -f $ENTRYPOINT_PID_FILE ] && touch $ENTRYPOINT_PID_FILE
 
 # --help, --version
 [ "$1" = "--help" ] || [ "$1" = "--version" ] && exec start_apache "$1"
@@ -15,6 +23,7 @@ MISP_APP_CONFIG_PATH=$MISP_APP_PATH/Config
 MISP_CONFIG=$MISP_APP_CONFIG_PATH/config.php
 DATABASE_CONFIG=$MISP_APP_CONFIG_PATH/database.php
 EMAIL_CONFIG=$MISP_APP_CONFIG_PATH/email.php
+CAKE_CONFIG="/var/www/MISP/app/Plugin/CakeResque/Config/config.php"
 SSL_CERT="/etc/apache2/ssl/cert.pem"
 SSL_KEY="/etc/apache2/ssl/key.pem"
 SSL_DH_FILE="/etc/apache2/ssl/dhparams.pem"
@@ -93,11 +102,6 @@ init_smime(){
     
 }
 
-start_workers(){
-    # start Workers for MISP
-    su -s /bin/bash -c "/var/www/MISP/app/Console/worker/start.sh" www-data
-}
-
 start_apache() {
     # Apache gets grumpy about PID files pre-existing
     rm -f /run/apache2/apache2.pid
@@ -158,12 +162,18 @@ init_misp_config(){
     echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
     sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
     
+    #### CAKE ####
+    echo "$STARTMSG Configure Cake | Change Redis host to $REDIS_FQDN"
+    sed -i "s/'host' => 'localhost'.*/'host' => '$REDIS_FQDN',          \/\/ Redis server hostname/" $CAKE_CONFIG
+
+    ##############
     echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
 }
 
 setup_via_cake_cli(){
     [ -f "/var/www/MISP/app/Config/database.php"  ] || (echo "$STARTMSG File /var/www/MISP/app/Config/database.php not found. Exit now." && exit 1)
     if [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ]; then
+        echo "$STARTMSG Cake initializing started..."
         # Initialize user and fetch Auth Key
         sudo -E $CAKE userInit -q
         #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
@@ -244,6 +254,8 @@ setup_via_cake_cli(){
         sudo $CAKE Admin setSetting "MISP.redis_port" 6379
         sudo $CAKE Admin setSetting "MISP.redis_database" 13
         sudo $CAKE Admin setSetting "MISP.redis_password" ""
+        sudo $CAKE Admin setSetting "Plugin.ZeroMQ_redis_host" "$REDIS_FQDN"
+
         # Force defaults to make MISP Server Settings less YELLOW
         # sudo $CAKE Admin setSetting "MISP.ssdeep_correlation_threshold" 40
         # sudo $CAKE Admin setSetting "MISP.extended_alert_subject" false
@@ -293,7 +305,7 @@ create_ssl_cert(){
     # If a valid SSL certificate is not already created for the server, create a self-signed certificate:
     while [ -f $PID_CERT_CREATER.proxy ]
     do
-        echo "$STARTMSG $(date +%T) -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
+        echo "$STARTMSG $(date +%T) -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finished."
         sleep 2
     done
     ( [ ! -f $SSL_CERT ] && [ ! -f $SSL_KEY ] ) && touch ${PID_CERT_CREATER}.server && echo "$STARTMSG Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && rm ${PID_CERT_CREATER}.server
@@ -342,11 +354,14 @@ check_mysql(){
 
 init_mysql(){
     #####################################################################
-    echo "$STARTMSG Check if MySQL is ready, before import SQL scheme..."
-    check_mysql
-    # import MISP DB Scheme
-    echo "$STARTMSG Import MySQL scheme"
-    "$MYSQLCMD" "$MYSQL_DATABASE" < /var/www/MISP/INSTALL/MYSQL.sql
+    if [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ]; then
+        check_mysql
+        # import MISP DB Scheme
+        echo "$STARTMSG ... importing MySQL scheme..."
+        $MYSQLCMD < /var/www/MISP/INSTALL/MYSQL.sql
+        echo "$STARTMSG MySQL import...finished"
+    fi
+    echo
 }
 
 check_redis(){
@@ -446,32 +461,32 @@ echo "$STARTMSG Check if Redis is ready..." && check_redis
 echo "$STARTMSG Check if MySQL is ready..." && check_mysql
 
 ##### Import MySQL scheme
-echo "$STARTMSG Import MySQL scheme..." && check_mysql
+echo "$STARTMSG Import MySQL scheme..." && init_mysql
 
 ##### initialize MISP-Server
 echo "$STARTMSG Initialize misp base config..." && init_misp_config
 
 ##### check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
-echo "$STARTMSG check if cake setup should be initialized..." && setup_via_cake_cli
+echo "$STARTMSG Check if cake setup should be initialized..." && setup_via_cake_cli
 
 ##### Delete the initial decision file & reboot misp-server
-echo "$STARTMSG check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
+echo "$STARTMSG Check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
     [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "$STARTMSG delete init config file and reboot" && rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 ########################################################
 # check volumes and upgrade if it is required
-echo "$STARTMSG upgrade if it is required..." && upgrade
+echo "$STARTMSG Upgrade if it is required..." && upgrade
 
 ##### Check permissions #####
-    echo "$STARTMSG Configure MISP | Check permissions"
-    chown -R www-data.www-data /var/www/MISP
-    chmod -R 0750 /var/www/MISP
-    chmod -R g+ws /var/www/MISP/app/tmp
-    chmod -R g+ws /var/www/MISP/app/files
-    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    echo "$STARTMSG Configure MISP | Check permissions..."
+    echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
+    echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && chmod -R 0750 /var/www/MISP
+    echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
+    echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
+    echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
 
-# start workers
-start_workers
+# delete pid file
+[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
 
 # START APACHE2
 echo "$STARTMSG ####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"

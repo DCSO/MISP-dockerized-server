@@ -1,7 +1,14 @@
 #!/bin/sh
 set -e
 
-STARTMSG="[ENTRYPOINT_REDIS]"
+NC='\033[0m' # No Color
+Light_Green='\033[1;32m'  
+echo (){
+    command echo -e $1
+}
+
+STARTMSG="${Light_Green}[ENTRYPOINT_REDIS]${NC}"
+
 REDIS_DATA="/redis_data_dir"
 
 if [ "$REDIS_FQDN" = "localhost" ] || [ -z "$REDIS_FQDN" ] || [ "$REDIS_FQDN" = "misp-server" ]; then

@@ -1,7 +1,16 @@
 #!/bin/bash
 set -e
 
-STARTMSG="[ENTRYPOINT_POSTFIX]"
+
+NC='\033[0m' # No Color
+Light_Green='\033[1;32m'  
+echo (){
+    command echo -e $1
+}
+
+STARTMSG="${Light_Green}[ENTRYPOINT_POSTFIX]${NC}"
+
+
 POSTFIX_PATH="/etc/postfix"
 POSTFIX_CONFIG="$POSTFIX_PATH/main.cf"
 SMTP_AUTH="$POSTFIX_PATH/smtp_auth"

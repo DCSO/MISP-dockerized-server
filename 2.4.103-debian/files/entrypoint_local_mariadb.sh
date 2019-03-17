@@ -4,7 +4,21 @@
 
 set -e
 
-STARTMSG="[ENTRYPOINT_LOCAL_MARIADB]"
+NC='\033[0m' # No Color
+Light_Green='\033[1;32m'  
+echo (){
+    command echo -e $1
+}
+
+STARTMSG="${Light_Green}[ENTRYPOINT_LOCAL_MARIADB]${NC}"
+
+
+if [[ "$MYSQL_HOST" != "localhost" ]] && [[ "$MYSQL_HOST" != "misp-server" ]]; then
+    echo "$STARTMSG Deactivate MariaDB Entrypoint because MYSQL_HOST='$MYSQL_HOST'."
+    exit 0
+fi
+
+
 DATADIR="/var/lib/mysql"
 FOLDER_with_VERSIONS="/var/lib/mysql"
     # create an pid file for the entrypoint script.
@@ -24,7 +38,7 @@ check_mysql(){
     # wait for Database come ready
     isDBup () {
         echo "SHOW STATUS" | $MYSQL_INIT_CMD 1>/dev/null
-        return $?
+        echo $?
     }
 
     RETRY=10
