@@ -22,15 +22,13 @@ done
 
 # start Workers for MISP
 echo "$STARTMSG Start Workers..."
-#su -s /bin/bash -c "/var/www/MISP/app/Console/worker/start.sh" www-data
-#/var/www/MISP/app/Console/worker/start.sh
-/var/www/MISP/app/Console/worker/fix_worker_start.sh start-all
+sudo -u www-data /var/www/MISP/app/Console/worker/start.sh
 echo "$STARTMSG Start Workers...finished"
 
 while true
 do
     sleep 3600
     echo "$STARTMSG Start Workers..."
-    /var/www/MISP/app/Console/worker/fix_worker_start.sh start-all
+    sudo -u www-data /var/www/MISP/app/Console/worker/start.sh
     echo "$STARTMSG Start Workers...finished"
 done
