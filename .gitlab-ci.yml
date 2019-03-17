@@ -31,7 +31,7 @@ before_script:
   stage: build
   only: 
   - master
-  - feat/MDD-189
+  - feat/MDD-190
   script:
   - make -C .ci build v=$VERSION 
   - make -C .ci tags REPOURL=$CUSTOM_REGISTRY_URL
@@ -51,7 +51,7 @@ include:
   # - '2.4.90-ubuntu/.gitlab-ci.yml'
   # - '2.4.91-ubuntu/.gitlab-ci.yml'
   # - '2.4.92-ubuntu/.gitlab-ci.yml'
-  # - '2.4.93-ubuntu/.gitlab-ci.yml'
+  - '2.4.93-ubuntu/.gitlab-ci.yml'
   # - '2.4.94-ubuntu/.gitlab-ci.yml'
   # - '2.4.95-ubuntu/.gitlab-ci.yml'
   # - '2.4.96-ubuntu/.gitlab-ci.yml'
@@ -61,4 +61,4 @@ include:
   # - '2.4.100-debian/.gitlab-ci.yml'
   # - '2.4.101-debian/.gitlab-ci.yml'
   # - '2.4.102-debian/.gitlab-ci.yml'
-  - '2.4.103-debian/.gitlab-ci.yml'
+  #- '2.4.103-debian/.gitlab-ci.yml'
