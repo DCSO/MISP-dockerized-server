@@ -1,7 +1,16 @@
+#!/bin/bash
 set -e
 
+NC='\033[0m' # No Color
+Light_Green='\033[1;32m'  
+echo (){
+    command echo -e $1
+}
+
 COUNTER="$(date +%Y-%m-%d_%H:%M)"
-STARTMSG="[ENTRYPOINT_CRON] [ $COUNTER ] "
+STARTMSG="${Light_Green}[ENTRYPOINT_CRON] [ $COUNTER ] ${NC}"
+
+
 
 if [ -z "$1" ] ; then
     # If Interval is empty set interval default to 3600s
@@ -46,7 +55,7 @@ check_mysql_and_get_auth_key(){
         exit 1
     else
         # get AUTH_KEY
-        export AUTH_KEY=$(echo "SELECT authkey FROM users where user_id = '$USER_ID';" | $MYSQLCMD | head -2|tail -1)
+        export AUTH_KEY=$(echo "SELECT authkey FROM users where id = '$USER_ID';" | $MYSQLCMD)
     fi
 
 }
@@ -80,6 +89,12 @@ do
         # Start Message
     echo "$STARTMSG Start MISP-dockerized Cronjob at $COUNTER... "
 
+
+    # comment out until the patch is accepted from misp for version 2.4.104.
+    #WORKER_CONTROL="/var/www/MISP/app/Console/worker/start.sh"
+    WORKER_CONTROL="/var/www/MISP/app/Console/worker/fix_worker_start.sh"
+    echo "$STARTMSG $WORKER_CONTROL start-all" && $WORKER_CONTROL start-all
+    
 
     # Pull: MISP/app/Console/cake Server pull [user_id] [server_id] [full|update]
     echo "$STARTMSG $CAKE Server pull $USER_ID..." && $CAKE Server pull "$USER_ID"

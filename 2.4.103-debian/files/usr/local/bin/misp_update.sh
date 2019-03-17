@@ -2,8 +2,14 @@
 
 set -ex
 
+NC='\033[0m' # No Color
+Light_Green='\033[1;32m'  
+echo (){
+    command echo -e $1
+}
 
-STARTMSG="[UPDATE_MISP]"
+STARTMSG="${Light_Green}[UPDATE_MISP]${NC}"
+
 
 [ -z $CAKE ] && export CAKE="$MISP_APP_PATH/Console/cake"
 
