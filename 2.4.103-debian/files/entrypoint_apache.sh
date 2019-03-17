@@ -477,6 +477,9 @@ echo "$STARTMSG Check if misp-server is configured and file /var/www/MISP/app/Co
 # check volumes and upgrade if it is required
 echo "$STARTMSG Upgrade if it is required..." && upgrade
 
+# delete pid file
+[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
+
 ##### Check permissions #####
     echo "$STARTMSG Configure MISP | Check permissions..."
     echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
@@ -484,9 +487,6 @@ echo "$STARTMSG Upgrade if it is required..." && upgrade
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
-
-# delete pid file
-[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
 
 # START APACHE2
 echo "$STARTMSG ####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
