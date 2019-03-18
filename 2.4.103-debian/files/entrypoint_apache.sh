@@ -47,8 +47,8 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 [ -z "$CAKE" ] && export CAKE="$MISP_APP_PATH/Console/cake"
 [ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N  $MYSQL_DATABASE"
 
-[ -z "${PHP_MEMORY}" ] && PHP_MEMORY="512M"
-[ -z "${PHP_MAX_EXECUTION_TIME}" ] && PHP_MAX_EXECUTION_TIME="300"
+[ -z "${PHP_MEMORY_LIMIT}" ] && PHP_MEMORY_LIMIT="512M"
+[ -z "${PHP_MAX_EXECUTION_TIME}" ] && PHP_MAX_EXECUTION_TIME="600"
 [ -z "${PHP_UPLOAD_MAX_FILESIZE}" ] && PHP_UPLOAD_MAX_FILESIZE="50M"
 [ -z "${PHP_POST_MAX_SIZE}" ] && PHP_POST_MAX_SIZE="50M"
 
@@ -122,10 +122,10 @@ add_analyze_column(){
 change_php_vars(){
     for FILE in $(ls /etc/php/*/apache2/php.ini)
     do
-        sed -i "s/memory_limit = .*/memory_limit = ${PHP_MEMORY}/" "$FILE"
-        sed -i "s/max_execution_time = .*/max_execution_time = ${PHP_MEMORY}/" "$FILE"
-        sed -i "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_MEMORY}/" "$FILE"
-        sed -i "s/post_max_size = .*/post_max_size = ${PHP_MEMORY}/" "$FILE"
+        sed -i "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" "$FILE"
+        sed -i "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" "$FILE"
+        sed -i "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" "$FILE"
+        sed -i "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/" "$FILE"
     done
 }
 
