@@ -2,10 +2,10 @@
   ServerName misp-server
   DocumentRoot /var/www/MISP/app/webroot
   <Directory /var/www/MISP/app/webroot>
-    Options -Indexes
-    AllowOverride all
-    Order allow,deny
-    allow from all
+      Options -Indexes
+      AllowOverride all
+      Order allow,deny
+      allow from all
   </Directory>
 
   SSLEngine On
