@@ -47,6 +47,7 @@ LABEL   org.opencontainers.image.created="${BUILD_DATE}" \
 
 # Install core components
 ENV DEBIAN_FRONTEND noninteractive
+#RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 
 # DCSO Required Software
 RUN apt-get update; apt-get install -y \ 
@@ -60,20 +61,26 @@ wget \
 rsyslog \
 && apt-get autoremove -y && apt-get clean -y
 
+
+
 # Set locals
 ARG LANG=en_US.UTF-8
 RUN locale-gen ${LANG}
+ENV LANG ${LANG}
+ENV LC_ALL ${LANG}
+ENV LANGUAGE=en_US:en
+#ENV LC_ALL ${LANG}
 
 #########################    START  MISP Guide
 
 # 1/ Minimal Ubuntu install
 # -------------------------
+    # Upgrade System
+    RUN apt-get update -y && apt-get upgrade -y && apt-get autoremove -y && apt-get clean -y
+
 
     # Install Postfix dependency
-    RUN apt-get update -y \
-        && apt-get install postfix -y \
-        && apt-get autoremove -y \
-        && apt-get clean -y
+    RUN apt-get update -y && apt-get install postfix -y && apt-get autoremove -y && apt-get clean -y
 
 
     # 2/ Install LAMP & dependencies
@@ -82,49 +89,19 @@ RUN locale-gen ${LANG}
     ## Installation of libfuzzy-dev is required for pydeep
     
     RUN apt-get install -y \
-        gcc \
-        && apt-get autoremove -y && apt-get clean -y
-
-    RUN apt-get install -y \
-        curl git make sudo vim zip unzip \
-        openssl \
-        gpg-agent \
-        python3 \
+        curl gcc git gnupg-agent make python3 openssl sudo vim zip \
         redis-server \
         libyara-dev \
         && apt-get autoremove -y && apt-get clean -y
 
-RUN apt-get install -y \    
-        python3-setuptools python3-dev \
-        python3-pip \
-        && apt-get autoremove -y && apt-get clean -y
-
     RUN apt-get install -y \    
-        python3-yara \
-        python3-redis \
-        python3-zmq \
-        virtualenv \
-        libpq5 \
-        libjpeg-dev \
-        libfuzzy-dev \
-        ruby asciidoctor \
-        sqlite3 \
-        libxml2-dev \
-        libxslt1-dev \
-        zlib1g-dev \
+        python3-setuptools python3-dev python3-pip python3-yara python3-redis python3-zmq virtualenv \
+        libpq5 libjpeg-dev libfuzzy-dev ruby asciidoctor \
         && apt-get autoremove -y && apt-get clean -y
 
     RUN apt-get install -y \
-        python-pip \
-        jq \
-        imagemagick \
-        && apt-get autoremove -y && apt-get clean -y
-
-
-    RUN apt-get install -y \
-        jupyter-notebook \
-        tesseract-ocr \
-        python-setuptools \
+        python-pip jq jupyter-notebook imagemagick tesseract-ocr \
+        libxml2-dev libxslt1-dev zlib1g-dev \
         && apt-get autoremove -y && apt-get clean -y
 
 
@@ -149,17 +126,22 @@ RUN apt-get install -y \
         libapache2-mod-php \
         php \
         php-cli \
+        php-mbstring \
         php-dev \
         php-json \
         php-xml \
         php-mysql \
         php-opcache \
         php-readline \
-        php-mbstring \
-        php-pear \
         php-redis \
         php-gnupg \
         && apt-get autoremove -y && apt-get clean -y
+
+    # ATTENTION restart is not required.
+
+
+
+
 
 
 # 3/ MISP code
@@ -178,87 +160,69 @@ RUN apt-get install -y \
     RUN cd /var/www/MISP; git submodule foreach --recursive git config core.filemode false
 
     # install Mitre's STIX and its dependencies by running the following commands:
+        RUN apt-get install -y python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools
+        # Upgrade
+        #RUN pip3 install setuptools --upgrade;
         # install mixbox to accomodate the new STIX dependencies:
         RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/CybOXProject/mixbox.git; \
-            cd mixbox; python3 setup.py install; \
+            cd mixbox; python3 setup.py install;
         # install python-maec
-            cd /var/www/MISP/app/files/scripts; \
+        RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/MAECProject/python-maec.git; \
-            cd python-maec; python3 setup.py install; \
+            cd python-maec; python3 setup.py install;
         # install python-cybox
-            cd /var/www/MISP/app/files/scripts; \
+        RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/CybOXProject/python-cybox.git; \
-            cd python-cybox; python3 setup.py install; \
+            cd python-cybox; python3 setup.py install;
         # install python stix
-            cd /var/www/MISP/app/files/scripts; \
+        RUN cd /var/www/MISP/app/files/scripts; \
             git clone https://github.com/STIXProject/python-stix.git; \
             cd python-stix; python3 setup.py install;
         
     # install STIX2.0 library to support STIX 2.0 export:
-    RUN cd /var/www/MISP/ \
-        ;cd cti-python-stix2; python3 setup.py install \
+    RUN cd /var/www/MISP/; \
+        cd cti-python-stix2; python3 setup.py install;
+    
     # install PyMISP
-        ;cd /var/www/MISP/ \
-        ;cd PyMISP; python3 setup.py install \
-    # Install Crypt_GPG and Console_CommandLine
-        ;cd /var/www/MISP/ \
-        ;pear install INSTALL/dependencies/Console_CommandLine/package.xml \
-        ;pear install INSTALL/dependencies/Crypt_GPG/package.xml
+    RUN cd /var/www/MISP/; \
+        cd PyMISP; python3 setup.py install;
 
-
-    RUN \
-        # pymisp:… Please install pymisp: pip install pymisp
-            #pip install pymisp \
-        # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-            pip install git+https://github.com/kbandla/pydeep.git \
-        # #magic:… Please install python-magic: pip install python-magic.
-            ;pip install python-magic \
-        # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
-            ;pip install setuptools --upgrade \ 
-            #pip install lief; \
-            ;pip install https://github.com/lief-project/packages/raw/lief-master-latest/pylief-0.9.0.dev.zip \
-        # # Install maec libraries for STIX
-            ;pip install maec \
-        # pymisp:… Please install pymisp: pip install pymisp
-            #pip3 install pymisp; \
-        # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-            ;pip3 install git+https://github.com/kbandla/pydeep.git \
-        # #magic:… Please install python-magic: pip install python-magic.
-            ;pip3 install python-magic \
-        # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
-            ;pip3 install setuptools --upgrade \
-            ;pip3 install lief \
-        # # Install maec libraries for STIX
-            ;pip3 install maec
-
+    # # install support for STIX 2.0 (Python 3 is required)
+    # RUN pip3 install stix2
 
 
 
 # 4/ CakePHP
 # ------------
     # Once done, install CakeResque along with its dependencies if you intend to use the built in background jobs:
-    RUN \
-        cd /var/www/MISP/app \
-        ;php composer.phar require kamisama/cake-resque:4.1.2 \
-        ;php composer.phar config vendor-dir Vendor \
-        ;php composer.phar install \
+    RUN cd /var/www/MISP/app; \
+        php composer.phar require kamisama/cake-resque:4.1.2; \
+        php composer.phar config vendor-dir Vendor; \
+        php composer.phar install;
+
     # Enable CakeResque with php-redis
-        ;phpenmod redis \
+    RUN phpenmod redis
+
     # Enable CakeResque with php-gnupgp
-        ;phpenmod gnupg \
+    RUN phpenmod gnupg
+
     # To use the scheduler worker for scheduled tasks, do the following:
-        ;cp -fa /var/www/MISP/INSTALL/setup/config.php /var/www/MISP/app/Plugin/CakeResque/Config/config.php \
+    RUN cp -fa /var/www/MISP/INSTALL/setup/config.php /var/www/MISP/app/Plugin/CakeResque/Config/config.php
     # If you have multiple MISP instances on the same system, don't forget to have a different Redis per MISP instance for the CakeResque workers
     # The default Redis port can be updated in Plugin/CakeResque/Config/config.php
+
+
+
+
 # 5/ Set the permissions
 # ----------------------
     # Check if the permissions are set correctly using the following commands:
-        ;chown -R www-data:www-data /var/www/MISP \
-        ;chmod -R 750 /var/www/MISP \
-        ;chmod -R g+ws /var/www/MISP/app/tmp \ 
-        ;chmod -R g+ws /var/www/MISP/app/files \
-        ;chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    RUN chown -R www-data:www-data /var/www/MISP; \
+        chmod -R 750 /var/www/MISP; \
+        chmod -R g+ws /var/www/MISP/app/tmp; \ 
+        chmod -R g+ws /var/www/MISP/app/files; \
+        chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
 
 
 
@@ -274,23 +238,29 @@ RUN apt-get install -y \
 # ------------------
     # add HTTP MISP Config
     RUN rm /etc/apache2/sites-enabled/*;
-    COPY files/etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/
-    COPY files/etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/
+    COPY files/etc/apache2/sites-enabled/* /etc/apache2/sites-enabled/
     COPY files/etc/apache2/ports.conf /etc/apache2/ports.conf
-    RUN \
-        chmod 640 /etc/apache2/ports.conf \
-        ;chown root.root /etc/apache2/ports.conf \
-        ;chmod 640 /etc/apache2/sites-available/* \
-        ;chown root.root /etc/apache2/sites-available/* \
+    RUN chmod 640 /etc/apache2/ports.conf; \
+        chown root.root /etc/apache2/ports.conf; \
+        chmod 640 /etc/apache2/sites-available/*; \
+        chown root.root /etc/apache2/sites-available/*
     # Configure Apache
-        ;sudo a2dismod status \
-        ;sudo a2enmod ssl \
-        ;sudo a2enmod rewrite \
-        ;sudo a2enmod headers \
+    RUN sudo a2dismod status; \
+        sudo a2enmod ssl; \
+        sudo a2enmod rewrite; \
+        sudo a2enmod headers;
+
+
+
+
 ### 8/ Log rotation
     # MISP saves the stdout and stderr of its workers in /var/www/MISP/app/tmp/logs
     # To rotate these logs install the supplied logrotate script:
-        ;sudo cp /var/www/MISP/INSTALL/misp.logrotate /etc/logrotate.d/misp
+    RUN sudo cp /var/www/MISP/INSTALL/misp.logrotate /etc/logrotate.d/misp
+
+
+
+
 
 
 ### 9/ MISP configuration
@@ -301,14 +271,22 @@ RUN apt-get install -y \
     # RUN sudo -u www-data cp -a /var/www/MISP/app/Config/config.default.php /var/www/MISP/app/Config/config.php
     #### WILL BE DONE IN MISP_ROBOT
 
+
+
+
+
 ### 5/ Set the permissions
     # Check if the permissions are set correctly using the following commands:
-    RUN \
-        chown -R www-data:www-data /var/www/MISP \
-        ;chmod -R 750 /var/www/MISP \
-        ;chmod -R g+ws /var/www/MISP/app/tmp \ 
-        ;chmod -R g+ws /var/www/MISP/app/files \
-        ;chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    RUN chown -R www-data:www-data /var/www/MISP; \
+    chmod -R 750 /var/www/MISP; \
+    chmod -R g+ws /var/www/MISP/app/tmp; \ 
+    chmod -R g+ws /var/www/MISP/app/files; \
+    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
+
+
+
+
+
 
 
 #       END of MISP Config Part
@@ -317,125 +295,150 @@ RUN apt-get install -y \
 # ADD additionall modules
     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
     # ZeroMQ depends on the Python client for Redis
-    RUN \
-        pip3 install pyzmq \
-        ;pip3 install redis \
-        ;pip install pyzmq \
-        ;pip install redis \
+    RUN pip3 install pyzmq; \
+        pip3 install redis;
+    RUN pip install pyzmq; \
+        pip install redis;
+
+
     # For the experimental ssdeep correlations, run the following installation:
     # installing ssdeep
-        ;cd /usr/local/src/ \
-        ;wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz \
-        ;tar zxvf ssdeep-2.13.tar.gz \
-        ;cd ssdeep-2.13 \
-        ;./configure \
-        ;make    \
-        ;sudo make install \
-        ;ssdeep -h; # test \
-    #installing ssdeep_php
-        ;sudo pecl install ssdeep \
-    # 7.0 if your PHP 7.0 and you know what to do if you have a different version
-        ;for FILE in $(ls /etc/php/) \
-        do \
-            echo "extension=ssdeep.so" > /etc/php/$FILE/mods-available/ssdeep.ini; \
+        RUN cd /usr/local/src/; \
+            wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz; \
+            tar zxvf ssdeep-2.13.tar.gz; \
+            cd ssdeep-2.13; \
+            ./configure; \
+            make;    \
+            sudo make install; \
+            ssdeep -h; # test
+
+        #installing ssdeep_php
+        RUN sudo pecl install ssdeep;
+
+        # 7.0 if your PHP 7.0 and you know what to do if you have a different version
+        RUN for FILE in $(ls /etc/php/); \
+            do echo "extension=ssdeep.so" > /etc/php/$FILE/mods-available/ssdeep.ini; \
             phpenmod ssdeep; \
-        done;
+            done;
+
+
+
+    RUN \
+        # pymisp:… Please install pymisp: pip install pymisp
+        pip install pymisp \
+        # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
+        pip install git+https://github.com/kbandla/pydeep.git; \
+        # #magic:… Please install python-magic: pip install python-magic.
+        pip install python-magic; \
+        # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
+        pip install setuptools --upgrade; \ 
+        pip install lief; \
+        # # Install maec libraries for STIX
+        pip install maec
+
+
+
+    RUN \
+        # pymisp:… Please install pymisp: pip install pymisp
+        pip3 install pymisp; \
+        # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
+        pip3 install git+https://github.com/kbandla/pydeep.git; \
+        # #magic:… Please install python-magic: pip install python-magic.
+        pip3 install python-magic; \
+        # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
+        pip3 install setuptools --upgrade; \
+        pip3 install lief; \
+        # # Install maec libraries for STIX
+        pip3 install maec
+
 
 #########################################
 #       Start of DCSO MISP Config Part
 
 # for S/MIME
 RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
-    sudo -u www-data chmod 500 /var/www/MISP/.smime; \
+    sudo -u www-data chmod 500 /var/www/MISP/.smime;
 # for PGP
-    sudo -u www-data mkdir /var/www/MISP/.gnupg; \
-    sudo -u www-data chmod 700 /var/www/MISP/.gnupg; \
-    # for local MySQL Server: delete all config files
-    rm -Rf /var/lib/mysql/*;
+RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
+    sudo -u www-data chmod 700 /var/www/MISP/.gnupg;
     
-# add own mysql config
-    COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
-    RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
+# for local MySQL Server:
+    # delete all config files
+RUN rm -Rf /var/lib/mysql/*;
+    
+    # add own mysql config
+COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
+RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
 
 # Copy patch File for MISP Events Page with additional Analyse Column
-    COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
+COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # Syslog Server & rsyslog
-    #COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-    COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
+COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
 
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
-    #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
+#COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
 
 # Postfix
 # Copy files to postfix container
-    COPY files/etc/postfix/* /etc/postfix/
+COPY files/etc/postfix/* /etc/postfix/
 
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
-    RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
-
-# MISP Update and MISP Cron
-    COPY files/usr/local/bin/misp_update.sh /usr/local/bin/
-    COPY files/usr/local/bin/misp_cron.sh /usr/local/bin/
-# MISP worker start fix
-    COPY files/var/www/MISP/app/Console/worker/fix_worker_start.sh /var/www/MISP/app/Console/worker/
-
-# Healthcheck
-    COPY files/healthcheck.sh /
-    HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
-
-# Entrypoints
-    COPY files/entrypoint_apache.sh /
-    COPY files/entrypoint_cron.sh /
-    COPY files/entrypoint_local_mariadb.sh /
-    COPY files/entrypoint_postfix.sh /
-    COPY files/entrypoint_redis.sh /
-    COPY files/entrypoint_rsyslog.sh /
-    COPY files/entrypoint_workers.sh /
-    COPY files/entrypoint.sh /
-
-# Supervisord
-    ENTRYPOINT [ "/entrypoint.sh" ]
+RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # Environment Variables
     # CMD
-    ENV CMD_MYSQL=mysqld \
-        CMD_APACHE=none \
-        CMD_REDIS="--appendonly yes" \
-        NAME=${NAME} \
-        VERSION=${VERSION} \
-        RELEASE_DATE=${RELEASE_DATE} \
+    ENV CMD_MYSQL mysqld
+    ENV CMD_APACHE none
+    ENV CMD_REDIS "redis-server --appendonly yes"
+    # Version + Name
+    ENV NAME ${NAME}
+    ENV VERSION ${VERSION}
+    ENV RELEASE_DATE ${RELEASE_DATE}
     # Environment Variable for Proxy
-        HTTP_PROXY="" \ 
-        HTTPS_PROXY="" \
-        NO_PROXY="0.0.0.0" \
+    ENV HTTP_PROXY=""
+    ENV HTTPS_PROXY=""
+    ENV NO_PROXY="0.0.0.0"
     # MYSQL Vars
-        MYSQL_HOST="localhost" \
-        MYSQL_DATABASE="misp" \
-        MYSQL_USER="misp" \
-        MYSQL_PASSWORD="ChangeMe123!" \
+    ENV MYSQL_HOST="localhost"
+    ENV MYSQL_DATABASE="misp"
+    ENV MYSQL_USER="misp"
+
     # POSTFIX
         # Hostname for the Mailserver
-        HOSTNAME=misp \
+        ENV HOSTNAME=misp
         # Domain for Outgoing Mail
-        DOMAIN=example.com \
+        ENV DOMAIN=example.com
         # Sender for local postfix outgoing Mails
-        SENDER_ADDRESS=admin@example.com \
+        ENV SENDER_ADDRESS=admin@example.com
         # Relahost to Send Mails
-        RELAYHOST=smtp.example.local:587 \
+        ENV RELAYHOST=smtp.example.local:587
         # RELAY User and Password
-        RELAY_USER=misp \
-        RELAY_PASSWORD=ChangeMe \
+        ENV RELAY_USER=misp
+        ENV RELAY_PASSWORD=ChangeMe
         # Allow only MISP Docker Container Access
-        DOCKER_NETWORK=192.168.47.0/28 \
+        ENV DOCKER_NETWORK=192.168.47.0/28
         # You need to get more postfix output for a specified host normally the relayhost or misp-server
-        DEBUG_PEER=none \
-    # Set locals
-        # ENV LC_ALL ${LANG}
-        LANGUAGE=en_US:en
+        ENV DEBUG_PEER=none
 
 
-WORKDIR /var/www/MISP
+
+
+# Entrypoints
+    # CMD
+    COPY files/entrypoint*.sh files/healthcheck.sh files/update_misp.sh /
+    RUN chmod +x /*.sh
+
+# Supervisord
+    # Copy Supervisord config
+    COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
+    # Execute Supervisord after start:
+    CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+
+# Add Healthcheck Config
+HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
+
 
 #       End of DCSO MISP Config Part
 #########################################
