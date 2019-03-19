@@ -31,7 +31,6 @@ before_script:
   stage: build
   only: 
   - master
-  - feat/MDD-189
   script:
   - make -C .ci build v=$VERSION 
   - make -C .ci tags REPOURL=$CUSTOM_REGISTRY_URL
@@ -45,20 +44,20 @@ before_script:
 # For a cleaner Gitlab CI file include all subfolder which should be build:
 #
 include:
-  # - '2.4.nightly-ubuntu/.gitlab-ci.yml'
-  # - '2.4.88-ubuntu/.gitlab-ci.yml'
-  # - '2.4.89-ubuntu/.gitlab-ci.yml'
-  # - '2.4.90-ubuntu/.gitlab-ci.yml'
-  # - '2.4.91-ubuntu/.gitlab-ci.yml'
-  # - '2.4.92-ubuntu/.gitlab-ci.yml'
-  # - '2.4.93-ubuntu/.gitlab-ci.yml'
-  # - '2.4.94-ubuntu/.gitlab-ci.yml'
-  # - '2.4.95-ubuntu/.gitlab-ci.yml'
-  # - '2.4.96-ubuntu/.gitlab-ci.yml'
-  # - '2.4.97-debian/.gitlab-ci.yml'
-  # - '2.4.98-debian/.gitlab-ci.yml'
-  # - '2.4.99-debian/.gitlab-ci.yml'
-  # - '2.4.100-debian/.gitlab-ci.yml'
-  # - '2.4.101-debian/.gitlab-ci.yml'
-  # - '2.4.102-debian/.gitlab-ci.yml'
+  - '2.4.nightly-ubuntu/.gitlab-ci.yml'
+  - '2.4.88-ubuntu/.gitlab-ci.yml'
+  - '2.4.89-ubuntu/.gitlab-ci.yml'
+  - '2.4.90-ubuntu/.gitlab-ci.yml'
+  - '2.4.91-ubuntu/.gitlab-ci.yml'
+  - '2.4.92-ubuntu/.gitlab-ci.yml'
+  - '2.4.93-ubuntu/.gitlab-ci.yml'
+  - '2.4.94-ubuntu/.gitlab-ci.yml'
+  - '2.4.95-ubuntu/.gitlab-ci.yml'
+  - '2.4.96-ubuntu/.gitlab-ci.yml'
+  - '2.4.97-debian/.gitlab-ci.yml'
+  - '2.4.98-debian/.gitlab-ci.yml'
+  - '2.4.99-debian/.gitlab-ci.yml'
+  - '2.4.100-debian/.gitlab-ci.yml'
+  - '2.4.101-debian/.gitlab-ci.yml'
+  - '2.4.102-debian/.gitlab-ci.yml'
   - '2.4.103-debian/.gitlab-ci.yml'
