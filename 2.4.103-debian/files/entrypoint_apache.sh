@@ -482,7 +482,8 @@ echo "$STARTMSG Upgrade if it is required..." && upgrade
 
 ##### Check permissions #####
     echo "$STARTMSG Configure MISP | Check permissions..."
-    echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
+    #echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
+    echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {}+
     echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && chmod -R 0750 /var/www/MISP
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files

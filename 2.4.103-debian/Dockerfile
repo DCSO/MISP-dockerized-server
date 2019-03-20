@@ -304,7 +304,7 @@ RUN apt-get install -y \
 ### 5/ Set the permissions
     # Check if the permissions are set correctly using the following commands:
     RUN \
-        chown -R www-data:www-data /var/www/MISP \
+        find /var/www/MISP -not -user www-data -exec chown www-data.www-data {}+ \
         ;chmod -R 750 /var/www/MISP \
         ;chmod -R g+ws /var/www/MISP/app/tmp \ 
         ;chmod -R g+ws /var/www/MISP/app/files \
@@ -377,8 +377,6 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 # MISP Update and MISP Cron
     COPY files/usr/local/bin/misp_update.sh /usr/local/bin/
     COPY files/usr/local/bin/misp_cron.sh /usr/local/bin/
-# MISP worker start fix
-    COPY files/var/www/MISP/app/Console/worker/fix_worker_start.sh /var/www/MISP/app/Console/worker/
 
 # Healthcheck
     COPY files/healthcheck.sh /
