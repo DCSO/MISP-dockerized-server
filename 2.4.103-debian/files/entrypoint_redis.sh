@@ -1,21 +1,31 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-STARTMSG="[ENTRYPOINT_REDIS]"
-
-function init_redis() {
-	# allow the container to be started with `--user`
-	[ -d "/redis_data_dir" ] || mkdir -p /redis_data_dir
-	# change directory
-	pushd /redis_data_dir
-	# check if script is started as user redis if not do it!
-	if [ "$1" = 'redis-server' -a "$(id -u)" = '0' ]; then
-		chown -R redis .
-		exec gosu redis "$0" "$@"
-	fi
-
-	echo -e "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"
-	exec "$@"
+NC='\033[0m' # No Color
+Light_Green='\033[1;32m'  
+echo (){
+    command echo -e $1
 }
 
-init_redis $CMD_REDIS
+STARTMSG="${Light_Green}[ENTRYPOINT_REDIS]${NC}"
+
+REDIS_DATA="/redis_data_dir"
+
+if [ "$REDIS_FQDN" = "localhost" ] || [ -z "$REDIS_FQDN" ] || [ "$REDIS_FQDN" = "misp-server" ]; then
+	# allow the container to be started with `--user`
+	[ -d "$REDIS_DATA" ] || mkdir -p "$REDIS_DATA"
+	# change directory
+	cd "$REDIS_DATA"
+	# check if script is started as user redis if not do it!
+	if [ "$(id -u)" = '0' ]; then
+		chown -R redis "$REDIS_DATA"
+		exec gosu redis "$0" "$CMD_REDIS"
+	fi
+
+	echo "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"
+
+	redis-server "$CMD_REDIS"
+
+else
+	echo "$STARTMSG Deactivate local Redis server."
+fi
