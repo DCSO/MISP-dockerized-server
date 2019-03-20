@@ -2,9 +2,10 @@
   ServerName misp-server
   DocumentRoot /var/www/MISP/app/webroot
   <Directory /var/www/MISP/app/webroot>
-          Options -Indexes
-          AllowOverride all
-          Require all granted
+      Options -Indexes
+      AllowOverride all
+      Order allow,deny
+      allow from all
   </Directory>
 
   SSLEngine On
@@ -23,6 +24,6 @@
   CustomLog /var/log/apache2/access.log combined
 
   ServerSignature Off
-  Header set X-Content-Type-Options nosniff
-  Header set X-Frame-Options DENY
+  #Header set X-Content-Type-Options nosniff
+  #Header set X-Frame-Options DENY
 </VirtualHost>

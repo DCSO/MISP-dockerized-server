@@ -1,4 +1,14 @@
-build 2.4.93-ubuntu:
+build 2.4.93-debian:
   extends: .build
   variables:
-    VERSION: "2.4.93-ubuntu"
+    VERSION: "2.4.93-debian"
+
+
+test 2.4.93-debian:
+  extends: .test
+  variables:
+    VERSION: "2.4.93-debian"
+  only:
+    changes:
+    - 2.4.93-debian/*
+    
