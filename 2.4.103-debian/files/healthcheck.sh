@@ -44,7 +44,7 @@ check_mysql(){
 check_redis(){
     # if no host is give default localhost
     [ -z "$REDIS_HOST" ] && REDIS_HOST=localhost
-    [ "$(redis-cli -h $REDIS_HOST ping)" = "PONG" ] || (echo "$STARTMSG No active Redis found." && exit 1)
+    [ "$(redis-cli -h $REDIS_FQDN ping)" = "PONG" ] || (echo "$STARTMSG No active Redis found." && exit 1)
 }
 
 check_worker(){
