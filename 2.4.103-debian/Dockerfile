@@ -303,12 +303,12 @@ RUN apt-get install -y \
 
 ### 5/ Set the permissions
     # Check if the permissions are set correctly using the following commands:
-    RUN \
-        find /var/www/MISP -not -user www-data -exec chown www-data.www-data {}+ \
-        ;chmod -R 750 /var/www/MISP \
-        ;chmod -R g+ws /var/www/MISP/app/tmp \ 
-        ;chmod -R g+ws /var/www/MISP/app/files \
-        ;chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    # RUN \
+    #     find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} + \
+    #     ;chmod -R 750 /var/www/MISP \
+    #     ;chmod -R g+ws /var/www/MISP/app/tmp \ 
+    #     ;chmod -R g+ws /var/www/MISP/app/files \
+    #     ;chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
 
 
 #       END of MISP Config Part
@@ -358,7 +358,7 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
     RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
 
 # Copy patch File for MISP Events Page with additional Analyse Column
-    COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
+    COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # Syslog Server & rsyslog
     #COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
@@ -375,8 +375,8 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
     RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # MISP Update and MISP Cron
-    COPY files/usr/local/bin/misp_update.sh /usr/local/bin/
-    COPY files/usr/local/bin/misp_cron.sh /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_update.sh /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_cron.sh /usr/local/bin/
 
 # Healthcheck
     COPY files/healthcheck.sh /
