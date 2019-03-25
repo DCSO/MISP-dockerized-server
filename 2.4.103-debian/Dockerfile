@@ -341,6 +341,13 @@ RUN apt-get install -y \
             phpenmod ssdeep; \
         done;
 
+
+# Copy PyMISP scripts for MISP
+    COPY --chown=www-data:www-data files/var/www/MISP/app/files/DCSO/pymisp_scripts /var/www/MISP/app/files/DCSO/
+    RUN cd /var/www/MISP/app/files/DCSO/ \
+        ;pip3 install --no-cache-dir -r requirements.txt
+
+
 #########################################
 #       Start of DCSO MISP Config Part
 
@@ -359,9 +366,6 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 
 # Copy patch File for MISP Events Page with additional Analyse Column
     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
-
-# Copy PyMISP scripts for MISP
-    COPY --chown=www-data:www-data files/var/www/MISP/app/files/DCSO/pymisp_scripts /var/www/MISP/app/files/DCSO/
 
 # Syslog Server & rsyslog
     #COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
