@@ -407,9 +407,9 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
         VERSION=${VERSION} \
         RELEASE_DATE=${RELEASE_DATE} \
     # Environment Variable for Proxy
-        HTTP_PROXY="" \ 
-        HTTPS_PROXY="" \
-        NO_PROXY="0.0.0.0" \
+        http_proxy="" \ 
+        https_proxy="" \
+        no_proxy="0.0.0.0" \
     # MYSQL Vars
         MYSQL_HOST="localhost" \
         MYSQL_DATABASE="misp" \
