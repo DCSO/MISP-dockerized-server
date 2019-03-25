@@ -89,13 +89,6 @@ do
         # Start Message
     echo "$STARTMSG Start MISP-dockerized Cronjob at $COUNTER... "
 
-
-    # comment out until the patch is accepted from misp for version 2.4.104.
-    #WORKER_CONTROL="/var/www/MISP/app/Console/worker/start.sh"
-    WORKER_CONTROL="/var/www/MISP/app/Console/worker/fix_worker_start.sh"
-    echo "$STARTMSG $WORKER_CONTROL start-all" && $WORKER_CONTROL start-all
-    
-
     # Pull: MISP/app/Console/cake Server pull [user_id] [server_id] [full|update]
     echo "$STARTMSG $CAKE Server pull $USER_ID..." && $CAKE Server pull "$USER_ID"
 
