@@ -309,7 +309,7 @@ RUN apt-get install -y \
     #     ;chmod -R g+ws /var/www/MISP/app/tmp \ 
     #     ;chmod -R g+ws /var/www/MISP/app/files \
     #     ;chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
-
+    ##### IS DONE VIA ENTRYPONT_APACHE2.sh SCRIPT
 
 #       END of MISP Config Part
 #########################################
