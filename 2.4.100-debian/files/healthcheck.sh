@@ -14,7 +14,6 @@ check_mysql(){
     [ -z "$MYSQL_USER" ] && export MYSQL_USER=misp
     [ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N"
 
-    check_mysql(){
         # Test when MySQL is ready    
 
         # wait for Database come ready
@@ -34,10 +33,8 @@ check_mysql(){
             exit 1
         fi
 
-    }
-
     # exit with error if no databases are exists
-    [ ! "$(MYSQLCMD -e 'show databases;'|grep $MYSQL_DATABASE)" = $MYSQL_DATABASE ] && echo "$STARTMSG No MySQL database found." && exit 1
+    [ ! "$($MYSQLCMD -e 'show databases;'|grep $MYSQL_DATABASE)" = $MYSQL_DATABASE ] && echo "$STARTMSG No MySQL database found." && exit 1
 }
 
 check_redis(){

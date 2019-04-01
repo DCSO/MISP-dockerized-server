@@ -14,30 +14,27 @@ check_mysql(){
     [ -z "$MYSQL_USER" ] && export MYSQL_USER=misp
     [ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N"
 
-    check_mysql(){
-        # Test when MySQL is ready    
+    # Test when MySQL is ready    
 
-        # wait for Database come ready
-        isDBup () {
-            echo "SHOW STATUS" | $MYSQLCMD 1>/dev/null
-            echo $?
-        }
-
-        RETRY=10
-        until [ $(isDBup) -eq 0 ] || [ $RETRY -le 0 ] ; do
-            echo "Waiting for database to come up"
-            sleep 5
-            RETRY=$(( $RETRY - 1))
-        done
-        if [ $RETRY -le 0 ]; then
-            >&2 echo "Error: Could not connect to Database on $MYSQL_HOST:$MYSQL_PORT"
-            exit 1
-        fi
-
+    # wait for Database come ready
+    isDBup () {
+        echo "SHOW STATUS" | $MYSQLCMD 1>/dev/null
+        echo $?
     }
 
+    RETRY=10
+    until [ $(isDBup) -eq 0 ] || [ $RETRY -le 0 ] ; do
+        echo "Waiting for database to come up"
+        sleep 5
+        RETRY=$(( $RETRY - 1))
+    done
+    if [ $RETRY -le 0 ]; then
+        >&2 echo "Error: Could not connect to Database on $MYSQL_HOST:$MYSQL_PORT"
+        exit 1
+    fi
+
     # exit with error if no databases are exists
-    [ ! "$(MYSQLCMD -e 'show databases;'|grep $MYSQL_DATABASE)" = $MYSQL_DATABASE ] && echo "$STARTMSG No MySQL database found." && exit 1
+    [ ! "$($MYSQLCMD -e 'show databases;'|grep $MYSQL_DATABASE)" = $MYSQL_DATABASE ] && echo "$STARTMSG No MySQL database found." && exit 1
 }
 
 check_redis(){
