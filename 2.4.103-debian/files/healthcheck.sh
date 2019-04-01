@@ -5,6 +5,7 @@ STARTMSG="[HEALTHCHECK]"
 
 check_apache(){
     curl -fk https://localhost/ || (echo "$STARTMSG Error at apache2." && exit 1)
+    echo
 }
 
 check_mysql(){
@@ -34,22 +35,24 @@ check_mysql(){
     fi
 
     # exit with error if no databases are exists
-    [ ! "$($MYSQLCMD -e 'show databases;'|grep $MYSQL_DATABASE)" = $MYSQL_DATABASE ] && echo "$STARTMSG No MySQL database found." && exit 1
+    [ "$($MYSQLCMD -e 'show databases;'|grep $MYSQL_DATABASE)" = $MYSQL_DATABASE ] || ( >&2 echo "$STARTMSG No MySQL database found." && exit 1 )
+    echo
 }
 
 check_redis(){
     # if no host is give default localhost
     [ -z "$REDIS_FQDN" ] && REDIS_FQDN=localhost
     [ "$(redis-cli -h "$REDIS_FQDN" ping)" = "PONG" ] || (echo "$STARTMSG No active Redis found." && exit 1)
+    echo
 }
 
 check_worker(){
     # Check worker intances process. This is no check if the worker are working!
     for i in default cache prio email
     do
-        [ -z "$(pgrep -ax QUEUE=\'$i\')" ] && echo "$STARTMSG No active $i worker found."  && exit 1
-
+        [ -z "$(pgrep -f QUEUE=\'$i\')" ] && ( >&2 echo "$STARTMSG No active $i worker found." && exit 1 )
     done
+    echo
 }
 
 # execute Funtions
@@ -57,4 +60,5 @@ check_apache
 check_mysql
 check_redis
 check_worker
+# if no error is found exit with 0:
 exit 0
