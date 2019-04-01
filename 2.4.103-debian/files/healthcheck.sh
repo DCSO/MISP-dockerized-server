@@ -12,7 +12,6 @@ check_mysql(){
     [ -z "$MYSQL_HOST" ] && export MYSQL_HOST=misp-db
     [ -z "$MYSQL_PORT" ] && export MYSQL_PORT=3306
     [ -z "$MYSQL_USER" ] && export MYSQL_USER=misp
-
     [ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N"
 
     check_mysql(){
@@ -43,8 +42,8 @@ check_mysql(){
 
 check_redis(){
     # if no host is give default localhost
-    [ -z "$REDIS_HOST" ] && REDIS_HOST=localhost
-    [ "$(redis-cli -h $REDIS_FQDN ping)" = "PONG" ] || (echo "$STARTMSG No active Redis found." && exit 1)
+    [ -z "$REDIS_FQDN" ] && REDIS_FQDN=localhost
+    [ "$(redis-cli -h "$REDIS_FQDN" ping)" = "PONG" ] || (echo "$STARTMSG No active Redis found." && exit 1)
 }
 
 check_worker(){
