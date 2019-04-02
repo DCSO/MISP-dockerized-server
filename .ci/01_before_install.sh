@@ -5,9 +5,9 @@ STARTMSG="[before_install]"
 # Install Requirements
 echo
 echo "$STARTMSG Install requirements..."
-    [ ! -z "$(which apk)" ] && apk add --no-cache make bash sudo git curl coreutils grep python3
+    [ ! -z "$(which apk)" ] && apk add --no-cache make bash sudo git curl coreutils grep python3 gcc
     [ ! -z "$(which apt-get)" ] && apt-get update; 
-    [ ! -z "$(which apt-get)" ] && apt-get install make bash sudo git curl coreutils grep python3
+    [ ! -z "$(which apt-get)" ] && apt-get install make bash sudo git curl coreutils grep python3 gcc
     # Upgrade Docke
     [ ! -z "$(which apt-get)" ] && apt-get install --only-upgrade docker-ce -y
 # Install docker-compose
