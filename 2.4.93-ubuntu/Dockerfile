@@ -1,14 +1,15 @@
-#FROM debian:buster
 FROM ubuntu:16.04
 
-ARG MISP_TAG="2.4.93"
+
 #     Variables for Labels:
 ARG VENDOR="DCSO GmbH"
 ARG COMPONENT="server"
 ARG BUILD_DATE
 ARG GIT_REPO
 ARG VCS_REF
-ARG VERSION="${MISP_TAG}"
+ARG VERSION
+ARG MISP_TAG=${VERSION}
+ARG RELEASE_DATE
 ARG NAME="MISP-dockerized-${COMPONENT}"
 ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
 ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
@@ -61,8 +62,8 @@ rsyslog \
 && apt-get autoremove -y && apt-get clean -y
 
 # Set locals
-ARG LANG=en_US.UTF-8
-RUN locale-gen ${LANG}
+# ARG LANG=en_US.UTF-8
+# RUN locale-gen ${LANG}
 
 #########################    START  MISP Guide
 
@@ -201,8 +202,9 @@ RUN locale-gen ${LANG}
 # ------------------
     # add HTTP MISP Config
     RUN rm /etc/apache2/sites-available/*; rm /etc/apache2/sites-enabled/*;
-    COPY files/misp* /etc/apache2/sites-enabled/
-    COPY files/ports.conf /etc/apache2/ports.conf
+    COPY files/etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/
+    COPY files/etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/
+    COPY files/etc/apache2/ports.conf /etc/apache2/ports.conf
     RUN chmod 640 /etc/apache2/ports.conf; \
         chown root.root /etc/apache2/ports.conf; \
         chmod 640 /etc/apache2/sites-enabled/*; \
@@ -240,11 +242,11 @@ RUN locale-gen ${LANG}
 
 ### 5/ Set the permissions
     # Check if the permissions are set correctly using the following commands:
-    RUN chown -R www-data:www-data /var/www/MISP; \
-    chmod -R 750 /var/www/MISP; \
-    chmod -R g+ws /var/www/MISP/app/tmp; \ 
-    chmod -R g+ws /var/www/MISP/app/files; \
-    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
+    # RUN chown -R www-data:www-data /var/www/MISP; \
+    # chmod -R 750 /var/www/MISP; \
+    # chmod -R g+ws /var/www/MISP/app/tmp; \ 
+    # chmod -R g+ws /var/www/MISP/app/files; \
+    # chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
 
 
 
@@ -286,7 +288,7 @@ RUN locale-gen ${LANG}
     RUN pip install setuptools --upgrade; \ 
         pip install lief
     # Install maec libraries for STIX
-    RUN pip3 install maec==4.1.0.13
+    RUN pip install maec==4.1.0.13
 
 
 #########################################
@@ -294,56 +296,94 @@ RUN locale-gen ${LANG}
 
 # for S/MIME
 RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
-    sudo -u www-data chmod 500 /var/www/MISP/.smime;
+    sudo -u www-data chmod 500 /var/www/MISP/.smime; \
 # for PGP
-RUN sudo -u www-data mkdir /var/www/MISP/.gnupg; \
-    sudo -u www-data chmod 700 /var/www/MISP/.gnupg;
-    
-# for local MySQL Server:
-    # delete all config files
-RUN mv /etc/mysql /etc/mysql.orig; \
-    mkdir /etc/mysql; \
+    sudo -u www-data mkdir /var/www/MISP/.gnupg; \
+    sudo -u www-data chmod 700 /var/www/MISP/.gnupg; \
+    # for local MySQL Server: delete all config files
     rm -Rf /var/lib/mysql/*;
-
+    
 # add own mysql config
-COPY files/DCSO.cnf /etc/mysql/
+    COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
+    RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
 
 # Copy patch File for MISP Events Page with additional Analyse Column
-COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
+    COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
+
+# Syslog Server & rsyslog
+    #COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
+    #COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
+
+# HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
+    #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
+
+# Postfix
+# Copy files to postfix container
+    COPY files/etc/postfix/* /etc/postfix/
 
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
     RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
+# MISP Update and MISP Cron
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_update.sh /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_cron.sh /usr/local/bin/
+
+# Healthcheck
+    COPY files/healthcheck.sh /
+    HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
+
+# Entrypoints
+    COPY files/entrypoint_apache.sh /
+    COPY files/entrypoint_cron.sh /
+    COPY files/entrypoint_mariadb.sh /
+    COPY files/entrypoint_postfix.sh /
+    COPY files/entrypoint_redis.sh /
+    COPY files/entrypoint_rsyslog.sh /
+    COPY files/entrypoint_workers.sh /
+    COPY files/entrypoint.sh /
+
+# Supervisord
+    ENTRYPOINT [ "/entrypoint.sh" ]
 
 # Environment Variables
     # CMD
-    ENV CMD_MYSQL mysqld
-    ENV CMD_APACHE none
-    ENV CMD_REDIS "redis-server --appendonly yes"
-    # Version + Name
-    ENV NAME ${NAME}
-    ENV VERSION ${VERSION}
+    ENV CMD_MYSQL=mysqld \
+        CMD_APACHE=none \
+        CMD_REDIS="--appendonly yes" \
+        NAME=${NAME} \
+        VERSION=${VERSION} \
+        RELEASE_DATE=${RELEASE_DATE} \
     # Environment Variable for Proxy
-    ENV HTTP_PROXY=""
-    ENV HTTPS_PROXY=""
-    ENV NO_PROXY="0.0.0.0"
+        http_proxy="" \ 
+        https_proxy="" \
+        no_proxy="0.0.0.0" \
+    # MYSQL Vars
+        MYSQL_HOST="localhost" \
+        MYSQL_DATABASE="misp" \
+        MYSQL_USER="misp" \
+        MYSQL_PASSWORD="ChangeMe123!" \
+    # POSTFIX
+        # Hostname for the Mailserver
+        HOSTNAME=misp \
+        # Domain for Outgoing Mail
+        DOMAIN=example.com \
+        # Sender for local postfix outgoing Mails
+        SENDER_ADDRESS=admin@example.com \
+        # Relahost to Send Mails
+        RELAYHOST=smtp.example.local:587 \
+        # RELAY User and Password
+        RELAY_USER=misp \
+        RELAY_PASSWORD=ChangeMe \
+        # Allow only MISP Docker Container Access
+        DOCKER_NETWORK=192.168.47.0/28 \
+        # You need to get more postfix output for a specified host normally the relayhost or misp-server
+        DEBUG_PEER=none \
+    # Set locals
+        # ENV LC_ALL ${LANG}
+        LANGUAGE=en_US:en
 
 
-# Entrypoints
-    # CMD
-    COPY files/entrypoint*.sh files/init*.sh files/healthcheck.sh /
-    RUN chmod +x /*.sh
-    #ENTRYPOINT [ "/entrypoint.sh" ]
-
-# Supervisord
-    # Copy Supervisord config
-    COPY files/supervisord.conf /etc/supervisor/supervisord.conf
-    # Execute Supervisord after start:
-    CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
-
-# Add Healthcheck Config
-HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
-
+WORKDIR /var/www/MISP
 
 #       End of DCSO MISP Config Part
 #########################################

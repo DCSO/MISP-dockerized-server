@@ -23,7 +23,7 @@ done
 # start Workers for MISP
 echo "$STARTMSG Start Workers..."
 sudo -u www-data /var/www/MISP/app/Console/worker/start.sh
-echo "$STARTMSG Start Workers...finished"
+wait
 
 # while true
 # do
