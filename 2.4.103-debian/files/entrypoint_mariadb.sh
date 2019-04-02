@@ -10,7 +10,7 @@ echo (){
     command echo -e $1
 }
 
-STARTMSG="${Light_Green}[ENTRYPOINT_LOCAL_MARIADB]${NC}"
+STARTMSG="${Light_Green}[ENTRYPOINT_MARIADB]${NC}"
 
 
 if [[ "$MYSQL_HOST" != "localhost" ]] && [[ "$MYSQL_HOST" != "misp-server" ]]; then

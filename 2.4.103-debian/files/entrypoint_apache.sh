@@ -477,17 +477,17 @@ echo "$STARTMSG Check if misp-server is configured and file /var/www/MISP/app/Co
 # check volumes and upgrade if it is required
 echo "$STARTMSG Upgrade if it is required..." && upgrade
 
-# delete pid file
-[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
-
 ##### Check permissions #####
     echo "$STARTMSG Configure MISP | Check permissions..."
     #echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
-    echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {}+
-    echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && chmod -R 0750 /var/www/MISP
+    echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
+    echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+
+# delete pid file
+[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
 
 # START APACHE2
 echo "$STARTMSG ####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"

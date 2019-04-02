@@ -277,11 +277,13 @@ ENV LANGUAGE=en_US:en
 
 ### 5/ Set the permissions
     # Check if the permissions are set correctly using the following commands:
-    RUN chown -R www-data:www-data /var/www/MISP; \
-    chmod -R 750 /var/www/MISP; \
-    chmod -R g+ws /var/www/MISP/app/tmp; \ 
-    chmod -R g+ws /var/www/MISP/app/files; \
-    chmod -R g+ws /var/www/MISP/app/files/scripts/tmp;
+    # RUN \
+    #     find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} + \
+    #     ;chmod -R 750 /var/www/MISP \
+    #     ;chmod -R g+ws /var/www/MISP/app/tmp \ 
+    #     ;chmod -R g+ws /var/www/MISP/app/files \
+    #     ;chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    ##### IS DONE VIA ENTRYPONT_APACHE2.sh SCRIPT
 
 
 

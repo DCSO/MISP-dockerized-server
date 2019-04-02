@@ -303,13 +303,13 @@ RUN apt-get install -y \
 
 ### 5/ Set the permissions
     # Check if the permissions are set correctly using the following commands:
-    RUN \
-        find /var/www/MISP -not -user www-data -exec chown www-data.www-data {}+ \
-        ;chmod -R 750 /var/www/MISP \
-        ;chmod -R g+ws /var/www/MISP/app/tmp \ 
-        ;chmod -R g+ws /var/www/MISP/app/files \
-        ;chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
-
+    # RUN \
+    #     find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} + \
+    #     ;chmod -R 750 /var/www/MISP \
+    #     ;chmod -R g+ws /var/www/MISP/app/tmp \ 
+    #     ;chmod -R g+ws /var/www/MISP/app/files \
+    #     ;chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    ##### IS DONE VIA ENTRYPONT_APACHE2.sh SCRIPT
 
 #       END of MISP Config Part
 #########################################
@@ -341,6 +341,7 @@ RUN apt-get install -y \
             phpenmod ssdeep; \
         done;
 
+
 #########################################
 #       Start of DCSO MISP Config Part
 
@@ -358,11 +359,11 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
     RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
 
 # Copy patch File for MISP Events Page with additional Analyse Column
-    COPY files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
+    COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # Syslog Server & rsyslog
     #COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-    COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
+    #COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
 
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
     #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
@@ -375,8 +376,8 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
     RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # MISP Update and MISP Cron
-    COPY files/usr/local/bin/misp_update.sh /usr/local/bin/
-    COPY files/usr/local/bin/misp_cron.sh /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_update.sh /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_cron.sh /usr/local/bin/
 
 # Healthcheck
     COPY files/healthcheck.sh /
@@ -385,7 +386,7 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 # Entrypoints
     COPY files/entrypoint_apache.sh /
     COPY files/entrypoint_cron.sh /
-    COPY files/entrypoint_local_mariadb.sh /
+    COPY files/entrypoint_mariadb.sh /
     COPY files/entrypoint_postfix.sh /
     COPY files/entrypoint_redis.sh /
     COPY files/entrypoint_rsyslog.sh /
@@ -404,9 +405,9 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
         VERSION=${VERSION} \
         RELEASE_DATE=${RELEASE_DATE} \
     # Environment Variable for Proxy
-        HTTP_PROXY="" \ 
-        HTTPS_PROXY="" \
-        NO_PROXY="0.0.0.0" \
+        http_proxy="" \ 
+        https_proxy="" \
+        no_proxy="0.0.0.0" \
     # MYSQL Vars
         MYSQL_HOST="localhost" \
         MYSQL_DATABASE="misp" \

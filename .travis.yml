@@ -13,23 +13,25 @@ env:
   # - DOCKER_USERNAME
   # - DOCKER_PASSWORD
   matrix:
-  - VERSION=2.4.88-ubuntu
-  - VERSION=2.4.89-ubuntu
-  - VERSION=2.4.90-ubuntu
-  - VERSION=2.4.91-ubuntu
-  - VERSION=2.4.92-ubuntu
-  - VERSION=2.4.93-ubuntu
-  - VERSION=2.4.94-ubuntu
-  - VERSION=2.4.95-ubuntu
-  - VERSION=2.4.96-ubuntu
-  - VERSION=2.4.97-debian
-  - VERSION=2.4.98-debian
-  - VERSION=2.4.99-debian
-  - VERSION=2.4.100-debian
-  - VERSION=2.4.101-debian
-  - VERSION=2.4.102-debian
-  - VERSION=2.4.103-debian
+  # Activate only Supported and Nightly Images.
   - VERSION=2.4.nightly-ubuntu
+  # - VERSION=2.4.88-ubuntu
+  # - VERSION=2.4.89-ubuntu
+  # - VERSION=2.4.90-ubuntu
+  # - VERSION=2.4.91-ubuntu
+  # - VERSION=2.4.92-ubuntu
+  # - VERSION=2.4.93-ubuntu
+  - VERSION=2.4.94-ubuntu
+  # - VERSION=2.4.95-ubuntu
+  # - VERSION=2.4.96-ubuntu
+  # - VERSION=2.4.97-debian
+  # - VERSION=2.4.98-debian
+  - VERSION=2.4.99-debian
+  # - VERSION=2.4.100-debian
+  # - VERSION=2.4.101-debian
+  # - VERSION=2.4.102-debian
+  - VERSION=2.4.103-debian
+
   
 
 before_install:
@@ -37,7 +39,7 @@ before_install:
 
 script:
 - make -C .ci build v=${VERSION} prod=false      # Set prod=true, if you want to build NO '-dev' tag
-- make -C .ci tags REPO=$DOCKER_SLUG prod=false  # Set prod=true, if you want tags NO '-dev' tag
+- make -C .ci tags REPOURL=$DOCKER_SLUG prod=false  # Set prod=true, if you want tags NO '-dev' tag
 
 notifications:
   # don't notify me when things fail
