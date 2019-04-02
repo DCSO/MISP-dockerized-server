@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 STARTMSG="[push]"
 
 [ -z "$1" ] && echo "$STARTMSG No parameter with the Docker registry URL. Exit now." && exit 1

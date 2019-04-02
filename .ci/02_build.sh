@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 STARTMSG="[build]"
 
 [ -z "$1" ] && echo "$STARTMSG No parameter with the image version. Exit now." && exit 1

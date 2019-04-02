@@ -363,7 +363,7 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 
 # Syslog Server & rsyslog
     #COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-    COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
+    #COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
 
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
     #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/

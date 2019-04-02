@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 STARTMSG="[before_install]"
 
 # Install Requirements
