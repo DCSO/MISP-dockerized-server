@@ -386,7 +386,7 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 # Entrypoints
     COPY files/entrypoint_apache.sh /
     COPY files/entrypoint_cron.sh /
-    COPY files/entrypoint_local_mariadb.sh /
+    COPY files/entrypoint_mariadb.sh /
     COPY files/entrypoint_postfix.sh /
     COPY files/entrypoint_redis.sh /
     COPY files/entrypoint_rsyslog.sh /
