@@ -12,8 +12,7 @@ echo "$STARTMSG Install requirements..."
     [ ! -z "$(which apt-get)" ] && apt-get install --only-upgrade docker-ce -y
 # Install docker-compose
     # https://stackoverflow.com/questions/42295457/using-docker-compose-in-a-gitlab-ci-pipeline
-    [ -z "$(which docker-compose)" ] && sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-                                        && sudo chmod +x /usr/local/bin/docker-compose
+    [ -z "$(which docker-compose)" ] && pip install docker-compose
 # Show version of docker-compose:
     docker-compose -v
 
