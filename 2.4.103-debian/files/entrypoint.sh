@@ -2,7 +2,7 @@
 
 if [ "$MYSQL_HOST" = "localhost" ] || [ "$MYSQL_HOST" = "misp-server" ]; then
 DB="[program:db]
-command=/entrypoint_local_mariadb.sh
+command=/entrypoint_mariadb.sh
 autorestart=true
 stdout_logfile=/dev/stdout
 stdout_logfile_maxbytes=0
