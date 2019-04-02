@@ -47,13 +47,12 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 [ -z "$CAKE" ] && export CAKE="$MISP_APP_PATH/Console/cake"
 [ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N  $MYSQL_DATABASE"
 
-[ -z "${PHP_MEMORY}" ] && PHP_MEMORY="512M"
-[ -z "${PHP_MAX_EXECUTION_TIME}" ] && PHP_MAX_EXECUTION_TIME="300"
+[ -z "${PHP_MEMORY_LIMIT}" ] && PHP_MEMORY_LIMIT="512M"
+[ -z "${PHP_MAX_EXECUTION_TIME}" ] && PHP_MAX_EXECUTION_TIME="600"
 [ -z "${PHP_UPLOAD_MAX_FILESIZE}" ] && PHP_UPLOAD_MAX_FILESIZE="50M"
 [ -z "${PHP_POST_MAX_SIZE}" ] && PHP_POST_MAX_SIZE="50M"
 
 [ -z "$REDIS_FQDN" ] && REDIS_FQDN=localhost
-
 
 init_pgp(){
     local FOLDER="/var/www/MISP/.gnupgp/public.key"
@@ -109,23 +108,23 @@ start_apache() {
     /usr/sbin/apache2ctl -DFOREGROUND "$1"
 }
 
-# add_analyze_column(){
-#     ORIG_FILE="/var/www/MISP/app/View/Elements/Events/eventIndexTable.ctp"
-#     PATCH_FILE="/eventIndexTable.patch"
+add_analyze_column(){
+    ORIG_FILE="/var/www/MISP/app/View/Elements/Events/eventIndexTable.ctp"
+    PATCH_FILE="/eventIndexTable.patch"
 
-#     # Backup Orig File
-#     cp $ORIG_FILE ${ORIG_FILE}.bak
-#     # Patch file
-#     patch $ORIG_FILE < $PATCH_FILE
-# }
+    # Backup Orig File
+    cp $ORIG_FILE ${ORIG_FILE}.bak
+    # Patch file
+    patch $ORIG_FILE < $PATCH_FILE
+}
 
 change_php_vars(){
     for FILE in $(ls /etc/php/*/apache2/php.ini)
     do
-        sed -i "s/memory_limit = .*/memory_limit = ${PHP_MEMORY}/" "$FILE"
-        sed -i "s/max_execution_time = .*/max_execution_time = ${PHP_MEMORY}/" "$FILE"
-        sed -i "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_MEMORY}/" "$FILE"
-        sed -i "s/post_max_size = .*/post_max_size = ${PHP_MEMORY}/" "$FILE"
+        sed -i "s/memory_limit = .*/memory_limit = ${PHP_MEMORY_LIMIT}/" "$FILE"
+        sed -i "s/max_execution_time = .*/max_execution_time = ${PHP_MAX_EXECUTION_TIME}/" "$FILE"
+        sed -i "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" "$FILE"
+        sed -i "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/" "$FILE"
     done
 }
 
@@ -477,19 +476,17 @@ echo "$STARTMSG Check if misp-server is configured and file /var/www/MISP/app/Co
 # check volumes and upgrade if it is required
 echo "$STARTMSG Upgrade if it is required..." && upgrade
 
-# delete pid file
-[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
-
 ##### Check permissions #####
     echo "$STARTMSG Configure MISP | Check permissions..."
-    echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
-    echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && chmod -R 0750 /var/www/MISP
+    #echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
+    echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
+    echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
 
-# start workers
-/entrypoint_workers.sh
+# delete pid file
+[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
 
 # START APACHE2
 echo "$STARTMSG ####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"

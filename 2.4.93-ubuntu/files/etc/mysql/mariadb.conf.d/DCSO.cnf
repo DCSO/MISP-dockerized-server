@@ -26,18 +26,18 @@ skip-external-locking
 
 # Instead of skip-networking the default is now to listen only on
 # localhost which is more compatible and is not less secure.
-bind-address		= 127.0.0.1
+bind-address		    = 127.0.0.1
 
 #
 # * Fine Tuning
 #
-key_buffer_size		= 16M
-max_allowed_packet	= 16M
-thread_stack		= 192K
+key_buffer_size		    = 16M
+max_allowed_packet	    = 16M
+thread_stack		    = 192K
 thread_cache_size       = 8
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched
-myisam-recover         = BACKUP
+myisam-recover          = BACKUP
 #max_connections        = 100
 #table_cache            = 64
 #thread_concurrency     = 10
@@ -46,7 +46,7 @@ myisam-recover         = BACKUP
 # * Query Cache Configuration
 #
 query_cache_limit	= 1M
-query_cache_size        = 16M
+query_cache_size    = 16M
 
 #
 # * Logging and Replication
@@ -84,20 +84,9 @@ max_binlog_size   = 100M
 # InnoDB is enabled by default with a 10MB datafile in /var/lib/mysql/.
 # Read the manual for more InnoDB related options. There are many!
 
-#
-# * Security Features
-#
-# Read the manual, too, if you want chroot!
-# chroot = /var/lib/mysql/
-#
-# For generating SSL certificates I recommend the OpenSSL GUI "tinyca".
-#
-# ssl-ca=/etc/mysql/cacert.pem
-# ssl-cert=/etc/mysql/server-cert.pem
-# ssl-key=/etc/mysql/server-key.pem
 
 #
-# * Character sets
+# * Character setschown -R 644 $DATADIR/*chown -R 644 $DATADIR/*
 #
 # MySQL/MariaDB default is Latin1, but in Debian we rather default to the full
 # utf8 4-byte character set. See also client.cnf
@@ -105,24 +94,8 @@ max_binlog_size   = 100M
 character-set-server  = utf8mb4
 collation-server      = utf8mb4_general_ci
 
-#
-# * Unix socket authentication plugin is built-in since 10.0.22-6
-#
-# Needed so the root database user can authenticate without a password but
-# only when running as the unix root user.
-#
-# Also available for other users if required.
-# See https://mariadb.com/kb/en/unix_socket-authentication-plugin/
-
-# this is only for embedded server
-[embedded]
 
 # This group is only read by MariaDB servers, not by MySQL.
 # If you use the same .cnf file for MySQL and MariaDB,
 # you can put MariaDB-only options here
 [mariadb]
-
-# This group is only read by MariaDB-10.0 servers.
-# If you use the same .cnf file for MariaDB of different versions,
-# use this group for options that older servers don't understand
-[mariadb-10.0]

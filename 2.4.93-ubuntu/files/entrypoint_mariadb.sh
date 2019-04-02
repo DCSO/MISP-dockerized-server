@@ -13,7 +13,7 @@ echo (){
 STARTMSG="${Light_Green}[ENTRYPOINT_LOCAL_MARIADB]${NC}"
 
 
-if [ "$MYSQL_HOST" != "localhost" ] && [ "$MYSQL_HOST" != "misp-server" ] && [ -n "$MYSQL_HOST" ]; then
+if [[ "$MYSQL_HOST" != "localhost" ]] && [[ "$MYSQL_HOST" != "misp-server" ]]; then
     echo "$STARTMSG Deactivate MariaDB Entrypoint because MYSQL_HOST='$MYSQL_HOST'."
     exit 0
 fi
