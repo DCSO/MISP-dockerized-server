@@ -310,17 +310,6 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 # Copy patch File for MISP Events Page with additional Analyse Column
     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
-# Syslog Server & rsyslog
-    #COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-    #COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
-
-# HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
-    #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
-
-# Postfix
-# Copy files to postfix container
-    COPY files/etc/postfix/* /etc/postfix/
-
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
     RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
@@ -334,9 +323,7 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 
 # Entrypoints
     COPY files/entrypoint_apache.sh /
-    COPY files/entrypoint_cron.sh /
     COPY files/entrypoint_mariadb.sh /
-    COPY files/entrypoint_postfix.sh /
     COPY files/entrypoint_redis.sh /
     COPY files/entrypoint_rsyslog.sh /
     COPY files/entrypoint_workers.sh /
