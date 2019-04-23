@@ -26,6 +26,9 @@ before_script:
   - master  
   script:
   - make -C .ci build v=$VERSION
+  - make -C .ci tags REPOURL=$CUSTOM_REGISTRY_URL
+  - make -C .ci tags REPOURL=$DOCKER_SLUG
+  
 
 .build:
   stage: build
