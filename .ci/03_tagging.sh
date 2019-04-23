@@ -63,7 +63,7 @@ SOURCE_REPO="not2push"
 
 
 # Lookup to all build versions of the current docker container
-ALL_BUILD_DOCKER_VERSIONS=$(docker images --format '{{.Repository}}={{.Tag}}'|grep $CONTAINER_NAME |cut -d = -f 2)
+ALL_BUILD_DOCKER_VERSIONS=$(docker images --format '{{.Repository}}={{.Tag}}'|grep "$CONTAINER_NAME" | grep "$SOURCE_REPO" |cut -d = -f 2)
 
 # Tag Latest + Version Number
 for i in $ALL_BUILD_DOCKER_VERSIONS
