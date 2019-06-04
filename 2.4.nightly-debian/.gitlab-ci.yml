@@ -1,13 +1,16 @@
 build 2.4.nightly-debian:
   extends: .build
   variables:
-    VERSION: "2.4.nightly-debian"
+    FOLDER: "2.4.nightly-debian"
+    VERSION: "$FOLDER"
+    TAGS: "${FOLDER}-dev latest-dev"
 
 
 test 2.4.nightly-debian:
   extends: .test
   variables:
     VERSION: "2.4.nightly-debian"
+    VERSION: "$FOLDER"
   only:
     changes:
     - 2.4.nightly-debian/*

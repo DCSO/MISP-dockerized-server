@@ -3,8 +3,6 @@ notify:
 
 variables:
   COMPONENT: "server"
-
-variables:
   # The following variables are setup via gitlab project group:
   # DOCKER_HUB_NOTIFY_URL
   # DOCKER_SLUG
