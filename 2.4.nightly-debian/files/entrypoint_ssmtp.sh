@@ -35,8 +35,7 @@ echo (){
 [ ! -f "$conf.bak" ] && cp $conf $conf.bak
 
 # Rewrite Configuration
-cat > $conf << EOF
-
+cat << EOF > $conf
 #
 # Config file for sSMTP sendmail
 #
