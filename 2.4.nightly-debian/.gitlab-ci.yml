@@ -1,0 +1,14 @@
+build 2.4.nightly-debian:
+  extends: .build
+  variables:
+    VERSION: "2.4.nightly-debian"
+
+
+test 2.4.nightly-debian:
+  extends: .test
+  variables:
+    VERSION: "2.4.nightly-debian"
+  only:
+    changes:
+    - 2.4.nightly-debian/*
+    
