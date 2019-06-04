@@ -5,7 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
 echo (){
-    command echo -e $1
+    command echo -e "$@"
 }
 
 STARTMSG="${Light_Green}[ENTRYPOINT_APACHE]${NC}"
@@ -157,7 +157,7 @@ init_misp_config(){
     # sed -i "s,'homedir' => '/',homedir'                        => '/var/www/MISP/.gnupg'," $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Change Salt in config.php"
-    sed -i "s/'salt'\\s*=>\\s*''/'salt'                        => '$MISP_SALT'/" $MISP_CONFIG
+    sed -i "s,'salt'\\s*=>\\s*'','salt'                        => '$MISP_SALT'," $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
     sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
