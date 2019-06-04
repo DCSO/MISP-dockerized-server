@@ -136,9 +136,11 @@ RUN apt-get install -y \
 
 # 3/ MISP code
 # ------------
-    ARG MISP_TAG=${VERSION}
-    ARG SUDO_WWW="gosu www-data"
-    ARG PATH_TO_MISP="/var/www/MISP"
+    # Set Environment Variables
+    ARG VERSION
+    ENV MISP_TAG=${VERSION} \
+        SUDO_WWW="gosu www-data" \
+        PATH_TO_MISP="/var/www/MISP"
     # Download MISP using git in the /var/www/ directory.
     # Attention: we replaced the fixed tag with a variable
     RUN \
@@ -278,12 +280,6 @@ RUN apt-get install -y \
     #### Is done in misp-server entrypoint script.
 
 
-
-
-
-
-
-
 # #########################################
 # #       END of MISP Config Part
 # #########################################
@@ -387,14 +383,25 @@ ARG COMPONENT="server"
 ARG BUILD_DATE
 ARG GIT_REPO
 ARG VCS_REF
-ARG VERSION
-
 ARG RELEASE_DATE
 ARG NAME="MISP-dockerized-${COMPONENT}"
 ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
 ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
 ARG AUTHOR="DCSO MISP Docker Team <misp.docker@dcso.de>"
 ARG LICENSE="BSD-3-Clause"
+
+# Environment Variables
+# CMD
+ENV NAME=${NAME} \
+    VERSION=${VERSION} \
+    RELEASE_DATE=${RELEASE_DATE} \
+    SUDO_WWW=${SUDO_WWW} \
+# Set locals
+    # ENV LC_ALL ${LANG}
+    LANGUAGE=en_US:en \
+# PHP
+    PHP_ETC_BASE=/etc/php/${PHP_VERSION} \
+    PHP_INI=${PHP_ETC_BASE}/apache2/php.ini
 #     END Variables
 
 #########################################
@@ -421,16 +428,3 @@ LABEL   org.opencontainers.image.created="${BUILD_DATE}" \
         org.opencontainers.image.authors="${AUTHOR}" \
         org.opencontainers.image.licenses="${LICENSE}"
 #########################################
-
-# Environment Variables
-    # CMD
-    ENV NAME=${NAME} \
-        VERSION=${VERSION} \
-        RELEASE_DATE=${RELEASE_DATE} \
-        SUDO_WWW=${SUDO_WWW} \
-    # Set locals
-        # ENV LC_ALL ${LANG}
-        LANGUAGE=en_US:en \
-    # PHP
-        PHP_ETC_BASE=/etc/php/${PHP_VERSION} \
-        PHP_INI=${PHP_ETC_BASE}/apache2/php.ini
