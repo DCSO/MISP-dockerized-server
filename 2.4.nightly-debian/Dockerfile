@@ -320,13 +320,7 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
     sudo -u www-data chmod 500 /var/www/MISP/.smime; \
 # for PGP
     sudo -u www-data mkdir /var/www/MISP/.gnupg; \
-    sudo -u www-data chmod 700 /var/www/MISP/.gnupg; \
-    # for local MySQL Server: delete all config files
-    rm -Rf /var/lib/mysql/*;
-    
-# # add own mysql config
-#     COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
-#     RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
+    sudo -u www-data chmod 700 /var/www/MISP/.gnupg;
 
 # # Copy patch File for MISP Events Page with additional Analyse Column
 #     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
@@ -340,14 +334,14 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 
 # Postfix
 # Copy files to postfix container
-    COPY files/etc/postfix/* /etc/postfix/
+    # COPY files/etc/postfix/* /etc/postfix/
 
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
     RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # MISP Update and MISP Cron
-    COPY --chown=www-data:www-data files/usr/local/bin/misp_update.sh /usr/local/bin/
-    COPY --chown=www-data:www-data files/usr/local/bin/misp_cron.sh /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_update /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_cron /usr/local/bin/
 
 # Healthcheck
     COPY files/healthcheck.sh /
@@ -400,8 +394,8 @@ ENV NAME=${NAME} \
     # ENV LC_ALL ${LANG}
     LANGUAGE=en_US:en \
 # PHP
-    PHP_ETC_BASE=/etc/php/${PHP_VERSION} \
-    PHP_INI=${PHP_ETC_BASE}/apache2/php.ini
+    PHP_ETC_BASE=/etc/php/${PHP_VERSION}
+ENV PHP_INI=${PHP_ETC_BASE}/apache2/php.ini
 #     END Variables
 
 #########################################
