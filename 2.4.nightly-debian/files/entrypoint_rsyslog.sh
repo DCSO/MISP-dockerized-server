@@ -7,42 +7,43 @@ STARTMSG="${Light_Green}[ENTRYPOINT_RSYSLOG]${NC}"
 ARCHIVE_YEAR="$(date +%Y)"
 ARCHIVE_FOLDER="/var/www/MISP/app/files/DCSO/log_archive/$ARCHIVE_YEAR/"
 TMP_ARCHIVE="$(date +%Y-%m-%d)"
-TMP_ARCHIVE_FOLDER="/tmp/$TMP_ARCHIVE"
-ARCHIVE_FILE="/tmp/$TMP_ARCHIVE.tar.gz"
+ARCHIVE_FILE="/tmp/$TMP_ARCHIVE.tar"
 # Functions
 echo (){
     command echo "$STARTMSG $*"
 }
 
 func_archive_old_logs(){
-    echo "... ... Archive: $*"
+    #echo "... ... Archive: $*"
     for i in "$@"
     do
-        [ -f "$i" ] && mv "$i" "$TMP_ARCHIVE_FOLDER/"
+        [ -f "$i" ] && tar -rf "$ARCHIVE_FILE" "$i" && rm -f "$i"
     done
+    # Any is done
+    sleep 0.1
 }
+
+
+#
+#   MAIN
+#
+
 
 # delete old logs
 DELETE_LOG=${LOGGING_DELETE_OLD_LOGS:-"yes"}
 if [ "$DELETE_LOG" = "yes" ] 
 then
     echo "Archive old logs..."
-        # Temp Target
-    [ ! -d "$TMP_ARCHIVE_FOLDER" ] && mkdir -p "$TMP_ARCHIVE_FOLDER"
         # Archive Files
     func_archive_old_logs /var/www/MISP/app/tmp/logs/*
     func_archive_old_logs /var/log/apache2/*
-        # Create Archive File
-    tar -caf "$ARCHIVE_FILE" "$TMP_ARCHIVE_FOLDER"
-        # Delete TMP_ARCHIVE_FOLDER
-    rm -Rf "$TMP_ARCHIVE_FOLDER"
         # End Target
     [ ! -d "$ARCHIVE_FOLDER" ] && mkdir -p "$ARCHIVE_FOLDER"
         # Move Archive
-    mv "$ARCHIVE_FILE" "$ARCHIVE_FOLDER/"
+    [ -f "$ARCHIVE_FILE" ] && gzip "$ARCHIVE_FILE" 
+    [ -f "$ARCHIVE_FILE.gz" ] && mv "$ARCHIVE_FILE.gz" "$ARCHIVE_FOLDER/"
     echo "Archive old logs...finished"
 fi
-
 
 # write supervisord configuration
 cat << EOF > /etc/rsyslog.d/rsyslog_custom.conf
@@ -76,4 +77,4 @@ if ( \$syslogtag contains "info" or \$syslogtag contains "debug" or \$syslogtag 
 EOF
 
 # Start rsyslogd in debug mode in foreground
-echo "$STARTMSG Start rsyslogd" && rsyslogd -n
+echo "Start rsyslogd" && rsyslogd -n

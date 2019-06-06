@@ -245,15 +245,7 @@ RUN apt-get install -y \
 # ------------------
     # add HTTP MISP Config
     ARG sudo=""
-    RUN rm /etc/apache2/sites-enabled/*;
-    COPY files/etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/
-    COPY files/etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/
-    COPY files/etc/apache2/ports.conf /etc/apache2/ports.conf
-    RUN \
-        chmod 640 /etc/apache2/ports.conf \
-        ;chown root.root /etc/apache2/ports.conf \
-        ;chmod 640 /etc/apache2/sites-available/* \
-        ;chown root.root /etc/apache2/sites-available/* \
+    RUN rm /etc/apache2/sites-enabled/* \
     # Configure Apache
         ;sudo a2dismod status \
         ;sudo a2enmod ssl \
@@ -336,6 +328,7 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
     COPY --chown=www-data:www-data files/usr/local/bin/misp_cron /usr/local/bin/
     COPY --chown=www-data:www-data files/usr/local/bin/misp_version /usr/local/bin/
     COPY --chown=www-data:www-data files/usr/local/bin/generate_self-signed-cert /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/generate_web_server_configuration /usr/local/bin/
 
 # Healthcheck
     COPY files/healthcheck.sh /

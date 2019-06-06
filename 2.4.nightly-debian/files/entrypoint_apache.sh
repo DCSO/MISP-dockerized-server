@@ -55,6 +55,9 @@ fi
     PGP_FOLDER="/var/www/MISP/.gnupgp"
     # SMIME
     SMIME_FOLDER="/var/www/MISP/.smime"
+    # Webserver Configuration
+    HTTPS_FILE="/etc/apache2/sites-enabled/misp.ssl.conf"
+    HTTP_FILE="/etc/apache2/sites-enabled/misp.conf"
     # MISC
     FOLDER_with_VERSIONS="/var/www/MISP/app/tmp /var/www/MISP/app/files \
                         /var/www/MISP/app/Plugin/CakeResque/Config \
@@ -393,28 +396,6 @@ check_redis(){
     echo "... check_redis | Check if Redis is available...finished"
 }
 
-enable_https_configuration() {
-    echo "... enable_https_configuration | Enable HTTPS web configuration..."
-    if [ -f /etc/apache2/ssl/cert.pem ] && [ ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] 
-    then
-        mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
-        echo "... enable_https_configuration | Enable HTTPS web configuration...finished"
-    else
-        echo "... enable_https_configuration | Enable HTTPS web configuration is not required."
-    fi
-}
-
-disable_http_configuration() {
-    echo "... disable_http_configuration | Disable HTTP web configuration..."
-    if [ -f /etc/apache2/ssl/cert.pem ] && [ ! -f /etc/apache2/sites-enabled/misp.conf ] 
-    then
-        mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
-        echo "... disable_http_configuration | Disable HTTP web configuration...finished"
-    else
-        echo "... disable_http_configuration | Disable HTTP web configuration is not required."
-    fi
-}
-
 remove_init_config_file() {
     echo "... remove_init_config_file | Remove init config file..."
     if [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] 
@@ -439,6 +420,10 @@ check_misp_permissions(){
     echo "... ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
     echo "... ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
     echo "... check_misp_permissions | Check MISP permissions...finished"
+}
+
+add_webserver_configuration(){
+    /usr/local/bin/generate_web_server_configuration
 }
 
 init_msmtp() {
@@ -534,11 +519,6 @@ echo "Create Certificate File..." && create_ssl_cert
 # check if DH file is required to generate
 echo "Create DH File..." && create_ssl_dh
 
-##### enable https config and disable http config ####
-echo "Check HTTPS Web Configuration..." && enable_https_configuration
-
-echo "Check HTTP Web Configuration..." && disable_http_configuration
-
 ##### check Redis
 echo "Check Redis ready..." && check_redis
 
@@ -560,6 +540,11 @@ echo "Initialize MISP via Cake..." && init_via_cake_cli
 ##### Check permissions #####
 echo "MISP Permissions..." && check_misp_permissions
 
+##### enable https config and disable http config ####
+echo "Add Webserver Configuration..." && add_webserver_configuration
+
+
+########################################################
 
 
 ##### Delete the initial decision file & reboot misp-server

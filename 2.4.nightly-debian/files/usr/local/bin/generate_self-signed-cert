@@ -4,17 +4,33 @@ set -eu
 # http://apetec.com/support/GenerateSAN-CSR.htm
 # https://github.com/openssl/openssl/issues/3536
 
-
+# Variables
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
-
 STARTMSG="${Light_Green}[GENERATE_SELF_SIGNED_CERT]${NC}"
 MISP_FQDN=${MISP_FQDN:-"$(hostname)"}
 # SSL
-    SSL_CERT="/etc/apache2/ssl/cert.pem"
-    SSL_KEY="/etc/apache2/ssl/key.pem"
-    SSL_PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
-    OPENSSL_CONFIG="/etc/apache2/ssl/openssl.cnf"
+SSL_CERT="/etc/apache2/ssl/cert.pem"
+SSL_KEY="/etc/apache2/ssl/key.pem"
+SSL_PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
+OPENSSL_CONFIG="/etc/apache2/ssl/openssl.cnf"
+
+# Functions
+echo (){
+    command echo "$STARTMSG $*"
+}
+
+# Environment Parameter
+    #
+
+
+
+
+#
+#   MAIN
+#
+
+
 
 echo "... create_ssl_cert | Create SSL certificate..."
 
