@@ -3,6 +3,7 @@ build 2.4.nightly-debian:
   variables:
     FOLDER: "2.4.nightly-debian"
     TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2019-06
 
 test 2.4.nightly-debian:
   extends: .test

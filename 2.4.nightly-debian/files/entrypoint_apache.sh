@@ -15,7 +15,7 @@ echo (){
 }
 
 missing_environment_var() {
-    echo "Please set '$1' environment variable in docker-compose.override.yml file for misp-server!"
+    echo "Please set '$*' environment variable in docker-compose.override.yml file for misp-server!"
     exit
 }
 #####################################
@@ -37,14 +37,15 @@ fi
 #   Variables
 ###################################
     # MISP
-    MISP_BASE_PATH="/var/www/MISP"
-    MISP_APP_PATH="/var/www/MISP/app"
+    PATH_TO_MISP=${PATH_TO_MISP:-/var/www/MISP}
+    MISP_APP_PATH="$PATH_TO_MISP/app"
     MISP_APP_CONFIG_PATH="$MISP_APP_PATH/Config"
     MISP_CONFIG="$MISP_APP_CONFIG_PATH/config.php"
     MISP_DATABASE_CONFIG="$MISP_APP_CONFIG_PATH/database.php"
     MISP_EMAIL_CONFIG="$MISP_APP_CONFIG_PATH/email.php"
     # CAKE
-    CAKE_CONFIG="/var/www/MISP/app/Plugin/CakeResque/Config/config.php"
+    CAKE=${CAKE:-"$MISP_APP_PATH/Console/cake"}
+    CAKE_CONFIG="$MISP_APP_PATH/Plugin/CakeResque/Config/config.php"
     # SSL
     SSL_CERT="/etc/apache2/ssl/cert.pem"
     SSL_KEY="/etc/apache2/ssl/key.pem"
@@ -75,111 +76,119 @@ fi
 
 # Defaults
     # PGP
-    [ -z "${PGP_ENABLE+x}" ]     && PGP_ENABLE=0
+    PGP_ENABLE=${PGP_ENABLE:-"0"}
     # SMIME
-    [ -z "${SMIME_ENABLE+x}" ]   && SMIME_ENABLE=0
+    SMIME_ENABLE=${SMIME_ENABLE:-"0"}
     # MISP
-        # MISP_BASEURL="" && MISP_FQDN=""
-    ( [ -z "${MISP_BASEURL+x}" ] && [ -z "$MISP_FQDN" ] ) && missing_environment_var MISP_FQDN
-        # MISP_BASEURL="" && MISP_FQDN=<any>
-    ( [ -z "${MISP_BASEURL+x}" ] && [ ! -z "$MISP_FQDN" ] ) && MISP_BASEURL="https://$(echo "$MISP_FQDN"|cut -d '/' -f 3)"
-    [ -z "${MISP_SALT+x}" ]      && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
-    [ -z "${MISP_ADD_ANALYZE_COLUMN+x}" ]      && MISP_ADD_ANALYZE_COLUMN="no"
+    MISP_FQDN=${MISP_FQDN:-"$(hostname)"}
+    if [ -n "$MISP_FQDN" ]; then
+        MISP_BASEURL=${MISP_BASEURL:-"https://$MISP_FQDN"}
+    else
+        MISP_BASEURL=${MISP_BASEURL:-"https://$MISP_FQDN"}
+    fi
+    MISP_SALT=${MISP_SALT:-"$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"}
+    MISP_ADD_ANALYZE_COLUMN=${MISP_ADD_ANALYZE_COLUMN:-"no"}
+    MISP_EXTERNAL_URL=${MISP_EXTERNAL_URL:-""}
+    MISP_RELATIVE_URL=${MISP_RELATIVE_URL:-"yes"}
     # MySQL
-    [ -z "${MYSQL_HOST+x}" ]     && MYSQL_HOST=misp-db
-    [ -z "${MYSQL_PORT+x}" ]     && MYSQL_PORT=3306
-    [ -z "${MYSQL_USER+x}" ]     && MYSQL_USER=misp
-    [ -z "${MYSQL_DATABASE+x}" ] && MYSQL_DATABASE=misp
+    MYSQL_HOST=${MYSQL_HOST:-"misp-db"}
+    MYSQL_PORT=${MYSQL_PORT:-"3306"}
+    MYSQL_USER=${MYSQL_USER:-"misp"}
+    MYSQL_DATABASE=${MYSQL_DATABASE:-"misp"}
     [ -z "${MYSQL_PASSWORD+x}" ] && missing_environment_var MYSQL_PASSWORD
-    [ -z "${MYSQL_CMD+x}" ]      && MYSQL_CMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N  $MYSQL_DATABASE"
+    MYSQL_CMD=${MYSQL_CMD:-""mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N  $MYSQL_DATABASE""}
     # Mail
-    [ -z "${MAIL_SENDER_ADDRESS+x}" ] && MAIL_SENDER_ADDRESS="no-reply@$MISP_FQDN"
-    [ -z "${MAIL_ENABLE+x}" ] && MAIL_ENABLE="no"
-    # Cake
-    [ -z "${CAKE+x}" ]           && CAKE="$MISP_APP_PATH/Console/cake"
+    MAIL_SENDER_ADDRESS=${MAIL_SENDER_ADDRESS:-"no-reply@$MISP_FQDN"}
+    MAIL_CONTACT_ADDRESS=${MAIL_CONTACT_ADDRESS:-"$MAIL_SENDER_ADDRESS"}
+    MAIL_ENABLE=${MAIL_ENABLE:-"no"}
     # PHP
-    [ -z "${PHP_MEMORY_LIMIT+x}" ]        && PHP_MEMORY_LIMIT="512M"
-    [ -z "${PHP_MAX_EXECUTION_TIME+x}" ]  && PHP_MAX_EXECUTION_TIME="600"
-    [ -z "${PHP_UPLOAD_MAX_FILESIZE+x}" ] && PHP_UPLOAD_MAX_FILESIZE="50M"
-    [ -z "${PHP_POST_MAX_SIZE+x}" ]       && PHP_POST_MAX_SIZE="50M"
+    PHP_MEMORY_LIMIT=${PHP_MEMORY_LIMIT:-"512M"}
+    PHP_MAX_EXECUTION_TIME=${PHP_MAX_EXECUTION_TIME:-"600"}
+    PHP_UPLOAD_MAX_FILESIZE=${PHP_UPLOAD_MAX_FILESIZE:-"50M"}
+    PHP_POST_MAX_SIZE=${PHP_POST_MAX_SIZE:-"50M"}
     # REDIS
-    [ -z "${REDIS_FQDN+x}" ]     && REDIS_FQDN=misp-redis
-    [ -z "${REDIS_PORT+x}" ]     && REDIS_PORT=6379
-    [ -z "${REDIS_PW+x}" ]     && REDIS_PW=""
-    # Apache 
-    [ -z "${APACHE_CMD+x}" ]     && APACHE_CMD="none"
+    REDIS_FQDN=${REDIS_FQDN:-"misp-redis"}
+    REDIS_PORT=${MYREDIS_PORTSQL_HOST:-"6379"}
+    REDIS_PW=${REDIS_PW:-""}
+    # Apache
+    APACHE_CMD=${APACHE_CMD:-"none"}
 
 
 usage() {
     echo "Help!"
 }
 
-version() {
-    echo "MISP version: ${VERSION-}"
-    echo "Release date: ${RELEASE_DATE-}"
-}
-
-
 init_pgp(){
+    echo "... init_pgp | Initialize PGP..."
     local PGP_PUBLIC_KEY="$PGP_FOLDER/public.key"
     local MISP_PGP_PUBLIC_KEY="$MISP_APP_PATH/webroot/gpg.asc"
     
-    if [  $PGP_ENABLE != 1 ]; then
+    if [  "$PGP_ENABLE" != 1 ]; then
         # if pgp should not be activated return
-        echo "PGP should not be activated."
+        echo "... init_pgp | Initialize PGP is not required."
         return
     elif [ ! -f "$PGP_PUBLIC_KEY" ]; then
         # if secring.pgp do not exists return
-        echo "No public PGP key found in $PGP_PUBLIC_KEY."
+        echo "... ... [ERROR] No public PGP key found in $PGP_PUBLIC_KEY."
         return
     else
-        echo "PGP key exists and copy it to MISP webroot."
+        echo "... ... PGP key exists and copy it to MISP webroot."
         # Copy public key to the right place
         sh -c "cp $PGP_PUBLIC_KEY $MISP_PGP_PUBLIC_KEY"
         sh -c "chmod 440 $MISP_PGP_PUBLIC_KEY"
+        echo "... init_pgp | Initialize PGP...finished"
     fi
-
 }
 
 init_smime(){
+    echo "... init_smime | Initialize S/MIME..."
     local SMIME_CERT="$SMIME_FOLDER/cert.pem"
     local MISP_SMIME_CERT="$MISP_APP_PATH/webroot/public_certificate.pem"
       
-    if [ $SMIME_ENABLE != 1 ]; then 
-        echo "S/MIME should not be activated."
+    if [ "$SMIME_ENABLE" != 1 ]; then 
+        echo "... init_smime | Initialize S/MIME is not required."
         return
     elif [ -f "$SMIME_CERT" ]; then
         # If certificate do not exists exit
-        echo "No Certificate found in $SMIME_CERT."
+        echo "... ... [ERROR] No Certificate found in $SMIME_CERT."
         return
     else
-        echo "S/MIME Cert exists and copy it to MISP webroot." 
+        echo "... ... S/MIME Cert exists and copy it to MISP webroot." 
         ## Export the public certificate (for Encipherment) to the webroot
         sh -c "cp $SMIME_CERT $MISP_SMIME_CERT"
         sh -c "chmod 440 $MISP_SMIME_CERT"
+        echo "... init_smime | Initialize S/MIME...finished"
     fi
-    
 }
 
 start_apache() {
     # Apache gets grumpy about PID files pre-existing
     rm -f /run/apache2/apache2.pid
+    echo "####################################  started Apache2 with cmd: '$*' ####################################"
     # execute APACHE2
-    /usr/sbin/apache2ctl -DFOREGROUND "${1-}"
+    /usr/sbin/apache2ctl -DFOREGROUND "$*"
 }
 
 add_analyze_column(){
-    ORIG_FILE="/var/www/MISP/app/View/Elements/Events/eventIndexTable.ctp"
-    PATCH_FILE="/eventIndexTable.patch"
+    echo "... add_analyze_column | Add Analyze Column to MISP view..."
+    if [ "$MISP_ADD_ANALYZE_COLUMN" = "yes" ]
+    then
+        ORIG_FILE="/var/www/MISP/app/View/Elements/Events/eventIndexTable.ctp"
+        PATCH_FILE="/eventIndexTable.patch"
 
-    # Backup Orig File
-    cp $ORIG_FILE ${ORIG_FILE}.bak
-    # Patch file
-    patch $ORIG_FILE < $PATCH_FILE
+        # Backup Orig File
+        cp $ORIG_FILE ${ORIG_FILE}.bak
+        # Patch file
+        patch $ORIG_FILE < $PATCH_FILE
+        echo "... add_analyze_column | Add Analyze Column to MISP view...finished"
+    else
+        echo "... add_analyze_column | Add Analyze Column to MISP view is not required."
+    fi
+
 }
 
 change_php_vars(){
-    
+    echo "... change_php_vars | PHP variable modifying started..."
     if [ -n "${PHP_INI-}" ]
     then
         PHP_FILES="$PHP_INI"
@@ -194,212 +203,147 @@ change_php_vars(){
         sed -i "s/upload_max_filesize = .*/upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}/" "$FILE"
         sed -i "s/post_max_size = .*/post_max_size = ${PHP_POST_MAX_SIZE}/" "$FILE"
     done
+    echo "... change_php_vars | PHP variable modifying started...finished"
 }
 
 init_misp_config(){
-    echo "Configure MISP | Copy MISP default configuration files"
-    
-    [ -f $MISP_APP_CONFIG_PATH/bootstrap.php ] || cp $MISP_APP_CONFIG_PATH/bootstrap.default.php $MISP_APP_CONFIG_PATH/bootstrap.php
-    [ -f $MISP_DATABASE_CONFIG ] || cp $MISP_APP_CONFIG_PATH/database.default.php $MISP_DATABASE_CONFIG
-    [ -f $MISP_APP_CONFIG_PATH/core.php ] || cp $MISP_APP_CONFIG_PATH/core.default.php $MISP_APP_CONFIG_PATH/core.php
-    [ -f $MISP_CONFIG ] || cp $MISP_APP_CONFIG_PATH/config.default.php $MISP_CONFIG
+    echo "... init_misp_config | Start MISP configuration initialization..."
 
-    echo "Configure MISP | Set DB User, Password and Host in database.php"
-    sed -i "s/localhost/$MYSQL_HOST/" $MISP_DATABASE_CONFIG
-    sed -i "s/db\s*login/$MYSQL_USER/" $MISP_DATABASE_CONFIG
-    sed -i "s/8889/3306/" $MISP_DATABASE_CONFIG
-    sed -i "s/db\s*password/$MYSQL_PASSWORD/" $MISP_DATABASE_CONFIG
+    #echo "... ... Copy MISP default configuration files"
+    [ -f "$MISP_APP_CONFIG_PATH/bootstrap.php" ] || cp "$MISP_APP_CONFIG_PATH/bootstrap.default.php" "$MISP_APP_CONFIG_PATH/bootstrap.php"
+    [ -f "$MISP_DATABASE_CONFIG" ] || cp "$MISP_APP_CONFIG_PATH/database.default.php" "$MISP_DATABASE_CONFIG"
+    [ -f "$MISP_APP_CONFIG_PATH/core.php" ] || cp "$MISP_APP_CONFIG_PATH/core.default.php" "$MISP_APP_CONFIG_PATH/core.php"
+    [ -f "$MISP_CONFIG" ] || cp "$MISP_APP_CONFIG_PATH/config.default.php" "$MISP_CONFIG"
 
-    echo "Configure MISP | Set MISP-Url in config.php"
-    sed -i "s_.*baseurl.*=>.*_    \'baseurl\' => \'$MISP_BASEURL\',_" $MISP_CONFIG
+    #### DB ####
+    #echo "... ... Set DB User, Password and Host in database.php"
+    sed -i "s/localhost/$MYSQL_HOST/" "$MISP_DATABASE_CONFIG"
+    sed -i "s/db\s*login/$MYSQL_USER/" "$MISP_DATABASE_CONFIG"
+    sed -i "s/8889/3306/" "$MISP_DATABASE_CONFIG"
+    sed -i "s/db\s*password/$MYSQL_PASSWORD/" "$MISP_DATABASE_CONFIG"
+
+    #### BASE URL ####
+    #echo "... ... Set MISP-Url in config.php"
+    sed -i "s_.*baseurl.*=>.*_    \'baseurl\' => \'$MISP_BASEURL\',_" "$MISP_CONFIG"
     #sudo $CAKE baseurl "$MISP_BASEURL"
 
-    if [ "${MAIL_ENABLE}" = "yes" ]
-    then
-        echo "Configure MISP | Set Email in config.php"
-        sed -i "s/email@address.com/$MAIL_SENDER_ADDRESS/" $MISP_CONFIG
-        
-        echo "Configure MISP | Set Admin Email in config.php"
-        sed -i "s/admin@misp.example.com/$MAIL_SENDER_ADDRESS/" $MISP_CONFIG
-    else
-        sed -i "s/                        'disable_emailing'               => false,/                        'disable_emailing'               => true,/" $MISP_CONFIG
-    fi
-    # echo "Configure MISP | Set GNUPG Homedir in config.php"
-    # sed -i "s,'homedir' => '/',homedir'                        => '/var/www/MISP/.gnupg'," $MISP_CONFIG
-
-    echo "Configure MISP | Change Salt in config.php"
-    sed -i "s,'salt'\\s*=>\\s*'','salt'                        => '$MISP_SALT'," $MISP_CONFIG
-
-    echo "Configure MISP | Change Mail type from phpmailer to smtp"
-    sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $MISP_EMAIL_CONFIG
+    #### SALT ####
+    #echo "... ... Change Salt in config.php"
+    sed -i "s,'salt'\\s*=>\\s*'','salt'                        => '$MISP_SALT'," "$MISP_CONFIG"
+    
+    #### Mail ####
+    # echo "Configure MISP | Change Mail type from phpmailer to smtp"
+    # sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" "$MISP_EMAIL_CONFIG"
     
     #### CAKE ####
-    echo "Configure Cake | Change Redis host to $REDIS_FQDN"
-    sed -i "s/'host' => 'localhost'.*/'host' => '$REDIS_FQDN',          \/\/ Redis server hostname/" $CAKE_CONFIG
+    #echo "... ... Change Redis host to $REDIS_FQDN in $CAKE_CONFIG"
+    sed -i "s/'host' => 'localhost'.*/'host' => '$REDIS_FQDN',          \/\/ Redis server hostname/" "$CAKE_CONFIG"
+    
+    #echo "... ... Change Redis port to $REDIS_PORT in $CAKE_CONFIG"
+    sed -i "s/'port' => 6379.*/'port' => '$REDIS_PORT',          \/\/ Redis server port/" "$CAKE_CONFIG"
 
     ##############
-    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
+    echo "... init_misp_config | Start MISP configuration initialization...finished"
 }
 
-setup_via_cake_cli(){
+init_via_cake_cli(){
+    echo "... init_via_cake_cli | Cake initializing started..."
+    local SUDO_WWW="gosu www-data"
     [ -f "/var/www/MISP/app/Config/database.php"  ] || (echo "File /var/www/MISP/app/Config/database.php not found. Exit now." && exit 1)
     if [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ]; then
-        echo "Cake initializing started..."
         # Initialize user and fetch Auth Key
-        sudo -E $CAKE userInit -q
-        #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
-        # Setup some more MISP default via cake CLI
-        sudo $CAKE baseurl "$MISP_BASEURL"
+         AUTH_KEY="$($SUDO_WWW "$CAKE" userInit -q)"
+        # This makes sure all Database upgrades are done, without logging in.
+         $SUDO_WWW "$CAKE" Admin updateDatabase
+        # The default install is Python >=3.6 in a virtualenv, setting accordingly
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.python_bin" "${PATH_TO_MISP}/venv/bin/python"
         # Tune global time outs
-        sudo $CAKE Admin setSetting "Session.autoRegenerate" 1
-        sudo $CAKE Admin setSetting "Session.timeout" 600
-        sudo $CAKE Admin setSetting "Session.cookie_timeout" 3600
+         $SUDO_WWW "$CAKE" Admin setSetting "Session.autoRegenerate" 0
+         $SUDO_WWW "$CAKE" Admin setSetting "Session.timeout" 600
+         $SUDO_WWW "$CAKE" Admin setSetting "Session.cookieTimeout" 3600
+        # Change base url, either with this CLI command or in the UI
+        [ "${MISP_RELATIVE_URL-}" = "yes" ] ||  $SUDO_WWW "$CAKE" Baseurl "$MISP_BASEURL"
+        # example: 'baseurl' => 'https://<your.FQDN.here>',
+        # alternatively, you can leave this field empty if you would like to use relative pathing in MISP
+        # 'baseurl' => '',
+        # The base url of the application (in the format https://www.mymispinstance.com) as visible externally/by other MISPs.
+        # MISP will encode this URL in sharing groups when including itself. If this value is not set, the baseurl is used as a fallback.
+        [ "${MISP_RELATIVE_URL-}" = "yes" ] ||  $SUDO_WWW "$CAKE" Admin setSetting "MISP.external_baseurl" "$MISP_EXTERNAL_URL"
+        
         # Enable GnuPG
-        sudo $CAKE Admin setSetting "GnuPG.email" "$MAIL_SENDER_ADDRESS"
-        sudo $CAKE Admin setSetting "GnuPG.homedir" "$MISP_BASE_PATH/.gnupg"
-        #sudo $CAKE Admin setSetting "GnuPG.password" ""
-        # Enable Enrichment set better timeouts
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_services_enable" true
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_hover_enable" true
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_timeout" 300
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_hover_timeout" 150
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_cve_enabled" true
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_dns_enabled" true
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_services_url" "http://misp-modules"
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_services_port" 6666
-        # Enable Import modules set better timout
-        # sudo $CAKE Admin setSetting "Plugin.Import_services_enable" true
-        # sudo $CAKE Admin setSetting "Plugin.Import_services_url" "http://misp-modules"
-        # sudo $CAKE Admin setSetting "Plugin.Import_services_port" 6666
-        # sudo $CAKE Admin setSetting "Plugin.Import_timeout" 300
-        # sudo $CAKE Admin setSetting "Plugin.Import_ocr_enabled" true
-        # sudo $CAKE Admin setSetting "Plugin.Import_csvimport_enabled" true
-        # # Enable Export modules set better timout
-        # sudo $CAKE Admin setSetting "Plugin.Export_services_enable" true
-        # sudo $CAKE Admin setSetting "Plugin.Export_services_url" "http://misp-modules"
-        # sudo $CAKE Admin setSetting "Plugin.Export_services_port" 6666
-        # sudo $CAKE Admin setSetting "Plugin.Export_timeout" 300
-        # sudo $CAKE Admin setSetting "Plugin.Export_pdfexport_enabled" true
+         $SUDO_WWW "$CAKE" Admin setSetting "GnuPG.email" "$MAIL_SENDER_ADDRESS"
+         $SUDO_WWW "$CAKE" Admin setSetting "GnuPG.homedir" "$PATH_TO_MISP/.gnupg"
+        # FIXME: what if we have not gpg binary but a gpg2 one?
+         $SUDO_WWW "$CAKE" Admin setSetting "GnuPG.binary" "$(which gpg)"
         # Enable installer org and tune some configurables
-        sudo $CAKE Admin setSetting "MISP.host_org_id" 1
-
-        [ -n "${MAIL_SENDER_ADDRESS+x}" ] && sudo $CAKE Admin setSetting "MISP.email" "$MAIL_SENDER_ADDRESS"
-        [ "${MAIL_ENABLE-}" = "no" ] && sudo $CAKE Admin setSetting "MISP.disable_emailing" true
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.host_org_id" 1
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.email" "$MAIL_SENDER_ADDRESS"
+        # Mail
+        [ "${MAIL_ENABLE-}" = "no" ] &&  $SUDO_WWW "$CAKE" Admin setSetting "MISP.disable_emailing" true
         
-        sudo $CAKE Admin setSetting "MISP.contact" "$MAIL_SENDER_ADDRESS"
-        # sudo $CAKE Admin setSetting "MISP.disablerestalert" true
-        # sudo $CAKE Admin setSetting "MISP.showCorrelationsOnIndex" true
-        # Provisional Cortex tunes
-        sudo $CAKE Admin setSetting "Plugin.Cortex_services_enable" false
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_services_url" "http://127.0.0.1"
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_services_port" 9000
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_timeout" 120
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_services_url" "http://127.0.0.1"
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_services_port" 9000
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_services_timeout" 120
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_services_authkey" ""
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_verify_peer" false
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_verify_host" false
-        # sudo $CAKE Admin setSetting "Plugin.Cortex_ssl_allow_self_signed" true
-        # Various plugin sightings settings
-        # sudo $CAKE Admin setSetting "Plugin.Sightings_policy" 0
-        # sudo $CAKE Admin setSetting "Plugin.Sightings_anonymise" false
-        # sudo $CAKE Admin setSetting "Plugin.Sightings_range" 365
-        # Plugin CustomAuth tuneable
-        # sudo $CAKE Admin setSetting "Plugin.CustomAuth_disable_logout" false
-        # RPZ Plugin settings
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_policy" "DROP"
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_walled_garden" "127.0.0.1"
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_serial" "\$date00"
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_refresh" "2h"
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_retry" "30m"
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_expiry" "30d"
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_minimum_ttl" "1h"
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_ttl" "1w"
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_ns" "localhost."
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_ns_alt" ""
-        # sudo $CAKE Admin setSetting "Plugin.RPZ_email" "$MAIL_SENDER_ADDRESS"
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.contact" "$MAIL_CONTACT_ADDRESS"
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.disablerestalert" true
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.showCorrelationsOnIndex" true
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.default_event_tag_collection" 0
         # Force defaults to make MISP Server Settings less RED
-        sudo $CAKE Admin setSetting "MISP.language" "eng"
-        #sudo $CAKE Admin setSetting "MISP.proposals_block_attributes" false
-        # Redis block
-        sudo $CAKE Admin setSetting "MISP.redis_host" "$REDIS_FQDN" 
-        sudo $CAKE Admin setSetting "MISP.redis_port" "$REDIS_PORT"
-        sudo $CAKE Admin setSetting "MISP.redis_database" 13
-        sudo $CAKE Admin setSetting "MISP.redis_password" "$REDIS_PW"
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.language" "eng"
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.proposals_block_attributes" false
+        # # Redis block
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_host" "$REDIS_FQDN"
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_port" "$REDIS_PORT"
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_database" 13
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_password" "$REDIS_PW"
         
-        sudo $CAKE Admin setSetting "Plugin.ZeroMQ_redis_host" "$REDIS_FQDN"
-        sudo $CAKE Admin setSetting "Plugin.ZeroMQ_redis_port" "$REDIS_PORT"
-        sudo $CAKE Admin setSetting "Plugin.ZeroMQ_redis_password" "$REDIS_PW"
+        ############################################################
+        #
+        #   DCSO Added
+        #
+        # Enable Enrichment
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_services_enable" true
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_hover_enable" true
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_timeout" 300
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_hover_timeout" 150
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_services_url" "http://misp-modules"
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_services_port" 6666
+        # Redis for ZeroMQ
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.ZeroMQ_redis_host" "$REDIS_FQDN"
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.ZeroMQ_redis_port" "$REDIS_PORT"
+         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.ZeroMQ_redis_password" "$REDIS_PW"
 
-        # Force defaults to make MISP Server Settings less YELLOW
-        # sudo $CAKE Admin setSetting "MISP.ssdeep_correlation_threshold" 40
-        # sudo $CAKE Admin setSetting "MISP.extended_alert_subject" false
-        # sudo $CAKE Admin setSetting "MISP.default_event_threat_level" 4
-        # sudo $CAKE Admin setSetting "MISP.newUserText" "Dear new MISP user,\\n\\nWe would hereby like to welcome you to the \$org MISP community.\\n\\n Use the credentials below to log into MISP at \$misp, where you will be prompted to manually change your password to something of your own choice.\\n\\nUsername: \$username\\nPassword: \$password\\n\\nIf you have any questions, don't hesitate to contact us at: \$contact.\\n\\nBest regards,\\nYour \$org MISP support team"
-        # sudo $CAKE Admin setSetting "MISP.passwordResetText" "Dear MISP user,\\n\\nA password reset has been triggered for your account. Use the below provided temporary password to log into MISP at \$misp, where you will be prompted to manually change your password to something of your own choice.\\n\\nUsername: \$username\\nYour temporary password: \$password\\n\\nIf you have any questions, don't hesitate to contact us at: \$contact.\\n\\nBest regards,\\nYour \$org MISP support team"
-        # sudo $CAKE Admin setSetting "MISP.enableEventBlacklisting" true
-        # sudo $CAKE Admin setSetting "MISP.enableOrgBlacklisting" true
-        # sudo $CAKE Admin setSetting "MISP.log_client_ip" false
-        # sudo $CAKE Admin setSetting "MISP.log_auth" false
-        # sudo $CAKE Admin setSetting "MISP.disableUserSelfManagement" false
-        # sudo $CAKE Admin setSetting "MISP.block_event_alert" false
-        # sudo $CAKE Admin setSetting "MISP.block_event_alert_tag" "no-alerts=\"true\""
-        # sudo $CAKE Admin setSetting "MISP.block_old_event_alert" false
-        # sudo $CAKE Admin setSetting "MISP.block_old_event_alert_age" ""
-        # sudo $CAKE Admin setSetting "MISP.incoming_tags_disabled_by_default" false
-        # sudo $CAKE Admin setSetting "MISP.footermidleft" "This is an initial install"
-        # sudo $CAKE Admin setSetting "MISP.footermidright" "Please configure and harden accordingly"
-        # sudo $CAKE Admin setSetting "MISP.welcome_text_top" "Initial Install, please configure"
-        # sudo $CAKE Admin setSetting "MISP.welcome_text_bottom" "Welcome to MISP, change this message in MISP Settings"
-        
-        # Force defaults to make MISP Server Settings less GREEN
-        # sudo $CAKE Admin setSetting "Security.password_policy_length" 16
-        # sudo $CAKE Admin setSetting "Security.password_policy_complexity" '/^((?=.*\d)|(?=.*\W+))(?![\n])(?=.*[A-Z])(?=.*[a-z]).*$|.{16,}/'
+        echo "... init_via_cake_cli | Cake initializing started...finished"
 
-        # Set MISP Live
-        # sudo $CAKE Live 1
-        # Update the galaxies…
-        #sudo $CAKE Admin updateGalaxies
-        # Updating the taxonomies…
-        #sudo $CAKE Admin updateTaxonomies
-        # Updating the warning lists…
-        #sudo $CAKE Admin updateWarningLists
-        # Updating the notice lists…
-        # sudo $CAKE Admin updateNoticeLists
-        #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/noticelists/update
-        
-        # Updating the object templates…
-        # sudo $CAKE Admin updateObjectTemplates
-        #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
     else
-        echo "Cake setup: MISP is configured."
+        echo "... init_via_cake_cli | Cake initializing not required."
     fi
 }
 
 create_ssl_cert(){
-    # If a valid SSL certificate is not already created for the server, create a self-signed certificate:
-    while [ -f $SSL_PID_CERT_CREATER.proxy ]
-    do
-        echo "$(date +%T) -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finished."
-        sleep 2
-    done
-    ( [ ! -f $SSL_CERT ] && [ ! -f $SSL_KEY ] ) && touch ${SSL_PID_CERT_CREATER}.server && echo "Create SSL Certificate..." && openssl req -x509 -newkey rsa:4096 -keyout $SSL_KEY -out $SSL_CERT -days 365 -sha256 -subj "/CN=${HOSTNAME}" -nodes && rm ${SSL_PID_CERT_CREATER}.server
-    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
+    /usr/local/bin/generate_self-signed-cert
 }
 
-SSL_generate_DH(){
-    while [ -f $SSL_PID_CERT_CREATER.proxy ]
+create_ssl_dh(){
+    echo "... create_ssl_dh | Create Diffie-Hellman key..."
+    while [ -f "$SSL_PID_CERT_CREATER.proxy" ]
     do
-        echo "$(date +%T) -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
+        echo "... ... $(date +%T) -  misp-proxy container create currently the certificate. misp-server wait until misp-proxy is finish."
         sleep 5
     done
-    [ ! -f $SSL_DH_FILE ] && touch ${SSL_PID_CERT_CREATER}.server  && echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee." && openssl dhparam -out $SSL_DH_FILE 2048 && rm ${SSL_PID_CERT_CREATER}.server
-    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
+    
+    if [ ! -f "$SSL_DH_FILE" ] 
+    then
+        touch ${SSL_PID_CERT_CREATER}.server
+        echo "Create DH params - This can take a long time, so take a break and enjoy a cup of tea or coffee."
+        openssl dhparam -out "$SSL_DH_FILE" 2048 
+        rm "${SSL_PID_CERT_CREATER}.server"
+        echo "... create_ssl_dh | Create Diffie-Hellman key...finished"
+    else
+        echo "... create_ssl_dh | Create Diffie-Hellman key is not required."
+    fi
+
 }
 
 check_mysql(){
-    # Test when MySQL is ready    
+    echo "... check_mysql | Check if DB is available..."
 
     # wait for Database come ready
     isDBup () {
@@ -410,187 +354,221 @@ check_mysql(){
     RETRY=100
     # shellcheck disable=SC2046
     until [ $(isDBup) -eq 0 ] || [ $RETRY -le 0 ] ; do
-        echo "Waiting for database to come up"
+        echo "... ... Waiting for database to come up"
         sleep 5
         # shellcheck disable=SC2004
         RETRY=$(( $RETRY - 1))
     done
     if [ $RETRY -le 0 ]; then
-        >&2 echo "Error: Could not connect to Database on $MYSQL_HOST:$MYSQL_PORT"
+        >&2 echo "... ... Error: Could not connect to Database on $MYSQL_HOST:$MYSQL_PORT"
         exit 1
     fi
+    echo "... check_mysql | Check if DB is available...finished"
 }
 
 init_mysql(){
-    #####################################################################
+    echo "... init_mysql | Initialize DB..."
     if [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ]; then
-        set -xv
         check_mysql
         # import MISP DB Scheme
-        echo "... importing MySQL scheme..."
+        echo "... ... importing MySQL scheme..."
         $MYSQL_CMD -v < /var/www/MISP/INSTALL/MYSQL.sql
-        echo "MySQL import...finished"
-        set +xv
+        echo "... ... importing MySQL scheme...finished"
+        echo "... init_mysql | Initialize DB...finished"
+    else
+        echo "... init_mysql | Initialize DB not required."
     fi
-    echo
+    
 }
 
 check_redis(){
+    echo "... check_redis | Check if Redis is available..."
     # Test when Redis is ready
     while (true)
     do
         [ "$(redis-cli -h "$REDIS_FQDN" -p "$REDIS_PORT" -a "$REDIS_PW" ping)" == "PONG" ] && break;
-        echo "Wait for Redis..."
+        echo "... ... Wait for Redis..."
         sleep 2
     done
+    echo "... check_redis | Check if Redis is available...finished"
 }
 
-upgrade(){
-    for i in $FOLDER_with_VERSIONS
-    do
-        if [ ! -f "$i"/"${NAME}" ] 
-        then
-            # File not exist and now it will be created
-            echo "${VERSION}" > "$i"/"${NAME}"
-        elif [ ! -f "$i"/"${NAME}" ] && [ -z "$(cat "$i"/"${NAME}")" ]
-        then
-            # File exists, but is empty
-            echo "${VERSION}" > "$i"/"${NAME}"
-        elif [ "$VERSION" == "$(cat "$i"/"${NAME}")" ]
-        then
-            # File exists and the volume is the current version
-            echo "Folder $i is on the newest version."
-        else
-            # upgrade
-            echo "Folder $i should be updated."
-            case "$(cat "$i"/"$NAME")" in
-            2.4.92)
-                # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.92 ####"
-                ;;
-            2.4.93)
-                # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.93 ####"
-                ;;
-            2.4.94)
-                # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.94 ####"
-                ;;
-            2.4.95)
-                # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.95 ####"
-                ;;
-            2.4.96)
-                # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.96 ####"
-                ;;
-            2.4.97)
-                # Tasks todo in 2.4.92
-                echo "#### Upgrade Volumes from 2.4.97 ####"
-                ;;
-            *)
-                echo "Unknown Version, upgrade not possible."
-                return
-                ;;
-            esac
-            ############ DO ANY!!!
-        fi
-    done
+enable_https_configuration() {
+    echo "... enable_https_configuration | Enable HTTPS web configuration..."
+    if [ -f /etc/apache2/ssl/cert.pem ] && [ ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] 
+    then
+        mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
+        echo "... enable_https_configuration | Enable HTTPS web configuration...finished"
+    else
+        echo "... enable_https_configuration | Enable HTTPS web configuration is not required."
+    fi
+}
+
+disable_http_configuration() {
+    echo "... disable_http_configuration | Disable HTTP web configuration..."
+    if [ -f /etc/apache2/ssl/cert.pem ] && [ ! -f /etc/apache2/sites-enabled/misp.conf ] 
+    then
+        mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
+        echo "... disable_http_configuration | Disable HTTP web configuration...finished"
+    else
+        echo "... disable_http_configuration | Disable HTTP web configuration is not required."
+    fi
+}
+
+remove_init_config_file() {
+    echo "... remove_init_config_file | Remove init config file..."
+    if [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] 
+    then
+        echo "... ... delete init config file"
+        rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
+        # delete pid file
+        [ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
+        
+        echo "... remove_init_config_file | Remove init config file...finished"
+    else
+        echo "... remove_init_config_file | Remove init config file is not required."
+    fi
+}
+
+check_misp_permissions(){
+    echo "... check_misp_permissions | Check MISP permissions..."
+    #echo "... ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
+    echo "... ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
+    echo "... ... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
+    echo "... ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
+    echo "... ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
+    echo "... ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    echo "... check_misp_permissions | Check MISP permissions...finished"
+}
+
+init_msmtp() {
+    echo "... init_msmtp | Initialize MSMTP Mailing..."
+    # Support for the script:
+    # - https://github.com/philoles/docker-ssmtp/blob/master/0.1/ssmtp_custom.conf
+    # - https://unix.stackexchange.com/questions/36982/can-i-set-up-system-mail-to-use-an-external-smtp-server
+    # - https://stackoverflow.com/questions/6573511/how-do-i-specify-to-php-that-mail-should-be-sent-using-an-external-mail-server
+    # - https://wiki.debian.org/sSMTP
+
+    # Variables
+    PATH_TO_MISP=${PATH_TO_MISP:-"/var/www/MISP"}
+    CONFFILE="/var/www/.msmtprc"
+    LOGFILE="/var/www/.msmtp.log"
+    PHP_INI=${PHP_INI:-/etc/php/7.2/apache2/php.ini}
+    UseAuthUser=""
+    UseAuthPW=""
+    UseAuth="off"
+
+    # Check if Mail should be disabled.
+    [ "$MAIL_ENABLE" = "no" ] && echo "Mail should be disabled." && sleep 3600
+
+    # Environment Parameter
+    MISP_FQDN=${MISP_FQDN:-'misp-dockerized-server'}
+    MAIL_DOMAIN=${MAIL_DOMAIN:-'example.com'}
+    MAIL_SENDER_ADDRESS=${MAIL_SENDER_ADDRESS:-'MISP-dockerized@example.com'}
+    MAIL_RELAYHOST=${MAIL_RELAYHOST:-'misp-postfix'}
+    MAIL_RELAYHOST_PORT=${MAIL_RELAYHOST_PORT:-25}
+    UseTLS=${MAIL_TLS:-'off'}
+    UseSTARTTLS=${MAIL_TLS:-'off'}
+    [ -n "$MAIL_RELAY_USER" ] && UseAuthUser="user $MAIL_RELAY_USER"
+    [ -n "$MAIL_RELAY_PASSWORD" ] && UseAuthPW="password $MAIL_RELAY_PASSWORD"
+    [ -n "$MAIL_RELAY_USER" ] && [ -n "$MAIL_RELAY_PASSWORD" ] && UseAuth="on"
+
+    # Rewrite Configuration
+    #echo "... ... Write configuration ..."
+cat << EOF > "$CONFFILE"
+# Set defaults.
+defaults
+
+# Enable or disable TLS/SSL encryption.
+auth $UseAuth
+tls $UseTLS
+tls_starttls $UseSTARTTLS
+tls_certcheck on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+
+# Set up a default account's settings.
+account default
+add_missing_from_header on
+logfile ~/.msmtp.log
+host "$MAIL_RELAYHOST"
+port $MAIL_RELAYHOST_PORT
+domain "$MISP_FQDN"
+maildomain "$MAIL_DOMAIN"
+$UseAuthUser
+$UseAuthPW
+from "$MAIL_SENDER_ADDRESS"
+
+EOF
+
+    # Post Tasks
+    #echo "... ... Start post-tasks ..."
+    # create Logfile
+    [ ! -f "$LOGFILE" ] && touch "$LOGFILE"
+    # Change Owner
+    chown www-data:root "$CONFFILE" "$LOGFILE"
+    # Change file permissions
+    chmod 600 "$CONFFILE" "$LOGFILE"
+    # Change PHP Sendmail Path
+    sed -i 's,;sendmail_path =,sendmail_path = \"/usr/bin/msmtp -t\",' "$PHP_INI"
+
+    echo "... init_msmtp | Initialize MSMTP Mailing...finished"
 }
 
 ##############   MAIN   #################
 
 # If a customer needs a analze column in misp
-echo "Check if analyze column should be added..." && [ "$MISP_ADD_ANALYZE_COLUMN" = "yes" ] && add_analyze_column
+echo "Add Analyze Column..." && add_analyze_column
 
 # Change PHP VARS
 echo "Change PHP values ..." && change_php_vars
 
 ##### PGP configs #####
-echo "Check if PGP should be enabled...." && init_pgp
+echo "Initialize PGP...." && init_pgp
 
-
-echo "Check if SMIME should be enabled..." && init_smime
+##### S/MIME configs #####
+echo "Initialize S/MIME..." && init_smime
 
 ##### create a cert if it is required
-echo "Check if a cert is required..." && create_ssl_cert
+echo "Create Certificate File..." && create_ssl_cert
 
 # check if DH file is required to generate
-echo "Check if a dh file is required" && SSL_generate_DH
+echo "Create DH File..." && create_ssl_dh
 
 ##### enable https config and disable http config ####
-echo "Check if HTTPS MISP config should be enabled..."
-    ( [ -f /etc/apache2/ssl/cert.pem ] && [ ! -f /etc/apache2/sites-enabled/misp.ssl.conf ] ) && mv /etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/misp.ssl.conf
+echo "Check HTTPS Web Configuration..." && enable_https_configuration
 
-echo "Check if HTTP MISP config should be disabled..."
-    ( [ -f /etc/apache2/ssl/cert.pem ] && [ ! -f /etc/apache2/sites-enabled/misp.conf ] ) && mv /etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/misp.http
+echo "Check HTTP Web Configuration..." && disable_http_configuration
 
 ##### check Redis
-echo "Check if Redis is ready..." && check_redis
+echo "Check Redis ready..." && check_redis
 
 ##### check MySQL
-echo "Check if MySQL is ready..." && check_mysql
+echo "Check MySQL ready..." && check_mysql
 
 ##### Import MySQL scheme
-echo "Import MySQL scheme..." && init_mysql
+echo "Initialize MySQL Scheme..." && init_mysql
 
 ##### initialize MISP-Server
-echo "Initialize misp base config..." && init_misp_config
+echo "Initialize MISP Base Configuration..." && init_misp_config
+
+##### change MSMTP configuration
+echo "Initialize Mail..." && init_msmtp
 
 ##### check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
-echo "Check if cake setup should be initialized..." && setup_via_cake_cli
-
-##### Delete the initial decision file & reboot misp-server
-echo "Check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
-    [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "delete init config file and reboot" && rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
-
-########################################################
-# check volumes and upgrade if it is required
-echo "Upgrade if it is required..." && upgrade
+echo "Initialize MISP via Cake..." && init_via_cake_cli
 
 ##### Check permissions #####
-    echo "Configure MISP | Check permissions..."
-    #echo "... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
-    echo "... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
-    echo "... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
-    echo "... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
-    echo "... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
-    echo "... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
-
-# delete pid file
-[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
+echo "MISP Permissions..." && check_misp_permissions
 
 
-###### Unset Environment Variables
-unset PHP_MAX_EXECUTION_TIME
-unset PHP_MEMORY_LIMIT
-unset PHP_POST_MAX_SIZE
-unset PHP_UPLOAD_MAX_FILESIZE
-unset REDIS_FQDN
-unset REDIS_PORT
-unset REDIS_PW
 
+##### Delete the initial decision file & reboot misp-server
+echo "Remove Init File..." && remove_init_config_file
+
+
+########################################################
 
 # START APACHE2
-echo "####################################  started Apache2 with cmd: '$APACHE_CMD' ####################################"
-
-##### Display tips
-echo
-echo
-cat <<__WELCOME__
-" ###########	MISP environment is ready	###########"
-" Please go to: ${MISP_BASEURL}"
-" Login credentials:"
-"      Username: admin@admin.test"
-"      Password: admin"
-	
-" Do not forget to change your SSL certificate with:    make change-ssl"
-" ##########################################################"
-Congratulations!
-Your MISP-dockerized server has been successfully booted.
-__WELCOME__
-
-
 ##### execute apache
 [ "${APACHE_CMD-}" != "none" ] && start_apache "$APACHE_CMD"
 [ "${APACHE_CMD-}" = "none" ] && start_apache

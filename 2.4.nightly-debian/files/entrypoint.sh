@@ -1,37 +1,6 @@
 #!/bin/sh
 set -eu
 
-# Activate rsyslog and postfix only if it should be
-if [ "${POSTFIX_ENABLE-}" = "true" ]
-then
-POSTFIX="[program:postfix]
-command=/entrypoint_postfix.sh
-autorestart=true"
-LOGGING="[program:rsyslog]
-command=/entrypoint_rsyslog.sh
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-autostart=true"
-else
-    POSTFIX=""
-    LOGGING=""
-fi
-
-if [ "${SSMTP_ENABLE-}" = "true" ]
-then
-SSMTP="[program:ssmtp]
-command=/entrypoint_ssmtp.sh
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-autostart=true"
-else
-    SSMTP=""
-fi
-
 # write supervisord configuration
 cat << EOF > /etc/supervisor/supervisord.conf
 [supervisord]
@@ -58,11 +27,13 @@ stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
 autostart=true
 
-${LOGGING}
-
-${POSTFIX}
-
-${SSMTP}
+[program:rsyslog]
+command=/entrypoint_rsyslog.sh
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+autostart=true
 
 [program:workers]
 command=gosu www-data /entrypoint_workers.sh

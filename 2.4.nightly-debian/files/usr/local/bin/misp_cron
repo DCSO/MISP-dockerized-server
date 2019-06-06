@@ -4,8 +4,9 @@ set -eu
 # Variables
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
-STARTMSG="${Light_Green}[ENTRYPOINT_CRON] [ $COUNTER ] ${NC}"
 COUNTER="$(date +%Y-%m-%d_%H:%M)"
+STARTMSG="${Light_Green}[ENTRYPOINT_CRON] [ $COUNTER ] ${NC}"
+
 
 # Functions
 echo (){
@@ -13,7 +14,8 @@ echo (){
 }
 
 # Environment Parameter
-    CAKE=${CAKE:-"$PATH_TO_MISP/Console/cake"}
+    PATH_TO_MISP=${PATH_TO_MISP:-"/var/www/MISP"}
+    CAKE=${CAKE:-"$PATH_TO_MISP/app/Console/cake"}
     INTERVAL=${1:-'3600'}   # Default 3600 seconds
     USER_ID=${2:-'1'}       # Default user id 1 admin@admin.test
 

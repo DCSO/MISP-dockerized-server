@@ -10,7 +10,7 @@ RUN apt-get update; apt-get install -y \
         curl \
         rsyslog \
         bash \
-        ssmtp \
+        msmtp \
     && apt-get autoremove -y \
     && apt-get clean -y
 
@@ -23,11 +23,11 @@ RUN locale-gen ${LANG}
 # 1/ Minimal Ubuntu install
 # -------------------------
 
-    # Install Postfix dependency
-    RUN apt-get update -y \
-        && apt-get install postfix -y \
-        && apt-get autoremove -y \
-        && apt-get clean -y
+    # # Install Postfix dependency
+    # RUN apt-get update -y \
+    #     && apt-get install postfix -y \
+    #     && apt-get autoremove -y \
+    #     && apt-get clean -y
 
 
     # 2/ Install LAMP & dependencies
@@ -186,11 +186,11 @@ RUN apt-get install -y \
             ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/python3 setup.py install \
          # install pydeep
             ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install git+https://github.com/kbandla/pydeep.git \
-            # install lief
+        # install lief
             ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install https://github.com/lief-project/packages/raw/lief-master-latest/pylief-0.9.0.dev.zip \
-            # install python-magic
+        # install python-magic
             ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install python-magic \
-            # install plyara
+        # install plyara
             ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install plyara \
         # Install Crypt_GPG and Console_CommandLine
             ;pear install ${PATH_TO_MISP}/INSTALL/dependencies/Console_CommandLine/package.xml \
@@ -284,32 +284,28 @@ RUN apt-get install -y \
 # #       END of MISP Config Part
 # #########################################
 
-# # ADD additionall modules
-#     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
-#     # ZeroMQ depends on the Python client for Redis
-#     RUN \
-#         pip3 install pyzmq \
-#         ;pip3 install redis \
-#         ;pip install pyzmq \
-#         ;pip install redis \
-#     # For the experimental ssdeep correlations, run the following installation:
-#     # installing ssdeep
-#         ;cd /usr/local/src/ \
-#         ;wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz \
-#         ;tar zxvf ssdeep-2.13.tar.gz \
-#         ;cd ssdeep-2.13 \
-#         ;./configure \
-#         ;make    \
-#         ;sudo make install \
-#         ;ssdeep -h; # test \
-#     #installing ssdeep_php
-#         ;sudo pecl install ssdeep \
-#     # 7.0 if your PHP 7.0 and you know what to do if you have a different version
-#         ;for FILE in $(ls /etc/php/) \
-#         do \
-#             echo "extension=ssdeep.so" > /etc/php/$FILE/mods-available/ssdeep.ini; \
-#             phpenmod ssdeep; \
-#         done;
+# ADD additionall modules
+    # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
+    # ZeroMQ depends on the Python client for Redis
+    RUN \
+        $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install pyzmq \
+        ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install redis \
+    # For the experimental ssdeep correlations, run the following installation:
+    # installing ssdeep
+        ;cd /usr/local/src/ \
+        ;wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz \
+        ;tar zxvf ssdeep-2.13.tar.gz \
+        ;cd ssdeep-2.13 \
+        ;./configure \
+        ;make    \
+        ;sudo make install \
+        ;ssdeep -h; # test \
+    #installing ssdeep_php
+        ;pecl install ssdeep \
+    # 7.0 if your PHP 7.0 and you know what to do if you have a different version
+        ;echo "extension=ssdeep.so" > /etc/php/$PHP_VERSION/mods-available/ssdeep.ini; \
+        ;phpenmod ssdeep \
+        ;
 
 
 #########################################
@@ -325,16 +321,12 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 # # Copy patch File for MISP Events Page with additional Analyse Column
 #     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
-# Syslog Server & rsyslog
-    #COPY files/etc/syslog-ng/syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
-    #COPY files/etc/rsyslog.d/rsyslog_custom.conf /etc/rsyslog.d/
+# # Copy DCSO PyMISP Scripts
+     COPY --chown=www-data:www-data files/var/www/MISP/app/files/DCSO /var/www/MISP/app/files/DCSO
+     RUN $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install -r /var/www/MISP/app/files/DCSO/pymisp_scripts/requirements.txt
 
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
     #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
-
-# Postfix
-# Copy files to postfix container
-    # COPY files/etc/postfix/* /etc/postfix/
 
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
     RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
@@ -342,6 +334,8 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 # MISP Update and MISP Cron
     COPY --chown=www-data:www-data files/usr/local/bin/misp_update /usr/local/bin/
     COPY --chown=www-data:www-data files/usr/local/bin/misp_cron /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_version /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/generate_self-signed-cert /usr/local/bin/
 
 # Healthcheck
     COPY files/healthcheck.sh /
@@ -352,10 +346,8 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
     COPY files/entrypoint_cron.sh /
     #COPY files/entrypoint_mariadb.sh /
     #COPY files/entrypoint_monitoring.sh /
-    COPY files/entrypoint_postfix.sh /
     #COPY files/entrypoint_redis.sh /
     COPY files/entrypoint_rsyslog.sh /
-    COPY files/entrypoint_ssmtp.sh /
     #COPY files/entrypoint_syslog-ng.sh /
     COPY files/entrypoint_workers.sh /
     COPY files/entrypoint.sh /
@@ -393,8 +385,10 @@ ENV NAME=${NAME} \
 # Set locals
     # ENV LC_ALL ${LANG}
     LANGUAGE=en_US:en \
+# Cake
+    CAKE="$PATH_TO_MISP/app/Console/cake" \
 # PHP
-    PHP_ETC_BASE=/etc/php/${PHP_VERSION}
+    PHP_ETC_BASE="/etc/php/$PHP_VERSION"
 ENV PHP_INI=${PHP_ETC_BASE}/apache2/php.ini
 #     END Variables
 
