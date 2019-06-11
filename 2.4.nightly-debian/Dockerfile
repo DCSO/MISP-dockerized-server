@@ -138,9 +138,8 @@ RUN apt-get install -y \
 # 3/ MISP code
 # ------------
     # Set Environment Variables
-    ARG VERSION
-    ENV MISP_TAG=${VERSION} \
-        SUDO_WWW="gosu www-data" \
+    ARG VERSION=2.4.nightly-debian
+    ENV SUDO_WWW="gosu www-data" \
         PATH_TO_MISP="/var/www/MISP"
     # Download MISP using git in the /var/www/ directory.
     # Attention: we replaced the fixed tag with a variable
@@ -151,7 +150,7 @@ RUN apt-get install -y \
         # Clone MISP Repository
         ;$SUDO_WWW git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP} \
         ;cd ${PATH_TO_MISP} \
-        ;[ "$MISP_TAG" != "2.4" ] && $SUDO_WWW git checkout tags/v${MISP_TAG} \
+        ; [ "$(echo ${VERSION}| cut -d - -f 1)" != "2.4.nightly" ] && $SUDO_WWW git checkout "tags/v$(echo ${VERSION}| cut -d - -f 1)" \
         # CakePHP and a lot of other things is included as a submodule of MISP, execute the following commands to let git fetch it:
         ;$SUDO_WWW git submodule update --init --recursive \
         # Make git ignore filesystem permission differences for submodules
