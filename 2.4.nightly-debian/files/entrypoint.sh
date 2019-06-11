@@ -45,5 +45,13 @@ autostart=true
 
 EOF
 
-# start supervisord
-/usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+# check if a command parameter exists
+if [ $# = 0 ]
+then
+    # start supervisord
+    /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+else
+    # start supervisord
+    /usr/bin/supervisord -c /etc/supervisor/supervisord.conf &
+    exec "$@"
+fi
