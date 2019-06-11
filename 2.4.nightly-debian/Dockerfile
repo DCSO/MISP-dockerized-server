@@ -119,6 +119,7 @@ RUN apt-get install -y \
         apt-get update && apt-get install -y \
         libapache2-mod-php${PHP_VERSION} \
         php${PHP_VERSION} \
+        php${PHP_VERSION}-common \
         php${PHP_VERSION}-cli \
         php${PHP_VERSION}-dev \
         php${PHP_VERSION}-json \
