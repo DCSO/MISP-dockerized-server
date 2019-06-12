@@ -2,3 +2,13 @@ build 2.4.95-ubuntu:
   extends: .build
   variables:
     VERSION: "2.4.95-ubuntu"
+    TAGS: "${VERSION}-dev"
+    RELEASE_DATE: 2018-09
+
+test 2.4.95-ubuntu:
+  extends: .test
+  variables:
+    VERSION: "2.4.95-ubuntu"
+  only:
+    changes:
+    - 2.4.95-ubuntu/*
