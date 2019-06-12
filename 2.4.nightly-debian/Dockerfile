@@ -192,6 +192,8 @@ RUN apt-get install -y \
             ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install python-magic \
         # install plyara
             ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install plyara \
+        # install zmq
+            ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install zmq \
         # Install Crypt_GPG and Console_CommandLine
             ;pear install ${PATH_TO_MISP}/INSTALL/dependencies/Console_CommandLine/package.xml \
             ;pear install ${PATH_TO_MISP}/INSTALL/dependencies/Crypt_GPG/package.xml
