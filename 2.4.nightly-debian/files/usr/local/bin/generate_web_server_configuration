@@ -168,10 +168,11 @@ EOF
 # Add Server_Status
 a2enmod status
 rm /etc/apache2/mods-enabled/status.conf
+ALLOWED_IP_RANGE=""
 for i in $(grep -Po  '[0-9.].*/[0-9][0-9]' /proc/net/fib_trie|sort|uniq)
 do
-    if grep "127.0.0.1" "$i"; then continue; fi
-    ALLOWED_IP_RANGE="$i"
+    [ "127.0.0.1" = "$i" ] && continue
+    ALLOWED_IP_RANGE="${ALLOWED_IP_RANGE}${i} "
 done
 cat <<EOF > $SERVER_STATUS_FILE
 <IfModule mod_status.c>
