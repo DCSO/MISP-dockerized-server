@@ -12,6 +12,10 @@ variables:
   # CUSTOM_REGISTRY_USER
   # CUSTOM_REGISTRY_PW
 
+.build:
+  only:
+  - feat/MDD-151
+
 include:
   - project: 'MISP/helper-containers'
     ref: master
