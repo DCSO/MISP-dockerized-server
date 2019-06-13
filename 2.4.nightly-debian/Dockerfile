@@ -352,7 +352,8 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 
 # Change Work directory
     WORKDIR /var/www/MISP
-
+# Expose Port
+    EXPOSE 443 80
 
 #       End of DCSO MISP Config Part
 #########################################
