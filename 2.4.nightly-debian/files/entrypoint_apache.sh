@@ -56,8 +56,8 @@ fi
     # SMIME
     SMIME_FOLDER="/var/www/MISP/.smime"
     # Webserver Configuration
-    HTTPS_FILE="/etc/apache2/sites-enabled/misp.ssl.conf"
-    HTTP_FILE="/etc/apache2/sites-enabled/misp.conf"
+    HTTPS_CONFIG="/etc/apache2/sites-enabled/misp.ssl.conf"
+    HTTP_CONFIG="/etc/apache2/sites-enabled/misp.conf"
     # MISC
     FOLDER_with_VERSIONS="/var/www/MISP/app/tmp /var/www/MISP/app/files \
                         /var/www/MISP/app/Plugin/CakeResque/Config \
@@ -115,8 +115,8 @@ fi
     REDIS_PW=${REDIS_PW:-""}
     # Apache
     APACHE_CMD=${APACHE_CMD:-"none"}
-
-
+    
+# Functions
 usage() {
     echo "Help!"
 }

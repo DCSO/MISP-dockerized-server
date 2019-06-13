@@ -20,7 +20,10 @@ SSL_CERT="/etc/apache2/ssl/cert.pem"
 SSL_KEY="/etc/apache2/ssl/key.pem"
 SSL_CA="/etc/apache2/ssl/ca.pem"
 SSL_DH_FILE="/etc/apache2/ssl/dhparams.pem"
+SSL_PASSPHRASE_FILE="/etc/apache2/ssl/ssl.passphrase"
+SSL_PASSPHRASE_APACHE2_FILE="/etc/apache2/ssl/ssl-apache-dialog.sh"
 USE_SSL_CA=""
+USE_SSL_PASSPHRASE_FILE=""
 
 MAIL_CONTACT_ADDRESS=${MAIL_CONTACT_ADDRESS:-"no-reply@$MISP_FQDN"}
 
@@ -62,6 +65,9 @@ create_dh(){
 
 # Environment Parameter
     #
+    # SSL
+    SSL_PASSPHRASE=${SSL_PASSPHRASE:-}
+    SSL_PASSPHRASE_ENABLE=${SSL_PASSPHRASE_ENABLE:-"no"}
 
 
 
@@ -82,11 +88,48 @@ echo "... Webserver configuration generation..."
 if [ -f "$SSL_CERT" ] && [ -f "$SSL_KEY" ]
 then
 
+    if [ "$SSL_PASSPHRASE_ENABLE" = "yes" ]
+    then
+        if [ -n "$SSL_PASSPHRASE" ]
+        then
+            echo "Copy environment variable into file..."
+            command echo "$SSL_PASSPHRASE" > "$SSL_PASSPHRASE_FILE"
+            echo "Copy environment variable into file...finished"
+        else
+            echo "... ... No Environment variable exists will try passphrase file..."
+            if [ ! -f "$SSL_PASSPHRASE_FILE" ] 
+            then 
+                echo "... ... No passphrase file found: $SSL_PASSPHRASE_FILE"
+                echo "... ... Please add your file in config/ssl/"
+                echo "... ... For more information please go to: https://dcso.github.io/MISP-dockerized-docs/admin/ssl_passphrase.html"
+                exit 1
+            fi
+        fi
+
+        # Set variable to write it into web server configuration
+        USE_SSL_PASSPHRASE_FILE="SSLPassPhraseDialog exec:$SSL_PASSPHRASE_APACHE2_FILE"
+
+        # create Apache2 file:
+        SSL_PASSPHRASE_FILE_CONTENT="
+            #!/bin/sh
+            cat $SSL_PASSPHRASE_FILE
+            "
+        command echo "$SSL_PASSPHRASE_FILE_CONTENT" > "$SSL_PASSPHRASE_APACHE2_FILE"
+        chmod +x "$SSL_PASSPHRASE_APACHE2_FILE"
+        
+        echo "... ... SSL passphrase via file enabled."
+
+    else
+        echo "... SSL passphrase mode is deactivated."
+    fi
+
+
 # Write HTTPS File
 echo "... ... Write web server https configuration..."
 cat << EOF > $HTTPS_FILE
 
 ServerTokens Prod
+${USE_SSL_PASSPHRASE_FILE}
 
 <VirtualHost *:443>
     ${CONFIG_PART_FOR_HTTP_HTTPS}
