@@ -513,14 +513,14 @@ echo "Initialize PGP...." && init_pgp
 ##### S/MIME configs #####
 echo "Initialize S/MIME..." && init_smime
 
+##### check Redis
+echo "Check Redis ready..." && check_redis
+
 ##### check MySQL
 echo "Check MySQL ready..." && check_mysql
 
 ##### Import MySQL scheme
 echo "Initialize MySQL Scheme..." && init_mysql
-
-##### check Redis
-echo "Check Redis ready..." && check_redis
 
 ##### initialize MISP-Server
 echo "Initialize MISP Base Configuration..." && init_misp_config
@@ -531,14 +531,14 @@ echo "Initialize Mail..." && init_msmtp
 ##### check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
 echo "Initialize MISP via Cake..." && init_via_cake_cli
 
+##### Check permissions #####
+echo "MISP Permissions..." && check_misp_permissions
+
 ##### create a cert if it is required
 echo "Create Certificate File..." && create_ssl_cert
 
 # check if DH file is required to generate
 echo "Create DH File..." && create_ssl_dh
-
-##### Check permissions #####
-echo "MISP Permissions..." && check_misp_permissions
 
 ##### enable https config and disable http config ####
 echo "Add Webserver Configuration..." && add_webserver_configuration
