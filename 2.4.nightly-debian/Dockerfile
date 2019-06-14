@@ -143,9 +143,9 @@ RUN apt-get install -y \
         PATH_TO_MISP="/var/www/MISP"
     # Download MISP using git in the /var/www/ directory.
     # Attention: we replaced the fixed tag with a variable
-    RUN \
+    RUN set -e\
         # Create directory
-        mkdir ${PATH_TO_MISP} \
+        ;mkdir ${PATH_TO_MISP} \
         ;chown www-data:www-data ${PATH_TO_MISP} \
         # Clone MISP Repository
         ;$SUDO_WWW git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP} \
@@ -161,9 +161,9 @@ RUN apt-get install -y \
         ;$SUDO_WWW virtualenv -p python3 ${PATH_TO_MISP}/venv
 
     # install Mitre's STIX and its dependencies by running the following commands:
-        RUN \
+        RUN set -e \
             # install mixbox to accomodate the new STIX dependencies:
-            $SUDO_WWW git clone https://github.com/CybOXProject/mixbox.git /var/www/MISP/app/files/scripts/mixbox \
+            ;$SUDO_WWW git clone https://github.com/CybOXProject/mixbox.git /var/www/MISP/app/files/scripts/mixbox \
             ;cd ${PATH_TO_MISP}/app/files/scripts/mixbox \
             ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/python3 setup.py install \
         # install python-maec
@@ -203,9 +203,9 @@ RUN apt-get install -y \
 # 4/ CakePHP
 # ------------
     # Once done, install CakeResque along with its dependencies if you intend to use the built in background jobs:
-    RUN \
+    RUN set -e \
         # Make composer cache happy
-        mkdir /var/www/.composer \
+        ;mkdir /var/www/.composer \
         ;chown www-data:www-data /var/www/.composer \
         ;cd ${PATH_TO_MISP}/app \
         #;$SUDO_WWW php composer.phar self-update --stable \
@@ -247,7 +247,8 @@ RUN apt-get install -y \
 # ------------------
     # add HTTP MISP Config
     ARG sudo=""
-    RUN rm /etc/apache2/sites-enabled/* \
+    RUN set -e \
+        ;rm /etc/apache2/sites-enabled/* \
     # Configure Apache
         ;sudo a2dismod status \
         ;sudo a2enmod ssl \
@@ -259,8 +260,8 @@ RUN apt-get install -y \
 ### 8/ Log rotation
     # MISP saves the stdout and stderr of its workers in /var/www/MISP/app/tmp/logs
     # To rotate these logs install the supplied logrotate script:
-    RUN \
-        sudo cp ${PATH_TO_MISP}/INSTALL/misp.logrotate /etc/logrotate.d/misp \
+    RUN set -e \
+        ;sudo cp ${PATH_TO_MISP}/INSTALL/misp.logrotate /etc/logrotate.d/misp \
         ;sudo chmod 0640 /etc/logrotate.d/misp 
 
 
@@ -281,8 +282,8 @@ RUN apt-get install -y \
 # ADD additionall modules
     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
     # ZeroMQ depends on the Python client for Redis
-    RUN \
-        $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install pyzmq \
+    RUN set -e \
+        ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install pyzmq \
         ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install redis \
     # For the experimental ssdeep correlations, run the following installation:
     # installing ssdeep
@@ -306,24 +307,26 @@ RUN apt-get install -y \
 #       Start of DCSO MISP Config Part
 
 # for S/MIME
-RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
-    sudo -u www-data chmod 500 /var/www/MISP/.smime; \
+RUN set -e  \
+    ;sudo -u www-data mkdir /var/www/MISP/.smime \
+    ;sudo -u www-data chmod 500 /var/www/MISP/.smime \
 # for PGP
-    sudo -u www-data mkdir /var/www/MISP/.gnupg; \
-    sudo -u www-data chmod 700 /var/www/MISP/.gnupg;
+    ;sudo -u www-data mkdir /var/www/MISP/.gnupg \
+    ;sudo -u www-data chmod 700 /var/www/MISP/.gnupg \
+    ;
 
 # # Copy patch File for MISP Events Page with additional Analyse Column
 #     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # # Copy DCSO PyMISP Scripts
      COPY --chown=www-data:www-data files/var/www/MISP/app/files/DCSO /var/www/MISP/app/files/DCSO
-     RUN $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install -r /var/www/MISP/app/files/DCSO/pymisp_scripts/requirements.txt
-
+     RUN set -e \
+        ;$SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip3 --no-cache-dir install -r /var/www/MISP/app/files/DCSO/pymisp_scripts/requirements.txt \
+# I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
+        ;touch "/var/www/MISP/app/Config/NOT_CONFIGURED" \
+        ;
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
     #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
-
-# I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
-    RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # MISP Update and MISP Cron
     COPY --chown=www-data:www-data files/usr/local/bin/misp_update /usr/local/bin/
@@ -349,7 +352,6 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 
 # Supervisord
     ENTRYPOINT [ "/entrypoint.sh" ]
-
 # Change Work directory
     WORKDIR /var/www/MISP
 # Expose Port
