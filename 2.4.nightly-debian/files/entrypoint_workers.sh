@@ -27,10 +27,12 @@ isApache2up() {
 }
     # Try 100 times to reach Apache2, after this exit with error.
 RETRY=100
+SLEEP_TIMER=5
 # shellcheck disable=SC2046
 until [ $(isApache2up) -eq 302 ] || [ $(isApache2up) -eq 200 ] || [ $RETRY -le 0 ] ; do
-    echo "Waiting for Apache2 to come up ... $RETRY / 100"
-    sleep 5
+    echo "Waiting for Apache2 to come up, next try in $SLEEP_TIMER seconds ... $RETRY / 100"
+    sleep "$SLEEP_TIMER"
+    SLEEP_TIMER="$(expr $SLEEP_TIMER + 5)"
     # shellcheck disable=SC2004
     RETRY=$(( $RETRY - 1))
 done
