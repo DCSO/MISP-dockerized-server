@@ -32,6 +32,8 @@ env:
   - FOLDER=2.4.103-debian
 
 stages:
+  - test
+    if false
   - build and push docker image
   - retag docker image
     if env(TAGS) IS NOT blank
@@ -48,14 +50,16 @@ jobs:
             --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
             -t "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
             "$TRAVIS_BUILD_DIR/$FOLDER/"
-        - docker push $TRAVIS_REPO_SLUG:$FOLDER-dev
+        - docker images
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        - docker push "$TRAVIS_REPO_SLUG:$FOLDER-dev"
+    - stage: test
+        - git clone git@github.com:DCSO/MISP-dockerized.git
+        - make -C MISP-dockerized install test server $FOLDER
     - stage: retag docker image
       script:
         - docker pull $TRAVIS_REPO_SLUG:$FOLDER-dev
         - for i in $TAGS; do docker tag $TRAVIS_REPO_SLUG:$FOLDER-dev $TRAVIS_REPO_SLUG:$i; docker push $TRAVIS_REPO_SLUG:$i; done
-    - stage: test
-      script:
-      - echo
 
 
 # don't notify me when things fail 
