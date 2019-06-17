@@ -32,16 +32,13 @@ env:
   - FOLDER=2.4.103-debian
 
 stages:
-  - build
-  - deploy
-  - retag
+  - build and push docker image
+  - retag docker image
     if env(TAGS) IS NOT blank
-  - test
-    if false
 
 jobs:
   include:
-    - stage: build
+    - stage: build and push docker image
       script:
         - docker build
             --build-arg VCS_REF="$TRAVIS_COMMIT" 
@@ -51,13 +48,14 @@ jobs:
             --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
             -t "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
             "$TRAVIS_BUILD_DIR/$FOLDER/"
-    - stage: deploy
-      script: 
         - docker push $TRAVIS_REPO_SLUG:$FOLDER-dev
-    - stage: retag
+    - stage: retag docker image
       script:
         - docker pull $TRAVIS_REPO_SLUG:$FOLDER-dev
         - for i in $TAGS; do docker tag $TRAVIS_REPO_SLUG:$FOLDER-dev $TRAVIS_REPO_SLUG:$i; docker push $TRAVIS_REPO_SLUG:$i; done
+    - stage: test
+      script:
+      - echo
 
 
 # don't notify me when things fail 
