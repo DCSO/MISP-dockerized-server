@@ -34,7 +34,7 @@ env:
 
 script:
 - for i in "$TAGS"; do UseTAGS="${UseTAGS} -t $TRAVIS_REPO_SLUG:$i" ; done
-- [ -z "${TAGS-}" ] && UseTAGS="-t $TRAVIS_REPO_SLUG:$FOLDER-dev"
+- [ -z "$TAGS" ] \&& UseTAGS="-t $TRAVIS_REPO_SLUG:$FOLDER-dev"
 - docker build -f "$TRAVIS_BUILD_DIR/$FOLDER/Dockerfile" 
                       --build-arg VCS_REF="$TRAVIS_COMMIT" 
                       --build-arg VERSION="$(echo $FOLDER |cut -d - -f 1)" 
