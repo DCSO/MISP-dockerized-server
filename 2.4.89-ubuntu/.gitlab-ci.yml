@@ -1,15 +1,15 @@
-build 2.4.89-ubuntu:
-  extends: .build
-  variables:
+variables:
     FOLDER: "2.4.89-ubuntu"
     VERSION: "2.4.89"
     TAGS: "${FOLDER}-dev"
     RELEASE_DATE: 2018-06
 
+build 2.4.89-ubuntu:
+  extends: .build
+
 test 2.4.89-ubuntu:
   extends: .test
-  variables:
-    VERSION: "2.4.89-ubuntu"
   only:
     changes:
     - 2.4.89-ubuntu/*
+    
