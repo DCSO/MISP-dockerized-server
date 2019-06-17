@@ -31,6 +31,11 @@ env:
   # - VERSION=2.4.102-debian
   - FOLDER=2.4.103-debian
 
+stages:
+- build and push docker image
+- Test
+- retag docker image
+
 jobs:
   include:
     - stage: build and push docker image
@@ -46,10 +51,10 @@ jobs:
         - docker images
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - docker push "$TRAVIS_REPO_SLUG:$FOLDER-dev"
-    - stage: test
+    - stage: Test
       if: NOT branch = master
       script:
-        - git clone git@github.com:DCSO/MISP-dockerized.git
+        - git clone https://github.com/DCSO/MISP-dockerized.git
         - make -C MISP-dockerized install test server $FOLDER
     - stage: retag docker image
       if: env(TAGS) IS NOT blank
