@@ -36,6 +36,8 @@ stages:
   - deploy
   - retag
     if env(TAGS) IS NOT blank
+  - test
+    if false
 
 jobs:
   include:
@@ -47,7 +49,7 @@ jobs:
             --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
             --build-arg COMPONENT="$COMPONENT"
             --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
-            -t $TRAVIS_REPO_SLUG:$FOLDER-dev
+            -t "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
             "$TRAVIS_BUILD_DIR/$FOLDER/"
     - stage: deploy
       script: 
