@@ -9,11 +9,11 @@ env:
   global:
   #- DOCKER_COMPOSE_VERSION=1.4.2
   - COMPONENT=server
-  - UseTAGS=""
   matrix:
   # Activate only Supported and Nightly Images.
   #- FOLDER=2.4.nightly-ubuntu
-  - FOLDER=2.4.nightly-debian TAGS="$FOLDER-dev latest-dev"
+  - FOLDER=2.4.nightly-debian 
+    TAGS="$FOLDER-dev latest-dev"
   # - VERSION=2.4.88-ubuntu
   # - VERSION=2.4.89-ubuntu
   # - VERSION=2.4.90-ubuntu
@@ -31,18 +31,32 @@ env:
   # - VERSION=2.4.102-debian
   - FOLDER=2.4.103-debian
 
+stages:
+  - build
+  - deploy
+  - retag
+    if env(TAGS) IS NOT blank
 
-script:
-- for i in "$TAGS"; do UseTAGS="${UseTAGS} -t $TRAVIS_REPO_SLUG:$i" ; done
-- [ -z "$TAGS" ] \&& UseTAGS="-t $TRAVIS_REPO_SLUG:$FOLDER-dev"
-- docker build -f "$TRAVIS_BUILD_DIR/$FOLDER/Dockerfile" 
-                      --build-arg VCS_REF="$TRAVIS_COMMIT" 
-                      --build-arg VERSION="$(echo $FOLDER |cut -d - -f 1)" 
-                      --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
-                      --build-arg COMPONENT="$COMPONENT"
-                      --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
-                      $UseTAGS
-                      "$TRAVIS_BUILD_DIR/$FOLDER"
+jobs:
+  include:
+    - stage: build
+      script:
+        - docker build
+            --build-arg VCS_REF="$TRAVIS_COMMIT" 
+            --build-arg VERSION="$(echo $FOLDER |cut -d - -f 1)" 
+            --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
+            --build-arg COMPONENT="$COMPONENT"
+            --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
+            -t $TRAVIS_REPO_SLUG:$FOLDER-dev
+            "$TRAVIS_BUILD_DIR/$FOLDER/"
+    - stage: deploy
+      script: 
+        - docker push $TRAVIS_REPO_SLUG:$FOLDER-dev
+    - stage: retag
+      script:
+        - docker pull $TRAVIS_REPO_SLUG:$FOLDER-dev
+        - for i in $TAGS; do docker tag $TRAVIS_REPO_SLUG:$FOLDER-dev $TRAVIS_REPO_SLUG:$i; docker push $TRAVIS_REPO_SLUG:$i; done
+
 
 # don't notify me when things fail 
 #notifications:
