@@ -12,8 +12,7 @@ env:
   matrix:
   # Activate only Supported and Nightly Images.
   #- FOLDER=2.4.nightly-ubuntu
-  - FOLDER=2.4.nightly-debian 
-    TAGS="$FOLDER-dev latest-dev"
+  - FOLDER=2.4.nightly-debian TAGS="$FOLDER-dev latest-dev"
   # - VERSION=2.4.88-ubuntu
   # - VERSION=2.4.89-ubuntu
   # - VERSION=2.4.90-ubuntu
