@@ -1,15 +1,14 @@
-build 2.4.nightly-debian:
-  extends: .build
-  variables:
+variables:
     FOLDER: "2.4.nightly-debian"
+    VERSION: "2.4.nightly"
     TAGS: "${FOLDER}-dev latest-dev"
     RELEASE_DATE: 2019-06
 
+build 2.4.nightly-debian:
+  extends: .build
+
 test 2.4.nightly-debian:
   extends: .test
-  variables:
-    VERSION: "2.4.nightly-debian"
   only:
     changes:
     - 2.4.nightly-debian/*
-    
