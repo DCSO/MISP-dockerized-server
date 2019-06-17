@@ -1,0 +1,12 @@
+
+    #!/bin/bash
+    set -eu
+    docker build -f Dockerfile
+                      --build-arg VCS_REF=$SOURCE_COMMIT
+                      --build-arg VERSION=$DOCKER_TAG
+                      --build-arg GIT_REPO=https://github.com/$DOCKER_REPO
+                      --build-arg COMPONENT=$COMPONENT
+                      --build-arg BUILD_DATE=2019-06-17
+                      -t $IMAGE_NAME
+                      .
+    
