@@ -44,6 +44,6 @@ script:
                       $UseTAGS
                       "$TRAVIS_BUILD_DIR/$FOLDER"
 
-# don't notify me when things fail
+# don't notify me when things fail 
 #notifications:
 #  email: false
