@@ -166,8 +166,7 @@ RUN apt-get install -y \
 # ------------
     # Download MISP using git in the /var/www/ directory.
     # Attention: we replaced the fixed tag with a variable
-    RUN mkdir /var/www/MISP; chown www-data:www-data /var/www/MISP;
-    RUN git clone https://github.com/MISP/MISP.git /var/www/MISP; cd /var/www/MISP; git checkout tags/v${MISP_TAG};
+    RUN git clone https://github.com/MISP/MISP.git /var/www/MISP; cd /var/www/MISP; git checkout tags/v${MISP_TAG}; chown www-data:www-data /var/www/MISP;
 
     # Make git ignore filesystem permission differences
     RUN cd /var/www/MISP; git config core.filemode false;
