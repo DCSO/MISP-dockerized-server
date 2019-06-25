@@ -419,7 +419,6 @@ upgrade(){
                 ;;
             *)
                 echo "$STARTMSG Unknown Version, upgrade not possible."
-                exit
                 ;;
             esac
             ############ DO ANY!!!
