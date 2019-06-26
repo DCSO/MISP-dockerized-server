@@ -57,7 +57,7 @@ before_script:
 
 # Retag Images and push
 - |
-  if [ -n "${ADD_TAGS}" ] then
+  if [ -n "${ADD_TAGS}" ]; then
     for i in $ADD_TAGS
     do 
       docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; 
