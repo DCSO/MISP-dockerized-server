@@ -2,21 +2,23 @@ FROM debian:stretch-slim
 ENV DEBIAN_FRONTEND noninteractive
 
 # DCSO Required Software
-RUN apt-get update; apt-get install -y -q \ 
-        locales \
+RUN \
+    apt-get update \
+    && apt-get install -y -qq \ 
+        #locales \
         supervisor \
         gosu \
-        wget \
         curl \
         rsyslog \
         bash \
         msmtp \
+        apt-utils \
     && apt-get autoremove -y \
     && apt-get clean -y
 
 # Set locals
-ARG LANG=en_US.UTF-8
-RUN locale-gen ${LANG}
+# ARG LANG=en_US.UTF-8
+# RUN locale-gen ${LANG}
 
 #########################    START  MISP Guide
 
@@ -25,7 +27,7 @@ RUN locale-gen ${LANG}
 
     # # Install Postfix dependency
     # RUN apt-get update \
-    #     && apt-get install postfix -y -q \
+    #     && apt-get install postfix -y -qq \
     #     && apt-get autoremove -y \
     #     && apt-get clean -y
 
@@ -35,103 +37,62 @@ RUN locale-gen ${LANG}
     # Install required software
     ## Installation of libfuzzy-dev is required for pydeep
     
-RUN apt-get install -y -q \
+# We removed redis-server and add redis-tools instead of these.
+RUN \
+    apt-get update \
+    && apt-get install -y -qq \
         curl gcc git gpg-agent make python python3 openssl \
-        redis-server sudo vim zip unzip virtualenv libfuzzy-dev sqlite3 \
-        && apt-get autoremove -y && apt-get clean -y
+        redis-tools sudo vim zip unzip virtualenv libfuzzy-dev sqlite3 \
+    && apt-get autoremove -y && apt-get clean -y
 
-RUN apt-get install -y -q \
+RUN \
+    apt-get update \
+    && apt-get install -y -qq \
         python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools \
-        && apt-get autoremove -y && apt-get clean -y
-
-#     RUN apt-get install -y \
-#         gcc \
-#         && apt-get autoremove -y && apt-get clean -y
-
-#     RUN apt-get install -y \
-#         curl git make sudo vim zip unzip \
-#         openssl \
-#         gpg-agent \
-#         python3 \
-#         #redis-server \
-#         libyara-dev \
-#         && apt-get autoremove -y && apt-get clean -y
-
-# RUN apt-get install -y \    
-#         python3-setuptools python3-dev \
-#         python3-pip \
-#         && apt-get autoremove -y && apt-get clean -y
-
-#     RUN apt-get install -y \    
-#         python3-yara \
-#         python3-redis \
-#         python3-zmq \
-#         virtualenv \
-#         libpq5 \
-#         libjpeg-dev \
-#         libfuzzy-dev \
-#         ruby asciidoctor \
-#         sqlite3 \
-#         libxml2-dev \
-#         libxslt1-dev \
-#         zlib1g-dev \
-#         && apt-get autoremove -y && apt-get clean -y
-
-#     RUN apt-get install -y \
-#         python-pip \
-#         jq \
-#         imagemagick \
-#         && apt-get autoremove -y && apt-get clean -y
-
-
-#     RUN apt-get install -y \
-#         jupyter-notebook \
-#         tesseract-ocr \
-#         python-setuptools \
-#         && apt-get autoremove -y && apt-get clean -y
-
+    && apt-get autoremove -y && apt-get clean -y
 
     # Install MariaDB (a MySQL fork/alternative) | Server has its own container!!!
-    RUN apt-get install -y -q \
+    RUN apt-get install -y -qq \
         mariadb-client \
         #mariadb-server \
         && apt-get autoremove -y && apt-get clean -y
 
-
     # Install Apache
-    RUN apt-get install -y -q \
-        apache2 \
-        apache2-doc \
-        apache2-utils \
+    RUN \
+        apt-get update \
+        && apt-get install -y -qq \
+            apache2 \
+            apache2-doc \
+            apache2-utils \
         && apt-get autoremove -y && apt-get clean -y
-
     # ATTENTION the part about a2enmod/a2dismod, a2ensite/a2dissite is moved to step 7.
-
-
 
     # Install PHP and depedencies
     # https://www.chris-shaw.com/blog/installing-php-7.2-on-debian-8-jessie-and-debian-9-stretch
     ARG PHP_VERSION=7.2
     RUN \
-        apt-get update && apt-get -y install apt-transport-https lsb-release ca-certificates; \
-        wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg; \
-        sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'; \
-        apt-get update && apt-get install -y -q \
-        libapache2-mod-php${PHP_VERSION} \
-        php${PHP_VERSION} \
-        php${PHP_VERSION}-common \
-        php${PHP_VERSION}-cli \
-        php${PHP_VERSION}-dev \
-        php${PHP_VERSION}-json \
-        php${PHP_VERSION}-xml \
-        php${PHP_VERSION}-mysql \
-        php${PHP_VERSION}-opcache \
-        php${PHP_VERSION}-readline \
-        php${PHP_VERSION}-mbstring \
-        php-pear \
-        php-redis \
-        php-gnupg \
-        php${PHP_VERSION}-gd \
+        apt-get update \
+        && apt-get install -y -qq \
+            apt-transport-https lsb-release ca-certificates \
+        && curl -L https://packages.sury.org/php/apt.gpg -o /etc/apt/trusted.gpg.d/php.gpg \
+        && sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' \
+        && apt-get update \
+        && apt-get install -y -qq \
+            libapache2-mod-php${PHP_VERSION} \
+            php${PHP_VERSION} \
+            php${PHP_VERSION}-common \
+            php${PHP_VERSION}-cli \
+            php${PHP_VERSION}-dev \
+            php${PHP_VERSION}-json \
+            php${PHP_VERSION}-xml \
+            php${PHP_VERSION}-mysql \
+            php${PHP_VERSION}-opcache \
+            php${PHP_VERSION}-readline \
+            php${PHP_VERSION}-mbstring \
+            php-pear \
+            php-redis \
+            php-gnupg \
+            php${PHP_VERSION}-gd \
         && apt-get autoremove -y && apt-get clean -y
 
 
@@ -288,7 +249,7 @@ RUN apt-get install -y -q \
     # For the experimental ssdeep correlations, run the following installation:
     # installing ssdeep
         ;cd /usr/local/src/ \
-        ;wget http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz \
+        ;curl -L http://downloads.sourceforge.net/project/ssdeep/ssdeep-2.13/ssdeep-2.13.tar.gz -o /usr/local/src/ssdeep-2.13.tar.gz \
         ;tar zxvf ssdeep-2.13.tar.gz \
         ;cd ssdeep-2.13 \
         ;./configure \
