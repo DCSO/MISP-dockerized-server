@@ -33,12 +33,14 @@ env:
 
 stages:
 - build and push docker image
-# - Test
+- test
 - retag docker image
 
 jobs:
   include:
-    - script:
+    - stage: build and push docker image
+      if: env(FOLDER) IS NOT blank
+      script:
         - docker build
             --build-arg VCS_REF="$TRAVIS_COMMIT" 
             --build-arg VERSION="$(echo $FOLDER |cut -d - -f 1)" 
@@ -50,10 +52,10 @@ jobs:
         - docker images
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - docker push "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
-    # - stage: Test
-    #   if: NOT branch = master
-    #   script:
-    #     - git clone https://github.com/DCSO/MISP-dockerized.git
+    - stage: Test
+      if: NOT branch = master
+      script:
+        - git clone https://github.com/DCSO/MISP-dockerized.git
     #     - make -C MISP-dockerized install test server $FOLDER
     - stage: retag docker image
       if: env(ADD_TAGS) IS NOT blank
