@@ -4,54 +4,51 @@ addons:
   apt:
     sources:
       - docker-xenial
+  hosts:
+  - misp.example.com
 
 env:
-  #matrix:
-# Activate only Supported and Nightly Images.
-- FOLDER=2.4.nightly-ubuntu
-- FOLDER=2.4.nightly-debian ADD_TAGS="latest-dev"
-- FOLDER=2.4.88-ubuntu
-# - FOLDER=2.4.89-ubuntu
-# - FOLDER=2.4.90-ubuntu
-# - FOLDER=2.4.91-ubuntu
-# - FOLDER=2.4.92-ubuntu
-# - FOLDER=2.4.93-ubuntu
-# - FOLDER=2.4.94-ubuntu
-# - FOLDER=2.4.95-ubuntu
-# - FOLDER=2.4.96-ubuntu
-# - FOLDER=2.4.97-debian
-# - FOLDER=2.4.98-debian
-# - FOLDER=2.4.99-debian
-# - FOLDER=2.4.100-debian
-# - FOLDER=2.4.101-debia
-- FOLDER=2.4.102-debian
-- FOLDER=2.4.103-debian
+  matrix:
+  # Activate only Supported and Nightly Images.
+  - FOLDER=2.4.nightly-ubuntu
+  - FOLDER=2.4.nightly-debian ADD_TAGS="latest-dev"
+  - FOLDER=2.4.88-ubuntu
+  # - FOLDER=2.4.89-ubuntu
+  # - FOLDER=2.4.90-ubuntu
+  # - FOLDER=2.4.91-ubuntu
+  # - FOLDER=2.4.92-ubuntu
+  # - FOLDER=2.4.93-ubuntu
+  # - FOLDER=2.4.94-ubuntu
+  # - FOLDER=2.4.95-ubuntu
+  # - FOLDER=2.4.96-ubuntu
+  # - FOLDER=2.4.97-debian
+  # - FOLDER=2.4.98-debian
+  # - FOLDER=2.4.99-debian
+  # - FOLDER=2.4.100-debian
+  # - FOLDER=2.4.101-debia
+  - FOLDER=2.4.102-debian
+  - FOLDER=2.4.103-debian
   global:
   #- DOCKER_COMPOSE_VERSION=1.4.2
   - COMPONENT=server
 
-stages:
-- build and push docker image
-- test
-- retag docker image
+
+script:
+- docker build
+    --build-arg VCS_REF="$TRAVIS_COMMIT" 
+    --build-arg VERSION="$(echo $FOLDER |cut -d - -f 1)" 
+    --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
+    --build-arg COMPONENT="$COMPONENT"
+    --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
+    -t "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
+    "$TRAVIS_BUILD_DIR/$FOLDER/"
+- docker images
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- docker push "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
 
 jobs:
   include:
-    - stage: build and push docker image
-      if: env(FOLDER) IS NOT blank
-      script:
-        - docker build
-            --build-arg VCS_REF="$TRAVIS_COMMIT" 
-            --build-arg VERSION="$(echo $FOLDER |cut -d - -f 1)" 
-            --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
-            --build-arg COMPONENT="$COMPONENT"
-            --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
-            -t "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
-            "$TRAVIS_BUILD_DIR/$FOLDER/"
-        - docker images
-        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - docker push "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
-    - stage: Test
+    - stage: Test Container
       if: NOT branch = master
       script:
         - git clone https://github.com/DCSO/MISP-dockerized.git
