@@ -46,7 +46,7 @@ before_script:
 - docker images
 # Test
 #- git clone https://github.com/DCSO/MISP-dockerized.git && make -C MISP-dockerized install test=$COMPONENT folder=$FOLDER
-if: NOT branch = master
+#  if: NOT branch = master
 # PUSH
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - docker push "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
