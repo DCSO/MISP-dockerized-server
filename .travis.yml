@@ -27,7 +27,7 @@ env:
   # - FOLDER=2.4.100-debian
   # - FOLDER=2.4.101-debia
   #- FOLDER=2.4.102-debian
-  - FOLDER=2.4.103-debian
+  #- FOLDER=2.4.103-debian
   global:
   #- DOCKER_COMPOSE_VERSION=1.4.2
   - COMPONENT=server
@@ -51,15 +51,8 @@ before_script:
 - docker push "$CONTAINER_NAME:$FOLDER-dev"
 
 # Retag Images and push
-- |
-  set -xv
-  echo "$ADD_TAGS"
-  for i in $ADD_TAGS
-  do 
-    docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; 
-    docker push "$CONTAINER_NAME:$i"; 
-  done
-  set +xv
+- echo "$ADD_TAGS"
+- set -xv; for i in $ADD_TAGS; do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done
 
 
 # don't notify me when things fail 
