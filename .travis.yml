@@ -27,7 +27,7 @@ env:
   # - FOLDER=2.4.100-debian
   # - FOLDER=2.4.101-debia
   #- FOLDER=2.4.102-debian
-  #- FOLDER=2.4.103-debian
+  - FOLDER=2.4.103-debian
   global:
   #- DOCKER_COMPOSE_VERSION=1.4.2
   - COMPONENT=server
