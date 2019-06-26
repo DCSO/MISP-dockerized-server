@@ -33,7 +33,8 @@ env:
   - COMPONENT=server
 
 
-script:
+before_script:
+# Build
 - docker build
     --build-arg VCS_REF="$TRAVIS_COMMIT" 
     --build-arg VERSION="$(echo $FOLDER |cut -d - -f 1)" 
@@ -43,8 +44,15 @@ script:
     -t "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
     "$TRAVIS_BUILD_DIR/$FOLDER/"
 - docker images
+# Test
+#- git clone https://github.com/DCSO/MISP-dockerized.git && make -C MISP-dockerized install test=$COMPONENT folder=$FOLDER
+if: NOT branch = master
+# PUSH
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - docker push "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
+- for i in $ADD_TAGS; do docker tag "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')" "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; docker push "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; done
+  if: env(ADD_TAGS) IS NOT blank
+
 
 jobs:
   include:
