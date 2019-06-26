@@ -35,23 +35,27 @@ env:
 
 before_script:
 # Build
+- export CONTAINER_NAME="$(echo $TRAVIS_REPO_SLUG | tr '[:upper:]' '[:lower:]')"
+- set -xv
 - docker build
     --build-arg VCS_REF="$TRAVIS_COMMIT" 
     --build-arg VERSION="$(echo $FOLDER |cut -d - -f 1)" 
-    --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
+    --build-arg GIT_REPO="https://github.com/$CONTAINER_NAME" 
     --build-arg COMPONENT="$COMPONENT"
     --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
-    -t "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
+    -t "$CONTAINER_NAME:$FOLDER-dev"
     "$TRAVIS_BUILD_DIR/$FOLDER/"
+- set +xv
 - docker images
 # Test
 #- git clone https://github.com/DCSO/MISP-dockerized.git && make -C MISP-dockerized install test=$COMPONENT folder=$FOLDER
 #  if: NOT branch = master
 # PUSH
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-- docker push "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
-- if [ -n "${ADD_TAGS}" ] then 
-  for i in $ADD_TAGS; do docker tag "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')" "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; docker push "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; done
+- docker push "$CONTAINER_NAME:$FOLDER-dev"
+- if [ -n "${ADD_TAGS}" ] then \
+  for i in $ADD_TAGS; \
+  do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done \
   fi
 
 # don't notify me when things fail 
