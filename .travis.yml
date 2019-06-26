@@ -12,28 +12,28 @@ env:
   matrix:
   # Activate only Supported and Nightly Images.
   #- FOLDER=2.4.nightly-ubuntu
-  - FOLDER=2.4.nightly-debian TAGS="$FOLDER-dev latest-dev"
-  # - VERSION=2.4.88-ubuntu TAGS="$FOLDER-dev"
-  # - VERSION=2.4.89-ubuntu TAGS="$FOLDER-dev"
-  # - VERSION=2.4.90-ubuntu TAGS="$FOLDER-dev"
-  # - VERSION=2.4.91-ubuntu TAGS="$FOLDER-dev"
-  # - VERSION=2.4.92-ubuntu TAGS="$FOLDER-dev"
-  # - VERSION=2.4.93-ubuntu TAGS="$FOLDER-dev"
-  #- FOLDER=2.4.94-ubuntu TAGS="$FOLDER-dev"
-  # - VERSION=2.4.95-ubuntu TAGS="$FOLDER-dev"
-  # - VERSION=2.4.96-ubuntu TAGS="$FOLDER-dev"
-  # - VERSION=2.4.97-debian TAGS="$FOLDER-dev"
-  # - VERSION=2.4.98-debian TAGS="$FOLDER-dev"
-  #- FOLDER=2.4.99-debian TAGS="$FOLDER-dev"
-  # - VERSION=2.4.100-debian TAGS="$FOLDER-dev"
-  # - VERSION=2.4.101-debian TAGS="$FOLDER-dev"
-  # - VERSION=2.4.102-debian TAGS="$FOLDER-dev"
-  - FOLDER=2.4.103-debian TAGS="$FOLDER-dev"
+  - FOLDER=2.4.nightly-debian ADD_TAGS="latest-dev"
+  # - FOLDER=2.4.88-ubuntu
+  # - FOLDER=2.4.89-ubuntu
+  # - FOLDER=2.4.90-ubuntu
+  # - FOLDER=2.4.91-ubuntu
+  # - FOLDER=2.4.92-ubuntu
+  # - FOLDER=2.4.93-ubuntu
+  # - FOLDER=2.4.94-ubuntu
+  # - FOLDER=2.4.95-ubuntu
+  # - FOLDER=2.4.96-ubuntu
+  # - FOLDER=2.4.97-debian
+  # - FOLDER=2.4.98-debian
+  # - FOLDER=2.4.99-debian
+  # - FOLDER=2.4.100-debian
+  # - FOLDER=2.4.101-debia
+  # - FOLDER=2.4.102-debian
+  - FOLDER=2.4.103-debian
 
 stages:
 - build and push docker image
 # - Test
-# - retag docker image
+- retag docker image
 
 jobs:
   include:
@@ -55,11 +55,11 @@ jobs:
     #   script:
     #     - git clone https://github.com/DCSO/MISP-dockerized.git
     #     - make -C MISP-dockerized install test server $FOLDER
-    # - stage: retag docker image
-    #   if: env(TAGS) IS NOT blank
-    #   script:
-    #     - docker pull "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
-    #     - for i in $TAGS; do docker tag $TRAVIS_REPO_SLUG:$FOLDER-dev $TRAVIS_REPO_SLUG:$i; docker push $TRAVIS_REPO_SLUG:$i; done
+    - stage: retag docker image
+      if: env(TAGS) IS NOT blank
+      script:
+        - docker pull "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
+        - for i in $ADD_TAGS; do docker tag "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')" "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; docker push "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; done
 
 
 # don't notify me when things fail 
