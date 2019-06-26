@@ -50,8 +50,9 @@ before_script:
 # PUSH
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - docker push "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
-- for i in $ADD_TAGS; do docker tag "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')" "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; docker push "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; done
-  if: env(ADD_TAGS) IS NOT blank
+- if [ -n "${ADD_TAGS}" ] then 
+  for i in $ADD_TAGS; do docker tag "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')" "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; docker push "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; done
+  fi
 
 # don't notify me when things fail 
 #notifications:
