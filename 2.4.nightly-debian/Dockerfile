@@ -2,7 +2,7 @@ FROM debian:stretch-slim
 ENV DEBIAN_FRONTEND noninteractive
 
 # DCSO Required Software
-RUN apt-get update; apt-get install -y \ 
+RUN apt-get update; apt-get install -y -q \ 
         locales \
         supervisor \
         gosu \
@@ -24,8 +24,8 @@ RUN locale-gen ${LANG}
 # -------------------------
 
     # # Install Postfix dependency
-    # RUN apt-get update -y \
-    #     && apt-get install postfix -y \
+    # RUN apt-get update \
+    #     && apt-get install postfix -y -q \
     #     && apt-get autoremove -y \
     #     && apt-get clean -y
 
@@ -35,12 +35,12 @@ RUN locale-gen ${LANG}
     # Install required software
     ## Installation of libfuzzy-dev is required for pydeep
     
-RUN apt-get install -y \
+RUN apt-get install -y -q \
         curl gcc git gpg-agent make python python3 openssl \
         redis-server sudo vim zip unzip virtualenv libfuzzy-dev sqlite3 \
         && apt-get autoremove -y && apt-get clean -y
 
-RUN apt-get install -y \
+RUN apt-get install -y -q \
         python3-dev python3-pip libxml2-dev libxslt1-dev zlib1g-dev python-setuptools \
         && apt-get autoremove -y && apt-get clean -y
 
@@ -92,14 +92,14 @@ RUN apt-get install -y \
 
 
     # Install MariaDB (a MySQL fork/alternative) | Server has its own container!!!
-    RUN apt-get install -y \
+    RUN apt-get install -y -q \
         mariadb-client \
         #mariadb-server \
         && apt-get autoremove -y && apt-get clean -y
 
 
     # Install Apache
-    RUN apt-get install -y \
+    RUN apt-get install -y -q \
         apache2 \
         apache2-doc \
         apache2-utils \
@@ -116,7 +116,7 @@ RUN apt-get install -y \
         apt-get update && apt-get -y install apt-transport-https lsb-release ca-certificates; \
         wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg; \
         sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'; \
-        apt-get update && apt-get install -y \
+        apt-get update && apt-get install -y -q \
         libapache2-mod-php${PHP_VERSION} \
         php${PHP_VERSION} \
         php${PHP_VERSION}-common \
