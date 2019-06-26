@@ -53,7 +53,12 @@ before_script:
 # Retag Images and push
 - |
   set -xv
-  for i in $ADD_TAGS; do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done
+  echo "$ADD_TAGS"
+  for i in $ADD_TAGS
+  do 
+    docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; 
+    docker push "$CONTAINER_NAME:$i"; 
+  done
   set +xv
 
 
