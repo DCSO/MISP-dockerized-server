@@ -6,10 +6,7 @@ addons:
       - docker-xenial
 
 env:
-  global:
-  #- DOCKER_COMPOSE_VERSION=1.4.2
-  - COMPONENT=server
-  matrix:
+  #matrix:
   # Activate only Supported and Nightly Images.
   #- FOLDER=2.4.nightly-ubuntu
   - FOLDER=2.4.nightly-debian ADD_TAGS="latest-dev"
@@ -29,6 +26,9 @@ env:
   # - FOLDER=2.4.101-debia
   # - FOLDER=2.4.102-debian
   - FOLDER=2.4.103-debian
+  global:
+  #- DOCKER_COMPOSE_VERSION=1.4.2
+  - COMPONENT=server
 
 stages:
 - build and push docker image
