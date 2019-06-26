@@ -39,6 +39,7 @@ stages:
 jobs:
   include:
     - stage: build and push docker image
+      if: env(FOLDER) IS NOT blank
       script:
         - docker build
             --build-arg VCS_REF="$TRAVIS_COMMIT" 
