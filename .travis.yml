@@ -11,7 +11,8 @@ env:
   matrix:
   # Activate only Supported and Nightly Images.
   #- FOLDER=2.4.nightly-ubuntu
-  - FOLDER=2.4.nightly-debian ADD_TAGS=latest-dev
+  - FOLDER=2.4.nightly-debian 
+    ADD_TAGS=latest-dev latest
   #- FOLDER=2.4.88-ubuntu
   # - FOLDER=2.4.89-ubuntu
   # - FOLDER=2.4.90-ubuntu
@@ -51,8 +52,7 @@ before_script:
 - docker push "$CONTAINER_NAME:$FOLDER-dev"
 
 # Retag Images and push
-- echo "$ADD_TAGS"
-- set -xv; for i in $ADD_TAGS; do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done
+- for i in $ADD_TAGS; do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done
 
 
 # don't notify me when things fail 
