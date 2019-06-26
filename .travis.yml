@@ -10,9 +10,9 @@ addons:
 env:
   matrix:
   # Activate only Supported and Nightly Images.
-  - FOLDER=2.4.nightly-ubuntu
+  #- FOLDER=2.4.nightly-ubuntu
   - FOLDER=2.4.nightly-debian ADD_TAGS="latest-dev"
-  - FOLDER=2.4.88-ubuntu
+  #- FOLDER=2.4.88-ubuntu
   # - FOLDER=2.4.89-ubuntu
   # - FOLDER=2.4.90-ubuntu
   # - FOLDER=2.4.91-ubuntu
@@ -26,8 +26,8 @@ env:
   # - FOLDER=2.4.99-debian
   # - FOLDER=2.4.100-debian
   # - FOLDER=2.4.101-debia
-  - FOLDER=2.4.102-debian
-  - FOLDER=2.4.103-debian
+  #- FOLDER=2.4.102-debian
+  #- FOLDER=2.4.103-debian
   global:
   #- DOCKER_COMPOSE_VERSION=1.4.2
   - COMPONENT=server
@@ -57,12 +57,12 @@ before_script:
 
 # Retag Images and push
 - |
-  if [ ! -z "${ADD_TAGS-}" ] then
+  if [ -n "${ADD_TAGS}" ] then
     for i in $ADD_TAGS
     do 
       docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; 
       docker push "$CONTAINER_NAME:$i"; 
-    done
+    done;
   fi
 
 
