@@ -46,25 +46,18 @@ before_script:
     "$TRAVIS_BUILD_DIR/$FOLDER/"
 - docker images
 
-# Test
-# - |
-#   git clone https://github.com/DCSO/MISP-dockerized.git;
-#   make -C MISP-dockerized install test=$COMPONENT folder=$FOLDER
-
 # PUSH
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - docker push "$CONTAINER_NAME:$FOLDER-dev"
 
 # Retag Images and push
 - |
-  if [ -n "${ADD_TAGS}" ]; then
-    for i in $ADD_TAGS
-    do 
-      docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; 
-      docker push "$CONTAINER_NAME:$i"; 
-    done;
-  fi
-
+  for i in $ADD_TAGS
+  do 
+    docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; 
+    docker push "$CONTAINER_NAME:$i"; 
+  done
+  
 
 
 # don't notify me when things fail 
