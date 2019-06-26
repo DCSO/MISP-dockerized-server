@@ -6,10 +6,11 @@ addons:
       - docker-xenial
 
 env:
-  #matrix:
+  matrix:
   # Activate only Supported and Nightly Images.
   #- FOLDER=2.4.nightly-ubuntu
-  - FOLDER=2.4.nightly-debian ADD_TAGS="latest-dev"
+  - FOLDER=2.4.nightly-debian 
+    ADD_TAGS="latest-dev"
   # - FOLDER=2.4.88-ubuntu
   # - FOLDER=2.4.89-ubuntu
   # - FOLDER=2.4.90-ubuntu
@@ -24,7 +25,7 @@ env:
   # - FOLDER=2.4.99-debian
   # - FOLDER=2.4.100-debian
   # - FOLDER=2.4.101-debia
-  # - FOLDER=2.4.102-debian
+  - FOLDER=2.4.102-debian
   - FOLDER=2.4.103-debian
   global:
   #- DOCKER_COMPOSE_VERSION=1.4.2
@@ -56,7 +57,7 @@ jobs:
     #     - git clone https://github.com/DCSO/MISP-dockerized.git
     #     - make -C MISP-dockerized install test server $FOLDER
     - stage: retag docker image
-      if: env(TAGS) IS NOT blank
+      if: env(ADD_TAGS) IS NOT blank
       script:
         - docker pull "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')"
         - for i in $ADD_TAGS; do docker tag "$(echo $TRAVIS_REPO_SLUG:$FOLDER-dev | tr '[:upper:]' '[:lower:]')" "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; docker push "$(echo $TRAVIS_REPO_SLUG:$i | tr '[:upper:]' '[:lower:]')"; done
