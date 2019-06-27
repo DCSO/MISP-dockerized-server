@@ -8,10 +8,10 @@ addons:
 env:
   matrix:
   # Activate only Supported and Nightly Images.
-  #- FOLDER=2.4.nightly-ubuntu
+  - FOLDER=2.4.nightly-ubuntu
   - FOLDER=2.4.nightly-debian 
-    ADD_TAGS="latest-dev latest"
-  #- FOLDER=2.4.88-ubuntu
+  #   ADD_TAGS="latest-dev latest"
+  # - FOLDER=2.4.88-ubuntu
   # - FOLDER=2.4.89-ubuntu
   # - FOLDER=2.4.90-ubuntu
   # - FOLDER=2.4.91-ubuntu
@@ -24,9 +24,9 @@ env:
   # - FOLDER=2.4.98-debian
   # - FOLDER=2.4.99-debian
   # - FOLDER=2.4.100-debian
-  # - FOLDER=2.4.101-debia
-  #- FOLDER=2.4.102-debian
-  - FOLDER=2.4.103-debian
+  # - FOLDER=2.4.101-debian
+  # - FOLDER=2.4.102-debian
+  # - FOLDER=2.4.103-debian
   global:
   #- DOCKER_COMPOSE_VERSION=1.4.2
   - COMPONENT=server
@@ -52,6 +52,8 @@ before_script:
 # Retag Images and push
 - echo "" && [ "$TRAVIS_BRANCH" = "feat/MDD-151" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && for i in $ADD_TAGS; do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done
 
+# Notify hub.docker.com about new Readme
+- curl -X POST -H "Content-Type':' application/json"  --data '{"docker_tag_name"':' "hub_automatic_untested"}'  "$DOCKER_HUB_NOTIFY_URL"
 
 # don't notify me when things fail 
 #notifications:
