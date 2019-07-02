@@ -1,14 +1,14 @@
 variables:
-    FOLDER: "2.4.nightly-debian"
-    VERSION: "2.4.nightly"
-    TAGS: "${FOLDER}-dev latest-dev"
-    RELEASE_DATE: 2019-06
+    FOLDER: "2.4.108-debian"
+    VERSION: "2.4.108"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2019-07
 
-build 2.4.nightly-debian:
+build 2.4.108-debian:
   extends: .build
 
-test 2.4.nightly-debian:
+test 2.4.108-debian:
   extends: .test
   only:
     changes:
-    - 2.4.nightly-debian/*
+    - 2.4.108-debian/*
