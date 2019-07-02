@@ -11,95 +11,90 @@ env:
   - COMPONENT=server
 
 stages:
-- test
-- notify
+  - test
+  - notify
 
-- &build
-  stage: test
-  script: >
-    # Build
-    export CONTAINER_NAME="$(echo $TRAVIS_REPO_SLUG | tr '[:upper:]' '[:lower:]')"
-    docker build \
-        --build-arg "VCS_REF=$TRAVIS_COMMIT"  \
-        --build-arg "VERSION=$(echo $FOLDER |cut -d - -f 1)"  \
-        --build-arg "GIT_REPO=https://github.com/$CONTAINER_NAME"  \
-        --build-arg "COMPONENT=$COMPONENT" \
-        --build-arg "BUILD_DATE=$(date -u +"%Y-%m-%d")" \
-        -t "$CONTAINER_NAME:$FOLDER-dev" \
-        "$TRAVIS_BUILD_DIR/$FOLDER/"
-    docker images
-    # PUSH
-    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    echo "" && [ "$TRAVIS_BRANCH" = "feat/MDD-151" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && docker push "$CONTAINER_NAME:$FOLDER-dev";
-    # Retag Images and push
-    echo "" && [ "$TRAVIS_BRANCH" = "feat/MDD-151" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && for i in $ADD_TAGS; do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done
 
-- &noitfy
-  stage: notify
-  script: >  
-    # Notify
-    set -xv
-    # Set ret_value variable with the result of curl command
-    ret_value="$(curl -X POST -H "Content-Type':' application/json"  --data '{"docker_tag_name"':' "hub_automatic_untested"}'  "$DOCKER_HUB_NOTIFY_URL")"
-    # Check if curl command was successful
-    if [ -z "$("$ret_value"|grep "state"':'"Success")" ] || [ -z "$("$ret_value"|grep "state"':'"Building")" ]; then echo "Failure':' $ret_value"; exit 1; fi;
-    echo "Build end."
-
+jobs:
+  include:
+    - &notify
+      stage: notify
+      script: >  
+        # Notify
+        set -xv
+        # Set ret_value variable with the result of curl command
+        ret_value="$(curl -X POST -H "Content-Type':' application/json"  --data '{"docker_tag_name"':' "hub_automatic_untested"}'  "$DOCKER_HUB_NOTIFY_URL")"
+        # Check if curl command was successful
+        if [ -z "$("$ret_value"|grep "state"':'"Success")" ] || [ -z "$("$ret_value"|grep "state"':'"Building")" ]; then echo "Failure':' $ret_value"; exit 1; fi;
+        echo "Build end."
+      FOLDER: 2.4.88-ubuntu
 #################################
-
-
-# Notify
-- <<: *notify
-  FOLDER: 2.4.88-ubuntu
-
-# Nightly Builds
-- <<: *build
-  FOLDER: 2.4.nightly-ubuntu
-- <<: *build
-  FOLDER: 2.4.nightly-debian
-  ADD_TAGS: "latest"
-# Release Builds
-- <<: *build
-  FOLDER: 2.4.88-ubuntu
-- <<: *build
-  FOLDER: 2.4.89-ubuntu
-- <<: *build
-  FOLDER: 2.4.90-ubuntu
-- <<: *build
-  FOLDER: 2.4.91-ubuntu
-- <<: *build
-  FOLDER: 2.4.92-ubuntu
-- <<: *build
-  FOLDER: 2.4.93-ubuntu
-- <<: *build
-  FOLDER: 2.4.94-ubuntu
-- <<: *build
-  FOLDER: 2.4.95-ubuntu
-- <<: *build
-  FOLDER: 2.4.96-ubuntu
-- <<: *build
-  FOLDER: 2.4.97-debian
-- <<: *build
-  FOLDER: 2.4.98-debian
-- <<: *build
-  FOLDER: 2.4.99-debian
-- <<: *build
-  FOLDER: 2.4.100-debian
-- <<: *build
-  FOLDER: 2.4.101-debian
-- <<: *build
-  FOLDER: 2.4.102-debian
-- <<: *build
-  FOLDER: 2.4.103-debian
-- <<: *build
-  FOLDER: 2.4.104-debian
-- <<: *build
-  FOLDER: 2.4.105-debian
-- <<: *build
-  FOLDER: 2.4.106-debian
-- <<: *build
-  FOLDER: 2.4.107-debian
-- <<: *build
-  FOLDER: 2.4.108-debian
-- <<: *build
-  FOLDER: 2.4.109-debian
+    - &build
+      stage: test
+      script: >
+        # Build
+        export CONTAINER_NAME="$(echo $TRAVIS_REPO_SLUG | tr '[:upper:]' '[:lower:]')"
+        docker build \
+            --build-arg "VCS_REF=$TRAVIS_COMMIT"  \
+            --build-arg "VERSION=$(echo $FOLDER |cut -d - -f 1)"  \
+            --build-arg "GIT_REPO=https://github.com/$CONTAINER_NAME"  \
+            --build-arg "COMPONENT=$COMPONENT" \
+            --build-arg "BUILD_DATE=$(date -u +"%Y-%m-%d")" \
+            -t "$CONTAINER_NAME:$FOLDER-dev" \
+            "$TRAVIS_BUILD_DIR/$FOLDER/"
+        docker images
+        # PUSH
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        echo "" && [ "$TRAVIS_BRANCH" = "feat/MDD-151" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && docker push "$CONTAINER_NAME:$FOLDER-dev";
+        # Retag Images and push
+        echo "" && [ "$TRAVIS_BRANCH" = "feat/MDD-151" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && for i in $ADD_TAGS; do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done
+      FOLDER: 2.4.88-ubuntu
+    # Nightly Builds
+    - <<: *build
+      FOLDER: 2.4.nightly-ubuntu
+    - <<: *build
+      FOLDER: 2.4.nightly-debian
+      ADD_TAGS: "latest"
+    # Release Builds
+    - <<: *build
+      FOLDER: 2.4.89-ubuntu
+    - <<: *build
+      FOLDER: 2.4.90-ubuntu
+    - <<: *build
+      FOLDER: 2.4.91-ubuntu
+    - <<: *build
+      FOLDER: 2.4.92-ubuntu
+    - <<: *build
+      FOLDER: 2.4.93-ubuntu
+    - <<: *build
+      FOLDER: 2.4.94-ubuntu
+    - <<: *build
+      FOLDER: 2.4.95-ubuntu
+    - <<: *build
+      FOLDER: 2.4.96-ubuntu
+    - <<: *build
+      FOLDER: 2.4.97-debian
+    - <<: *build
+      FOLDER: 2.4.98-debian
+    - <<: *build
+      FOLDER: 2.4.99-debian
+    - <<: *build
+      FOLDER: 2.4.100-debian
+    - <<: *build
+      FOLDER: 2.4.101-debian
+    - <<: *build
+      FOLDER: 2.4.102-debian
+    - <<: *build
+      FOLDER: 2.4.103-debian
+    - <<: *build
+      FOLDER: 2.4.104-debian
+    - <<: *build
+      FOLDER: 2.4.105-debian
+    - <<: *build
+      FOLDER: 2.4.106-debian
+    - <<: *build
+      FOLDER: 2.4.107-debian
+    - <<: *build
+      FOLDER: 2.4.108-debian
+    - <<: *build
+      FOLDER: 2.4.109-debian
