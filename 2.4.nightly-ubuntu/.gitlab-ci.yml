@@ -1,12 +1,11 @@
-build 2.4.nightly-ubuntu:
-  extends: .build
-  variables:
+variables:
     VERSION: "2.4.nightly-ubuntu"
 
+build 2.4.nightly-ubuntu:
+  extends: .build
+  
 test 2.4.nightly-ubuntu:
   extends: .test
-  variables:
-    VERSION: "2.4.nightly-ubuntu"
   only:
     changes:
     - 2.4.nightly-ubuntu/*

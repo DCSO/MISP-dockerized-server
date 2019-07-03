@@ -1,16 +1,9 @@
+
 notify:
   extends: .notify
 
 variables:
-  COMPONENT: "server"
-  # The following variables are setup via gitlab project group:
-  # DOCKER_HUB_NOTIFY_URL
-  # DOCKER_SLUG
-  # DOCKER_USERNAME
-  # DOCKER_PASSWORD
-  # CUSTOM_REGISTRY_URL
-  # CUSTOM_REGISTRY_USER
-  # CUSTOM_REGISTRY_PW
+  COMPONENT: server
 
 .build:
   only:
