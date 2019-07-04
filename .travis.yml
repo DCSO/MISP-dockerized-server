@@ -9,115 +9,44 @@ env:
   global:
   #- DOCKER_COMPOSE_VERSION=1.4.2
   - COMPONENT=server
+  matrix:
+  # Activate only Supported and Nightly Images.
+  - VERSION=2.4.nightly-ubuntu
+  - VERSION=2.4.nightly-debian
+  - VERSION=2.4.88-ubuntu
+  - VERSION=2.4.89-ubuntu
+  - VERSION=2.4.90-ubuntu
+  - VERSION=2.4.91-ubuntu
+  - VERSION=2.4.92-ubuntu
+  - VERSION=2.4.93-ubuntu
+  - VERSION=2.4.94-ubuntu
+  - VERSION=2.4.95-ubuntu
+  - VERSION=2.4.96-ubuntu
+  - VERSION=2.4.97-debian
+  - VERSION=2.4.98-debian
+  - VERSION=2.4.99-debian
+  - VERSION=2.4.100-debian
+  - VERSION=2.4.101-debian
+  - VERSION=2.4.102-debian
+  - VERSION=2.4.103-debian
+  - VERSION=2.4.104-debian
+  - VERSION=2.4.105-debian
+  - VERSION=2.4.106-debian
+  - VERSION=2.4.107-debian
+  - VERSION=2.4.108-debian
+  - VERSION=2.4.109-debian
 
-stages:
-  - test
-  - notify
+
+script:
+- docker build -f "$TRAVIS_BUILD_DIR/$FOLDER/Dockerfile" 
+                      --build-arg VCS_REF="$TRAVIS_COMMIT" 
+                      --build-arg VERSION="$FOLDER" 
+                      --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
+                      --build-arg COMPONENT="$COMPONENT"
+                      --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
+                      "$TRAVIS_BUILD_DIR/$FOLDER"
 
 
-jobs:
-  include:
-    - &notify
-      stage: notify
-        # Notify
-      script: set -xv
-        # Set ret_value variable with the result of curl command
-      script: ret_value="$(curl -X POST -H "Content-Type':' application/json"  --data '{"docker_tag_name"':' "hub_automatic_untested"}'  "$DOCKER_HUB_NOTIFY_URL")"
-        # Check if curl command was successful
-      script: if [ -z "$("$ret_value"|grep "state"':'"Success")" ] || [ -z "$("$ret_value"|grep "state"':'"Building")" ]; then echo "Failure':' $ret_value"; exit 1; fi;
-      script: echo "Build end."
-      FOLDER: 2.4.88-ubuntu
-#################################
-    - &build
-      stage: test
-        # Build
-      script: export CONTAINER_NAME="$(echo $TRAVIS_REPO_SLUG | tr '[:upper:]' '[:lower:]')"
-      script:  >
-          docker build
-            --build-arg "VCS_REF=$TRAVIS_COMMIT" 
-            --build-arg "VERSION=$(echo $FOLDER |cut -d - -f 1)" 
-            --build-arg "GIT_REPO=https://github.com/$CONTAINER_NAME" 
-            --build-arg "COMPONENT=$COMPONENT"
-            --build-arg "BUILD_DATE=$(date -u +"%Y-%m-%d")"
-            -t "$CONTAINER_NAME:$FOLDER-dev"
-            "$TRAVIS_BUILD_DIR/$FOLDER/"
-      script: docker images
-      # PUSH
-      script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      script: echo "" && [ "$TRAVIS_BRANCH" = "feat/MDD-151" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && docker push "$CONTAINER_NAME:$FOLDER-dev";
-      # Retag Images and push
-      script: echo "" && [ "$TRAVIS_BRANCH" = "feat/MDD-151" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && for i in $ADD_TAGS; do docker tag "$CONTAINER_NAME:$FOLDER-dev" "$CONTAINER_NAME:$i"; docker push "$CONTAINER_NAME:$i"; done
-      env:
-        FOLDER: 2.4.88-ubuntu
-    # Nightly Builds
-    - <<: *build
-      env:
-        FOLDER: 2.4.nightly-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.nightly-debian
-        ADD_TAGS: "latest"
-    # Release Builds
-    - <<: *build
-      env:
-        FOLDER: 2.4.89-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.90-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.91-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.92-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.93-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.94-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.95-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.96-ubuntu
-    - <<: *build
-      env:
-        FOLDER: 2.4.97-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.98-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.99-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.100-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.101-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.102-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.103-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.104-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.105-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.106-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.107-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.108-debian
-    - <<: *build
-      env:
-        FOLDER: 2.4.109-debian
+# # don't notify me when things fail
+# notifications:
+#   email: false
