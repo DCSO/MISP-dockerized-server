@@ -1,14 +1,19 @@
-variables:
+
+build 2.4.106-debian:
+  extends: .build
+  variables:
     FOLDER: "2.4.106-debian"
     VERSION: "2.4.106"
     TAGS: "${FOLDER}-dev"
     RELEASE_DATE: 2019-07
 
-build 2.4.106-debian:
-  extends: .build
-
 test 2.4.106-debian:
   extends: .test
+  variables:
+    FOLDER: "2.4.106-debian"
+    VERSION: "2.4.106"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2019-07
   only:
     changes:
     - 2.4.106-debian/*
