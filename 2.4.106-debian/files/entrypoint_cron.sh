@@ -3,7 +3,10 @@ set -eu
 
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
-STARTMSG="${Light_Green}[ENTRYPOINT_CRON]${NC}"
+STARTMSG="[ENTRYPOINT_CRON]"
+# Syslog is used remove the color options!
+[ "${LOG_SYSLOG_ENABLED-}" = "no" ] && STARTMSG="${Light_Green}$STARTMSG${NC}"
+
 
 # Functions
 echo (){

@@ -3,7 +3,10 @@ set -eu
 
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
-STARTMSG="${Light_Green}[ENTRYPOINT_WORKERS]${NC}"
+STARTMSG="[ENTRYPOINT_WORKERS]"
+# Syslog is used remove the color options!
+[ "${LOG_SYSLOG_ENABLED-}" = "no" ] && STARTMSG="${Light_Green}$STARTMSG${NC}"
+
 PATH_TO_MISP=${PATH_TO_MISP:-"/var/www/MISP"}
 CAKE=${CAKE:-"$PATH_TO_MISP/app/Console/cake"}
 

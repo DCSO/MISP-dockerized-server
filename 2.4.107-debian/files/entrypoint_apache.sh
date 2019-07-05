@@ -4,8 +4,10 @@ export DEBIAN_FRONTEND=noninteractive
 
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
+STARTMSG="[ENTRYPOINT_APACHE]"
+# Syslog is used remove the color options!
+[ "${LOG_SYSLOG_ENABLED-}" = "no" ] && STARTMSG="${Light_Green}$STARTMSG${NC}"
 
-STARTMSG="${Light_Green}[ENTRYPOINT_APACHE]${NC}"
 ENTRYPOINT_PID_FILE="/entrypoint_apache.install"
 [ ! -f $ENTRYPOINT_PID_FILE ] && touch $ENTRYPOINT_PID_FILE
 

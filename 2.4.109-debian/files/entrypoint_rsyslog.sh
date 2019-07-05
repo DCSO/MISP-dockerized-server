@@ -3,7 +3,11 @@ set -eu
 
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
-STARTMSG="${Light_Green}[ENTRYPOINT_RSYSLOG]${NC}"
+STARTMSG="[ENTRYPOINT_RSYSLOG]"
+# Syslog is used remove the color options!
+[ "${LOG_SYSLOG_ENABLED-}" = "no" ] && STARTMSG="${Light_Green}$STARTMSG${NC}"
+
+
 ARCHIVE_YEAR="$(date +%Y)"
 ARCHIVE_FOLDER="/var/www/MISP/app/files/DCSO/log_archive/$ARCHIVE_YEAR/"
 TMP_ARCHIVE="$(date +%Y-%m-%d)"
