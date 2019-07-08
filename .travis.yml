@@ -11,30 +11,30 @@ env:
   - COMPONENT=server
   matrix:
   # Activate only Supported and Nightly Images.
-  - VERSION=2.4.nightly-ubuntu
-  - VERSION=2.4.nightly-debian
-  - VERSION=2.4.88-ubuntu
-  - VERSION=2.4.89-ubuntu
-  - VERSION=2.4.90-ubuntu
-  - VERSION=2.4.91-ubuntu
-  - VERSION=2.4.92-ubuntu
-  - VERSION=2.4.93-ubuntu
-  - VERSION=2.4.94-ubuntu
-  - VERSION=2.4.95-ubuntu
-  - VERSION=2.4.96-ubuntu
-  - VERSION=2.4.97-debian
-  - VERSION=2.4.98-debian
-  - VERSION=2.4.99-debian
-  - VERSION=2.4.100-debian
-  - VERSION=2.4.101-debian
-  - VERSION=2.4.102-debian
-  - VERSION=2.4.103-debian
-  - VERSION=2.4.104-debian
-  - VERSION=2.4.105-debian
-  - VERSION=2.4.106-debian
-  - VERSION=2.4.107-debian
-  - VERSION=2.4.108-debian
-  - VERSION=2.4.109-debian
+  - VERSION=2.4.nightly FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.nightly FOLDER=$VERSION-debian
+  - VERSION=2.4.88 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.89 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.90 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.91 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.92 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.93 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.94 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.95 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.96 FOLDER=$VERSION-ubuntu
+  - VERSION=2.4.97 FOLDER=$VERSION-debian
+  - VERSION=2.4.98 FOLDER=$VERSION-debian
+  - VERSION=2.4.99 FOLDER=$VERSION-debian
+  - VERSION=2.4.100 FOLDER=$VERSION-debian
+  - VERSION=2.4.101 FOLDER=$VERSION-debian
+  - VERSION=2.4.102 FOLDER=$VERSION-debian
+  - VERSION=2.4.103 FOLDER=$VERSION-debian
+  - VERSION=2.4.104 FOLDER=$VERSION-debian
+  - VERSION=2.4.105 FOLDER=$VERSION-debian
+  - VERSION=2.4.106 FOLDER=$VERSION-debian
+  - VERSION=2.4.107 FOLDER=$VERSION-debian
+  - VERSION=2.4.108 FOLDER=$VERSION-debian
+  - VERSION=2.4.109 FOLDER=$VERSION-debian
 
 
 script:
