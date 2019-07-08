@@ -267,13 +267,19 @@ RUN \
 #########################################
 #       Start of DCSO MISP Config Part
 
-# for S/MIME
+
+# Mailsigning and encryption
+ENV GPG_HOME="/var/www/.gnupg" \
+    SMIME_HOME="/var/www/.smime"
 RUN set -e  \
-    ;sudo -u www-data mkdir /var/www/MISP/.smime \
-    ;sudo -u www-data chmod 500 /var/www/MISP/.smime \
+# for S/MIME
+    ;mkdir ${SMIME_HOME} \
+    ;chown -R www-data.www-data ${SMIME_HOME} \
+    ;chmod -R 700 ${SMIME_HOME} \
 # for PGP
-    ;sudo -u www-data mkdir /var/www/MISP/.gnupg \
-    ;sudo -u www-data chmod 700 /var/www/MISP/.gnupg \
+    ;mkdir ${GPG_HOME} \
+    ;chown -R www-data.www-data ${GPG_HOME} \
+    ;chmod -R 700 ${GPG_HOME} \
     ;
 
 # # Copy patch File for MISP Events Page with additional Analyse Column
@@ -290,11 +296,12 @@ RUN set -e  \
     #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
 
 # MISP Update and MISP Cron
-    COPY --chown=www-data:www-data files/usr/local/bin/misp_update /usr/local/bin/
-    COPY --chown=www-data:www-data files/usr/local/bin/misp_cron /usr/local/bin/
-    COPY --chown=www-data:www-data files/usr/local/bin/misp_version /usr/local/bin/
-    COPY --chown=www-data:www-data files/usr/local/bin/generate_self-signed-cert /usr/local/bin/
-    COPY --chown=www-data:www-data files/usr/local/bin/generate_web_server_configuration /usr/local/bin/
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_update.sh /usr/local/bin/misp_update
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_cron.sh /usr/local/bin/misp_cron
+    COPY --chown=www-data:www-data files/usr/local/bin/misp_version.sh /usr/local/bin/misp_version
+    COPY --chown=www-data:www-data files/usr/local/bin/generate_self-signed-cert.sh /usr/local/bin/generate_self-signed-cert
+    COPY --chown=www-data:www-data files/usr/local/bin/generate_web_server_configuration.sh /usr/local/bin/generate_web_server_configuration
+    COPY --chown=www-data:www-data files/usr/local/bin/change-pgp.sh /usr/local/bin/change-pgp
 
 # Healthcheck
     COPY files/healthcheck.sh /
