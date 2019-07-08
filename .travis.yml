@@ -38,13 +38,13 @@ env:
 
 
 script:
-- docker build -f "$TRAVIS_BUILD_DIR/$FOLDER/Dockerfile" 
+- docker build -f "$FOLDER/Dockerfile" 
                       --build-arg VCS_REF="$TRAVIS_COMMIT" 
-                      --build-arg VERSION="$FOLDER" 
+                      --build-arg VERSION="$VERSION" 
                       --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
                       --build-arg COMPONENT="$COMPONENT"
                       --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
-                      "$TRAVIS_BUILD_DIR/$FOLDER"
+                      "$FOLDER"
 
 
 # # don't notify me when things fail
