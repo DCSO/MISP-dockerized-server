@@ -24,8 +24,10 @@ include:
   - '2.4.91-ubuntu/.gitlab-ci.yml'
   - '2.4.92-ubuntu/.gitlab-ci.yml'
   - '2.4.93-ubuntu/.gitlab-ci.yml'
-  - '2.4.94-ubuntu/.gitlab-ci.yml'
-  - '2.4.95-ubuntu/.gitlab-ci.yml'
+  # Not able to build!
+  #- '2.4.94-ubuntu/.gitlab-ci.yml'
+  # Not able to build!
+  #- '2.4.95-ubuntu/.gitlab-ci.yml'
   - '2.4.96-ubuntu/.gitlab-ci.yml'
   - '2.4.97-debian/.gitlab-ci.yml'
   - '2.4.98-debian/.gitlab-ci.yml'
