@@ -35,6 +35,7 @@ env:
   - VERSION=2.4.107 FOLDER=$VERSION-debian
   - VERSION=2.4.108 FOLDER=$VERSION-debian
   - VERSION=2.4.109 FOLDER=$VERSION-debian
+  - VERSION=2.4.110 FOLDER=$VERSION-debian
 
 
 script:
