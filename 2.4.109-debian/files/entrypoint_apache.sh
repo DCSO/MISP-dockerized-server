@@ -415,8 +415,7 @@ remove_init_config_file() {
 
 check_misp_permissions(){
     echo "... check_misp_permissions | Check MISP permissions..."
-    #echo "... ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
-    echo "... ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
+    echo "... ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -type f -type d -exec chown www-data.www-data {} +
     echo "... ... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
     echo "... ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
     echo "... ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
