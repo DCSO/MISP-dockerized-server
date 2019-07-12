@@ -9,13 +9,8 @@ STARTMSG="${Light_Green}[GENERATE_WEB_SERVER_CONFIGURATION]${NC}"
 HTTP_CONF_DIRECTORY="/etc/apache2/sites-enabled"
 HTTPS_FILE="${HTTP_CONF_DIRECTORY}/misp.ssl.conf"
 HTTP_FILE="${HTTP_CONF_DIRECTORY}/misp.conf"
-
+SERVER_STATUS_FILE="${HTTP_CONF_DIRECTORY}/server-status.conf"
 PORTS_FILE="/etc/apache2/ports.conf"
-
-SERVER_STATUS_FILE="/etc/apache2/sites-enabled/server-status.conf"
-
-MISP_FQDN=${MISP_FQDN:-"misp-server"}
-
 SSL_CERT="/etc/apache2/ssl/cert.pem"
 SSL_KEY="/etc/apache2/ssl/key.pem"
 SSL_CA="/etc/apache2/ssl/ca.pem"
@@ -25,7 +20,11 @@ SSL_PASSPHRASE_APACHE2_FILE="/etc/apache2/ssl/ssl-apache-dialog.sh"
 USE_SSL_CA=""
 USE_SSL_PASSPHRASE_FILE=""
 
+
 MAIL_CONTACT_ADDRESS=${MAIL_CONTACT_ADDRESS:-"no-reply@$MISP_FQDN"}
+MISP_FQDN=${MISP_FQDN:-"misp-server"}
+
+
 
 CONFIG_PART_FOR_HTTP_HTTPS="
     ServerAdmin ${MAIL_CONTACT_ADDRESS}
@@ -76,7 +75,6 @@ create_dh(){
 #
 echo "... Webserver configuration generation..."
 
-
 # Check if Directory exists
 [ -d "$HTTP_CONF_DIRECTORY" ] && mkdir -p "$HTTP_CONF_DIRECTORY"
 # Check if SSL CA File exists
@@ -123,6 +121,12 @@ then
         echo "... SSL passphrase mode is deactivated."
     fi
 
+# delete old configuration files
+    echo "... ... Delete old web server configuration file..."
+    for i in misp.conf misp.ssl.conf server-status.conf
+    do
+        [ -f /etc/apache2/sites-enabled/$i ] && rm -v /etc/apache2/sites-enabled/$i
+    done
 
 # Write HTTPS File
 echo "... ... Write web server https configuration..."
@@ -162,6 +166,7 @@ ${USE_SSL_PASSPHRASE_FILE}
     ${USE_SSL_CA}
 </VirtualHost>
 
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noe
 
 EOF
 
@@ -177,6 +182,7 @@ ServerTokens Prod
     ${CONFIG_PART_FOR_HTTP_HTTPS}
 </VirtualHost>
 
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noe
 
 EOF
 
@@ -218,14 +224,12 @@ do
     ALLOWED_IP_RANGE="${ALLOWED_IP_RANGE}${i} "
 done
 cat <<EOF > $SERVER_STATUS_FILE
-ServerTokens Prod
 
 <VirtualHost *:8080>
             <Location /server-status>
                 SetHandler server-status
                 #Require local
                 Require ip $ALLOWED_IP_RANGE
-                
             </Location>
 </VirtualHost>
 
