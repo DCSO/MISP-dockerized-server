@@ -5,7 +5,6 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN \
     apt-get update \
     && apt-get install -y -qq \ 
-        #locales \
         supervisor \
         gosu \
         curl \
@@ -15,10 +14,6 @@ RUN \
         apt-utils \
     && apt-get autoremove -y \
     && apt-get clean -y
-
-# Set locals
-# ARG LANG=en_US.UTF-8
-# RUN locale-gen ${LANG}
 
 #########################    START  MISP Guide
 
@@ -93,6 +88,8 @@ RUN \
             php-redis \
             php-gnupg \
             php${PHP_VERSION}-gd \
+        # PHP7.2 require mpm_prefork and activate it during installation but only one mpm at the same time is allowed.
+        && a2dismod mpm_event \
         && apt-get autoremove -y && apt-get clean -y
 
 
@@ -104,7 +101,7 @@ RUN \
         PATH_TO_MISP="/var/www/MISP"
     # Download MISP using git in the /var/www/ directory.
     # Attention: we replaced the fixed tag with a variable
-    RUN set -e\
+    RUN set -e \
         # Create directory
         ;mkdir ${PATH_TO_MISP} \
         ;chown www-data:www-data ${PATH_TO_MISP} \
@@ -214,14 +211,10 @@ RUN \
         ;sudo a2dismod status \
         ;sudo a2enmod ssl \
         ;sudo a2enmod rewrite \
-        ;sudo a2enmod headers
-
-
-
+        ;sudo a2enmod headers \
 ### 8/ Log rotation
     # MISP saves the stdout and stderr of its workers in /var/www/MISP/app/tmp/logs
     # To rotate these logs install the supplied logrotate script:
-    RUN set -e \
         ;sudo cp ${PATH_TO_MISP}/INSTALL/misp.logrotate /etc/logrotate.d/misp \
         ;sudo chmod 0640 /etc/logrotate.d/misp 
 
@@ -283,7 +276,7 @@ RUN set -e  \
     ;
 
 # # Copy patch File for MISP Events Page with additional Analyse Column
-#     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
+     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
 
 # # Copy DCSO PyMISP Scripts
      COPY --chown=www-data:www-data files/var/www/MISP/app/files/DCSO /var/www/MISP/app/files/DCSO
@@ -295,7 +288,7 @@ RUN set -e  \
 # HTML5 File uploader from http://www.matlus.com/html5-file-upload-with-progress/#codeListing6
     #COPY files/ssl_upload.html /var/www/MISP/app/webconfig/
 
-# MISP Update and MISP Cron
+# Selfwritten shellscripts
     COPY --chown=www-data:www-data files/usr/local/bin/misp_update.sh /usr/local/bin/misp_update
     COPY --chown=www-data:www-data files/usr/local/bin/misp_cron.sh /usr/local/bin/misp_cron
     COPY --chown=www-data:www-data files/usr/local/bin/misp_version.sh /usr/local/bin/misp_version
@@ -305,16 +298,12 @@ RUN set -e  \
 
 # Healthcheck
     COPY files/healthcheck.sh /
-    HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
+    HEALTHCHECK --interval=1m --timeout=45s --retries=3 --start-period=60s CMD ["/healthcheck.sh"]
 
 # Entrypoints
     COPY files/entrypoint_apache.sh /
     COPY files/entrypoint_cron.sh /
-    #COPY files/entrypoint_mariadb.sh /
-    #COPY files/entrypoint_monitoring.sh /
-    #COPY files/entrypoint_redis.sh /
     COPY files/entrypoint_rsyslog.sh /
-    #COPY files/entrypoint_syslog-ng.sh /
     COPY files/entrypoint_workers.sh /
     COPY files/entrypoint.sh /
 
