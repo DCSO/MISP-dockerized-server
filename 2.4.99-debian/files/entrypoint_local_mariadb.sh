@@ -140,7 +140,7 @@ EOF
 [ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
 ########################################################
 # Initialize mysql daemon
-[ ! -d "$DATADIR/mysql" ] && init_mysql
+[ ! -d "$DATADIR/$MYSQL_DATABASE" ] && init_mysql
 ########################################################
 # check volumes and upgrade if it is required
 echo "$STARTMSG upgrade if it is required..." && upgrade
