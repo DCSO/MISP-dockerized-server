@@ -472,11 +472,13 @@ echo "$STARTMSG Check if cake setup should be initialized..." && setup_via_cake_
 echo "$STARTMSG Check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
     [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "$STARTMSG delete init config file and reboot" && rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
+# Disable MPM_EVENT Worker
+echo "$STARTMSG Deactivate Apache2 Event Worker" && a2dismod mpm_event
+
 ########################################################
 # check volumes and upgrade if it is required
 echo "$STARTMSG Upgrade if it is required..." && upgrade
 
-echo "$STARTMSG Deactivate Apache2 Event Worker" && a2dismod mpm_event
 
 ##### Check permissions #####
     echo "$STARTMSG Configure MISP | Check permissions..."

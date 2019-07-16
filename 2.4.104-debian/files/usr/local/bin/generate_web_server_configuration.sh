@@ -242,4 +242,8 @@ echo "... ... Check webserver file permissions..."
 chmod 640 /etc/apache2/ports.conf /etc/apache2/sites-available/*
 chown root.root /etc/apache2/ports.conf /etc/apache2/sites-available/*
 
+# Disable MPM_EVENT Worker
+echo "$STARTMSG Deactivate Apache2 Event Worker" && a2dismod mpm_event
+
+
 echo "... Webserver configuration generation...finished"
