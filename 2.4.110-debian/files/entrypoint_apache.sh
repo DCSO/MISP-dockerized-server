@@ -67,6 +67,8 @@ fi
                         /var/www/MISP/.gnupg \
                         /var/www/MISP/.smime \
                         /etc/apache2/ssl"
+    UPGRADE_MISP=0
+    OLD_MISP_VERSION=""
 
 ###################################
 #   Parameter via environment
@@ -122,6 +124,15 @@ fi
 usage() {
     echo "Help!"
 }
+
+# first_version=5.100.2
+# second_version=5.1.2
+# if version_gt $first_version $second_version; then
+#      echo "$first_version is greater than $second_version !"
+# fi'
+version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
+
+
 
 init_pgp(){
     echo "... init_pgp | Initialize PGP..."
@@ -251,48 +262,60 @@ init_misp_config(){
     echo "... init_misp_config | Start MISP configuration initialization...finished"
 }
 
+upgrade_misp_config_via_cake_cli(){
+    # Save old MISP Version
+    [ -f "$MISP_APP_PATH/files/MISP-dockerized" ] && OLD_MISP_VERSION=$(cat "$MISP_APP_PATH/files/MISP-dockerized")
+
+    # Check if it is a upgrade
+    [ "$(version_gt "$VERSION" "$OLD_MISP_VERSION")" ] && UPGRADE_MISP=1
+
+    # Update Versionsfiles
+    for i in $FOLDER_with_VERSIONS
+    do
+        echo "$VERSION" > "$i"
+    done
+
+}
+
 init_via_cake_cli(){
     echo "... init_via_cake_cli | Cake initializing started..."
     local SUDO_WWW="gosu www-data"
     [ -f "/var/www/MISP/app/Config/database.php"  ] || (echo "File /var/www/MISP/app/Config/database.php not found. Exit now." && exit 1)
-    if [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ]; then
+    
+    if [ -f "$MISP_APP_CONFIG_PATH/NOT_CONFIGURED" ] || [ "$UPGRADE_MISP" = 1 ]; then
         # Initialize user and fetch Auth Key
-         AUTH_KEY="$($SUDO_WWW "$CAKE" userInit -q)"
-        # This makes sure all Database upgrades are done, without logging in.
-         $SUDO_WWW "$CAKE" Admin updateDatabase
-        # The default install is Python >=3.6 in a virtualenv, setting accordingly
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.python_bin" "${PATH_TO_MISP}/venv/bin/python"
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" userInit -q
         # Tune global time outs
-         $SUDO_WWW "$CAKE" Admin setSetting "Session.autoRegenerate" 0
-         $SUDO_WWW "$CAKE" Admin setSetting "Session.timeout" 600
-         $SUDO_WWW "$CAKE" Admin setSetting "Session.cookieTimeout" 3600
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "Session.autoRegenerate" 0
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "Session.timeout" 600
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "Session.cookieTimeout" 3600
         # Change base url, either with this CLI command or in the UI
-        [ "${MISP_RELATIVE_URL-}" = "yes" ] ||  $SUDO_WWW "$CAKE" Baseurl "$MISP_BASEURL"
+        [ "$UPGRADE_MISP" = 0 ] && [ "${MISP_RELATIVE_URL-}" = "yes" ] ||  $SUDO_WWW "$CAKE" Baseurl "$MISP_BASEURL"
         # example: 'baseurl' => 'https://<your.FQDN.here>',
         # alternatively, you can leave this field empty if you would like to use relative pathing in MISP
         # 'baseurl' => '',
         # The base url of the application (in the format https://www.mymispinstance.com) as visible externally/by other MISPs.
         # MISP will encode this URL in sharing groups when including itself. If this value is not set, the baseurl is used as a fallback.
-        [ "${MISP_RELATIVE_URL-}" = "yes" ] ||  $SUDO_WWW "$CAKE" Admin setSetting "MISP.external_baseurl" "$MISP_EXTERNAL_URL"
+        [ "$UPGRADE_MISP" = 0 ] && [ "${MISP_RELATIVE_URL-}" != "yes" ] &&  $SUDO_WWW "$CAKE" Admin setSetting "MISP.external_baseurl" "$MISP_EXTERNAL_URL"
         
         # Enable GnuPG
-         $SUDO_WWW "$CAKE" Admin setSetting "GnuPG.email" "$MAIL_SENDER_ADDRESS"
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "GnuPG.email" "$MAIL_SENDER_ADDRESS"
          $SUDO_WWW "$CAKE" Admin setSetting "GnuPG.homedir" "$PATH_TO_MISP/.gnupg"
         # FIXME: what if we have not gpg binary but a gpg2 one?
-         $SUDO_WWW "$CAKE" Admin setSetting "GnuPG.binary" "$(which gpg)"
+         $SUDO_WWW "$CAKE" Admin setSetting "GnuPG.binary" "$(command -v gpg)"
         # Enable installer org and tune some configurables
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.host_org_id" 1
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.email" "$MAIL_SENDER_ADDRESS"
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.host_org_id" 1
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.email" "$MAIL_SENDER_ADDRESS"
         # Mail
         [ "${MAIL_ENABLE-}" = "no" ] &&  $SUDO_WWW "$CAKE" Admin setSetting "MISP.disable_emailing" true
         
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.contact" "$MAIL_CONTACT_ADDRESS"
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.disablerestalert" true
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.showCorrelationsOnIndex" true
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.default_event_tag_collection" 0
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.contact" "$MAIL_CONTACT_ADDRESS"
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.disablerestalert" true
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.showCorrelationsOnIndex" true
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.default_event_tag_collection" 0
         # Force defaults to make MISP Server Settings less RED
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.language" "eng"
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.proposals_block_attributes" false
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.language" "eng"
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.proposals_block_attributes" false
         # # Redis block
          $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_host" "$REDIS_FQDN"
          $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_port" "$REDIS_PORT"
@@ -530,6 +553,7 @@ echo "Initialize MISP Base Configuration..." && init_misp_config
 echo "Initialize Mail..." && init_msmtp
 
 ##### check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
+echo "Check upgrade tasks..." && upgrade_misp_config_via_cake_cli
 echo "Initialize MISP via Cake..." && init_via_cake_cli
 
 ##### Check permissions #####
