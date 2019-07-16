@@ -476,6 +476,8 @@ echo "$STARTMSG Check if misp-server is configured and file /var/www/MISP/app/Co
 # check volumes and upgrade if it is required
 echo "$STARTMSG Upgrade if it is required..." && upgrade
 
+echo "$STARTMSG Deactivate Apache2 Event Worker" && a2dismod mpm_event
+
 ##### Check permissions #####
     echo "$STARTMSG Configure MISP | Check permissions..."
     #echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
