@@ -20,6 +20,14 @@ missing_environment_var() {
     echo "Please set '$*' environment variable in docker-compose.override.yml file for misp-server!"
     exit
 }
+
+# first_version=5.100.2
+# second_version=5.1.2
+# if version_gt $first_version $second_version; then
+#      echo "$first_version is greater than $second_version !"
+# fi'
+version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
+
 #####################################
 
 if [ $# -eq 0 ]
@@ -124,15 +132,6 @@ fi
 usage() {
     echo "Help!"
 }
-
-# first_version=5.100.2
-# second_version=5.1.2
-# if version_gt $first_version $second_version; then
-#      echo "$first_version is greater than $second_version !"
-# fi'
-version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
-
-
 
 init_pgp(){
     echo "... init_pgp | Initialize PGP..."
@@ -263,18 +262,27 @@ init_misp_config(){
 }
 
 upgrade_misp_config_via_cake_cli(){
+    echo "... upgrade_misp_config_via_cake_cli | Check if MISP server should upgrade..."
     # Save old MISP Version
-    [ -f "$MISP_APP_PATH/files/MISP-dockerized" ] && OLD_MISP_VERSION=$(cat "$MISP_APP_PATH/files/MISP-dockerized")
+    [ -f "$MISP_APP_PATH/files/MISP-dockerized-server" ] && OLD_MISP_VERSION=$(cat "$MISP_APP_PATH/files/MISP-dockerized-server")
 
-    # Check if it is a upgrade
-    [ "$(version_gt "$VERSION" "$OLD_MISP_VERSION")" ] && UPGRADE_MISP=1
+    # Check if it should upgrade
+    [ ! "$(version_gt "$VERSION" "$OLD_MISP_VERSION")" ] && UPGRADE_MISP=1
 
-    # Update Versionsfiles
-    for i in $FOLDER_with_VERSIONS
-    do
-        echo "$VERSION" > "$i"
-    done
+    if [ "$UPGRADE_MISP" = 1 ];then
+        echo "... ... Upgrade will be done ..."
+        # Update Versionsfiles
+        for i in $FOLDER_with_VERSIONS
+        do
+            command echo "$VERSION" > "$i/MISP-dockerized-server"
+        done
 
+        echo "... upgrade_misp_config_via_cake_cli | Check if MISP server should upgrade...not required"
+        return
+    else
+        echo "... upgrade_misp_config_via_cake_cli | Check if MISP server should upgrade...finished"
+    fi
+    
 }
 
 init_via_cake_cli(){
@@ -319,7 +327,7 @@ init_via_cake_cli(){
         # # Redis block
          $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_host" "$REDIS_FQDN"
          $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_port" "$REDIS_PORT"
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_database" 13
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_database" 13
          $SUDO_WWW "$CAKE" Admin setSetting "MISP.redis_password" "$REDIS_PW"
         
         ############################################################
@@ -328,9 +336,9 @@ init_via_cake_cli(){
         #
         # Enable Enrichment
          $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_services_enable" true
-         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_hover_enable" true
-         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_timeout" 300
-         $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_hover_timeout" 150
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_hover_enable" true
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_timeout" 300
+         [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_hover_timeout" 150
          $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_services_url" "http://misp-modules"
          $SUDO_WWW "$CAKE" Admin setSetting "Plugin.Enrichment_services_port" 6666
         # Redis for ZeroMQ
