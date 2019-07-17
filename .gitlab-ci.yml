@@ -5,10 +5,6 @@ notify:
 variables:
   COMPONENT: server
 
-.test:
-  variables:
-    TEST: "false"
-
 include:
   - project: 'MISP/helper-containers'
     ref: master

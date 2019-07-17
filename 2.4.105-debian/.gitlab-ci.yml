@@ -6,14 +6,3 @@ build 2.4.105-debian:
     VERSION: "2.4.105"
     TAGS: "${FOLDER}-dev"
     RELEASE_DATE: 2019-07
-
-test 2.4.105-debian:
-  extends: .test
-  variables:
-    FOLDER: "2.4.105-debian"
-    VERSION: "2.4.105"
-    TAGS: "${FOLDER}-dev"
-    RELEASE_DATE: 2019-07
-  only:
-    changes:
-    - 2.4.105-debian/*
