@@ -1,12 +1,8 @@
-variables:
-    VERSION: "2.4.nightly-ubuntu"
 
 build 2.4.nightly-ubuntu:
   extends: .build
-  
-test 2.4.nightly-ubuntu:
-  extends: .test
-  only:
-    changes:
-    - 2.4.nightly-ubuntu/*
-    
+  variables:
+    FOLDER: "2.4.nightly-ubuntu"
+    VERSION: "2.4.nightly"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2018-10

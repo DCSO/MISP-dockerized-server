@@ -6,15 +6,3 @@ build 2.4.91-ubuntu:
     VERSION: "2.4.91"
     TAGS: "${FOLDER}-dev"
     RELEASE_DATE: 2018-06
-
-test 2.4.91-ubuntu:
-  extends: .test
-  variables:
-    FOLDER: "2.4.91-ubuntu"
-    VERSION: "2.4.91"
-    TAGS: "${FOLDER}-dev"
-    RELEASE_DATE: 2018-06
-  only:
-    changes:
-    - 2.4.91-ubuntu/*
-    
