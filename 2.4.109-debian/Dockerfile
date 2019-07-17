@@ -98,7 +98,8 @@ RUN \
     # Set Environment Variables
     ARG VERSION=2.4.nightly-debian
     ENV SUDO_WWW="gosu www-data" \
-        PATH_TO_MISP="/var/www/MISP"
+        PATH_TO_MISP="/var/www/MISP" \
+        VERSION=${VERSION}
     # Download MISP using git in the /var/www/ directory.
     # Attention: we replaced the fixed tag with a variable
     RUN set -e \
