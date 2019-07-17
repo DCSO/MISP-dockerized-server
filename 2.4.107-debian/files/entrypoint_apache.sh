@@ -52,22 +52,16 @@ fi
     MISP_APP_CONFIG_PATH="$MISP_APP_PATH/Config"
     MISP_CONFIG="$MISP_APP_CONFIG_PATH/config.php"
     MISP_DATABASE_CONFIG="$MISP_APP_CONFIG_PATH/database.php"
-    MISP_EMAIL_CONFIG="$MISP_APP_CONFIG_PATH/email.php"
     # CAKE
     CAKE=${CAKE:-"$MISP_APP_PATH/Console/cake"}
     CAKE_CONFIG="$MISP_APP_PATH/Plugin/CakeResque/Config/config.php"
     # SSL
-    SSL_CERT="/etc/apache2/ssl/cert.pem"
-    SSL_KEY="/etc/apache2/ssl/key.pem"
     SSL_DH_FILE="/etc/apache2/ssl/dhparams.pem"
     SSL_PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
     # PGP
     PGP_FOLDER="/var/www/MISP/.gnupgp"
     # SMIME
     SMIME_FOLDER="/var/www/MISP/.smime"
-    # Webserver Configuration
-    HTTPS_CONFIG="/etc/apache2/sites-enabled/misp.ssl.conf"
-    HTTP_CONFIG="/etc/apache2/sites-enabled/misp.conf"
     # MISC
     FOLDER_with_VERSIONS="/var/www/MISP/app/tmp /var/www/MISP/app/files \
                         /var/www/MISP/app/Plugin/CakeResque/Config \
@@ -298,7 +292,7 @@ init_via_cake_cli(){
          [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "Session.timeout" 600
          [ "$UPGRADE_MISP" = 0 ] && $SUDO_WWW "$CAKE" Admin setSetting "Session.cookieTimeout" 3600
         # Change base url, either with this CLI command or in the UI
-        [ "$UPGRADE_MISP" = 0 ] && [ "${MISP_RELATIVE_URL-}" = "yes" ] ||  $SUDO_WWW "$CAKE" Baseurl "$MISP_BASEURL"
+        [ "$UPGRADE_MISP" = 0 ] && [ "${MISP_RELATIVE_URL-}" != "yes" ] &&  $SUDO_WWW "$CAKE" Baseurl "$MISP_BASEURL"
         # example: 'baseurl' => 'https://<your.FQDN.here>',
         # alternatively, you can leave this field empty if you would like to use relative pathing in MISP
         # 'baseurl' => '',
@@ -345,6 +339,8 @@ init_via_cake_cli(){
          $SUDO_WWW "$CAKE" Admin setSetting "Plugin.ZeroMQ_redis_host" "$REDIS_FQDN"
          $SUDO_WWW "$CAKE" Admin setSetting "Plugin.ZeroMQ_redis_port" "$REDIS_PORT"
          $SUDO_WWW "$CAKE" Admin setSetting "Plugin.ZeroMQ_redis_password" "$REDIS_PW"
+        # Change Python bin directory
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.python_bin" "/var/www/MISP/venv"
 
         echo "... init_via_cake_cli | Cake initializing started...finished"
 

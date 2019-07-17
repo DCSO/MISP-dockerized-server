@@ -5,9 +5,9 @@ notify:
 variables:
   COMPONENT: server
 
-.build:
-  only:
-  - feat/MDD-151
+.test:
+  variables:
+    TEST: "false"
 
 include:
   - project: 'MISP/helper-containers'
