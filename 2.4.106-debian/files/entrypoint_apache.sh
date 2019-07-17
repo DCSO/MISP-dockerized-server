@@ -340,7 +340,7 @@ init_via_cake_cli(){
          $SUDO_WWW "$CAKE" Admin setSetting "Plugin.ZeroMQ_redis_port" "$REDIS_PORT"
          $SUDO_WWW "$CAKE" Admin setSetting "Plugin.ZeroMQ_redis_password" "$REDIS_PW"
         # Change Python bin directory
-         $SUDO_WWW "$CAKE" Admin setSetting "MISP.python_bin" "/var/www/MISP/venv"
+         $SUDO_WWW "$CAKE" Admin setSetting "MISP.python_bin" "/var/www/MISP/venv/bin/python3"
 
         echo "... init_via_cake_cli | Cake initializing started...finished"
 
