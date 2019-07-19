@@ -1,7 +1,11 @@
 # Description
+
 This container is part of the MISP-dockerized environment. The Project is hosted on github: https://github.com/DCSO/MISP-dockerized.
 
+[![Build Status](https://travis-ci.org/DCSO/MISP-dockerized-server.svg?branch=master)](https://travis-ci.org/DCSO/MISP-dockerized-server)
+
 # Documentation
+
 For this Container please look at https://dcso.github.io/MISP-dockerized-docs/container-information/MISP-dockerized-server.html
 
 See https://dcso.github.io/MISP-dockerized-docs/ for more documentation.

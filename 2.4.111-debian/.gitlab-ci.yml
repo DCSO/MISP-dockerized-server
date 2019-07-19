@@ -1,0 +1,8 @@
+
+build 2.4.111-debian:
+  extends: .build
+  variables:
+    FOLDER: "2.4.111-debian"
+    VERSION: "2.4.111"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2019-07

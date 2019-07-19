@@ -1,14 +1,8 @@
+
 build 2.4.93-ubuntu:
   extends: .build
   variables:
-    VERSION: "2.4.93-ubuntu"
-
-
-test 2.4.93-ubuntu:
-  extends: .test
-  variables:
-    VERSION: "2.4.93-ubuntu"
-  only:
-    changes:
-    - 2.4.93-ubuntu/*
-    
+    FOLDER: "2.4.93-ubuntu"
+    VERSION: "2.4.93"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2018-09

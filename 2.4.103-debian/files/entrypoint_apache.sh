@@ -5,7 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
 echo (){
-    command echo -e $1
+    command echo -e "$@"
 }
 
 STARTMSG="${Light_Green}[ENTRYPOINT_APACHE]${NC}"
@@ -157,7 +157,7 @@ init_misp_config(){
     # sed -i "s,'homedir' => '/',homedir'                        => '/var/www/MISP/.gnupg'," $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Change Salt in config.php"
-    sed -i "s/'salt'\\s*=>\\s*''/'salt'                        => '$MISP_SALT'/" $MISP_CONFIG
+    sed -i "s,'salt'\\s*=>\\s*'','salt'                        => '$MISP_SALT'," $MISP_CONFIG
 
     echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
     sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
@@ -419,7 +419,6 @@ upgrade(){
                 ;;
             *)
                 echo "$STARTMSG Unknown Version, upgrade not possible."
-                exit
                 ;;
             esac
             ############ DO ANY!!!
@@ -473,9 +472,13 @@ echo "$STARTMSG Check if cake setup should be initialized..." && setup_via_cake_
 echo "$STARTMSG Check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
     [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "$STARTMSG delete init config file and reboot" && rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
+# Disable MPM_EVENT Worker
+echo "$STARTMSG Deactivate Apache2 Event Worker" && a2dismod mpm_event
+
 ########################################################
 # check volumes and upgrade if it is required
 echo "$STARTMSG Upgrade if it is required..." && upgrade
+
 
 ##### Check permissions #####
     echo "$STARTMSG Configure MISP | Check permissions..."

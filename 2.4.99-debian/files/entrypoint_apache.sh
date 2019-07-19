@@ -103,7 +103,7 @@ function init_misp_config(){
 
     echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
     sed -i "s_.*baseurl.*=>.*_    \'baseurl\' => \'$MISP_URL\',_" $MISP_CONFIG
-    sudo $CAKE baseurl "$MISP_URL"
+    #sudo $CAKE baseurl "$MISP_URL"
 
     echo "$STARTMSG Configure MISP | Set Email in config.php"
     sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG

@@ -1,0 +1,8 @@
+
+build 2.4.105-debian:
+  extends: .build
+  variables:
+    FOLDER: "2.4.105-debian"
+    VERSION: "2.4.105"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2019-07

@@ -1,4 +1,8 @@
+
 build 2.4.92-ubuntu:
   extends: .build
   variables:
-    VERSION: "2.4.92-ubuntu"
+    FOLDER: "2.4.92-ubuntu"
+    VERSION: "2.4.92"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2018-06

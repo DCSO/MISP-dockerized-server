@@ -1,12 +1,8 @@
+
 build 2.4.98-debian:
   extends: .build
   variables:
-    VERSION: "2.4.98-debian"
-
-test 2.4.98-debian:
-  extends: .test
-  variables:
-    VERSION: "2.4.98-debian"
-  only:
-    changes:
-    - 2.4.98-debian/*
+    FOLDER: "2.4.98-debian"
+    VERSION: "2.4.98"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2018-11

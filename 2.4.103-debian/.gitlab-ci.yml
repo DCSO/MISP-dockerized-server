@@ -1,14 +1,8 @@
+
 build 2.4.103-debian:
   extends: .build
   variables:
-    VERSION: "2.4.103-debian"
-
-
-test 2.4.103-debian:
-  extends: .test
-  variables:
-    VERSION: "2.4.103-debian"
-  only:
-    changes:
-    - 2.4.103-debian/*
-    
+    FOLDER: "2.4.103-debian"
+    VERSION: "2.4.103"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2018-12
