@@ -139,8 +139,8 @@ EOF
 # create socket folder if not exists
 [ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
 ########################################################
-# CHMOD the configuration files
-echo "$STARTMSG chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
+# Own the directory
+echo "$STARTMSG chown -R mysql.mysql $DATADIR" && chown -R mysql.mysql $DATADIR
 ########################################################
 # Initialize mysql daemon
 [ ! -d "$DATADIR/$MYSQL_DATABASE" ] && init_mysql
