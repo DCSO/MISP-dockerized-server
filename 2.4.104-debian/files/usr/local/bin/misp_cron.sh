@@ -18,11 +18,18 @@ echo (){
     CAKE=${CAKE:-"$PATH_TO_MISP/app/Console/cake"}
     INTERVAL=${1:-'3600'}   # Default 3600 seconds
     USER_ID=${2:-'1'}       # Default user id 1 admin@admin.test
-
+    SERVER_IDS=${3:-'1'}
 
 #
 #   MAIN
 #
+
+# Exception Handling
+    # Stop cronjob if it should be disabled
+[ "${CRON_ENABLE-}" = "false" ] && echo "Stop cron job. Because it should be disabled." && exit 0
+    # Allow to start the script only as www-data user
+[ "$(whoami)" != "www-data" ] && echo "Please restart the script as www-data. Exit now." && exit 1
+
 
 while(true)
 do
@@ -49,11 +56,13 @@ do
         # Start Message
     echo "Start MISP-dockerized Cronjob at $COUNTER... "
 
-    # Pull: MISP/app/Console/cake Server pull [user_id] [server_id] [full|update]
-    echo "$CAKE Server pull $USER_ID..." && $CAKE Server pull "$USER_ID"
+    for SERVER_ID in $SERVER_IDS; do
+        # Pull: MISP/app/Console/cake Server pull [user_id] [server_id] [full|update]
+        echo "$CAKE Server pull $USER_ID..." && $CAKE Server pull "$USER_ID" "$SERVER_ID" full
 
-    # Push: MISP/app/Console/cake Server push [user_id] [server_id]
-    echo "$CAKE Server push $USER_ID..." && $CAKE Server push "$USER_ID"
+        # Push: MISP/app/Console/cake Server push [user_id] [server_id]
+        echo "$CAKE Server push $USER_ID..." && $CAKE Server push "$USER_ID" "$SERVER_ID"
+    done
 
     # CacheFeed: MISP/app/Console/cake Server cacheFeed [user_id] [feed_id|all|csv|text|misp]
     echo "$CAKE Server cacheFeed $USER_ID all..." && $CAKE Server cacheFeed "$USER_ID" all
