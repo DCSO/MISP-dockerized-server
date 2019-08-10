@@ -159,7 +159,7 @@ EOF
 
 # create an pid file for the entrypoint script.
 # entrypoint_apache start only if file is not in place.
-    echo "Create pid file: ${DATADIR}${0}.pid" touch "${DATADIR}${0}.pid" 
+    echo "Create pid file: ${DATADIR}${0}.pid" && touch "${DATADIR}${0}.pid" 
 # create socket folder if not exists
     [ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
 ########################################################
