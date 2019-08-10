@@ -161,9 +161,13 @@ EOF
 # entrypoint_apache start only if file is not in place.
     echo "Create pid file: ${DATADIR}${0}.pid" && touch "${DATADIR}${0}.pid" 
 # create socket folder if not exists
-    [ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
+    if [ ! -d "/var/run/mysqld" ];then
+        mkdir -p /var/run/mysqld
+        chown -R mysql.mysql /var/run/mysqld
+    fi
 ########################################################
 # Initialize mysql daemon
+    [ -d "$DATADIR/mysql" ] && echo "No MariaDB initialization"
     [ ! -d "$DATADIR/mysql" ] && init_mysql "$@"
 ########################################################
 # check volumes and upgrade if it is required

@@ -309,7 +309,7 @@ RUN set -eu \
     sudo -u www-data mkdir /var/www/MISP/.gnupg; \
     sudo -u www-data chmod 700 /var/www/MISP/.gnupg; \
     # for local MySQL Server: delete all config files
-    rm -Rf /var/lib/mysql/*; \
+    rm -Rf /var/lib/mysql; \
     # Change permissions of mysql config
     chmod -R 644 /etc/mysql/mariadb.conf.d/ ; \
     # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
