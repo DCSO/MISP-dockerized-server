@@ -1,51 +1,4 @@
 FROM debian:stretch-slim
-
-
-#     Variables for Labels:
-ARG VENDOR="DCSO GmbH"
-ARG COMPONENT="server"
-ARG BUILD_DATE
-ARG GIT_REPO
-ARG VCS_REF
-ARG VERSION
-ARG MISP_TAG=${VERSION}
-ARG RELEASE_DATE
-ARG NAME="MISP-dockerized-${COMPONENT}"
-ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
-ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
-ARG AUTHOR="DCSO MISP Docker Team <misp.docker@dcso.de>"
-ARG LICENSE="BSD-3-Clause"
-#     END Variables
-
-#########################################
-LABEL org.label-schema.build-date="${BUILD_DATE}" \
-        org.label-schema.name="${NAME}" \
-        org.label-schema.description="${DESCRIPTION}" \
-        org.label-schema.vcs-ref="${VCS_REF}" \
-        org.label-schema.vcs-url="${GIT_REPO}" \
-        org.label-schema.url="${GIT_REPO}" \
-        org.label-schema.vendor="${VENDOR}" \
-        org.label-schema.version="${VERSION}" \
-        org.label-schema.usage="${DOCUMENTATION}" \
-        org.label-schema.schema-version="1.0.0-rc1"
-
-LABEL   org.opencontainers.image.created="${BUILD_DATE}" \
-        org.opencontainers.image.url="${GIT_REPO}" \
-        org.opencontainers.image.source="${GIT_REPO}" \
-        org.opencontainers.image.version="${VERSION}" \
-        org.opencontainers.image.revision="${VCS_REF}" \
-        org.opencontainers.image.vendor="${VENDOR}" \
-        org.opencontainers.image.title="${NAME}" \
-        org.opencontainers.image.description="${DESCRIPTION}" \
-        org.opencontainers.image.documentation="${DOCUMENTATION}" \
-        org.opencontainers.image.authors="${AUTHOR}" \
-        org.opencontainers.image.licenses="${LICENSE}"
-#########################################
-
-
-#       Start of MISP Config Part
-
-# Install core components
 ENV DEBIAN_FRONTEND noninteractive
 
 # DCSO Required Software
@@ -56,7 +9,6 @@ net-tools \
 supervisor \
 gosu \
 wget \
-#syslog-ng \
 rsyslog \
 && apt-get autoremove -y && apt-get clean -y
 
@@ -161,41 +113,44 @@ RUN apt-get install -y \
         php-gnupg \
         && apt-get autoremove -y && apt-get clean -y
 
-
 # 3/ MISP code
 # ------------
+    ARG MISP_TAG=${VERSION}
+    ENV MISP_TAG=${MISP_TAG}
     # Download MISP using git in the /var/www/ directory.
     # Attention: we replaced the fixed tag with a variable
-    RUN git clone https://github.com/MISP/MISP.git /var/www/MISP; cd /var/www/MISP; git checkout tags/v${MISP_TAG}; chown www-data:www-data /var/www/MISP;
-
-    # Make git ignore filesystem permission differences
-    RUN cd /var/www/MISP; git config core.filemode false;
-
-    # CakePHP and a lot of other things is included as a submodule of MISP, execute the following commands to let git fetch it:
-    RUN cd /var/www/MISP; git submodule update --init --recursive;
-    # Make git ignore filesystem permission differences for submodules
-    RUN cd /var/www/MISP; git submodule foreach --recursive git config core.filemode false
+    RUN git clone https://github.com/MISP/MISP.git /var/www/MISP; \
+        cd /var/www/MISP; git checkout tags/v${MISP_TAG}; \
+        chown www-data:www-data /var/www/MISP; \
+        # Make git ignore filesystem permission differences
+        cd /var/www/MISP; git config core.filemode false; \
+        # CakePHP and a lot of other things is included as a submodule of MISP, execute the following commands to let git fetch it:
+        cd /var/www/MISP; git submodule update --init --recursive; \
+        # Make git ignore filesystem permission differences for submodules
+        cd /var/www/MISP; git submodule foreach --recursive git config core.filemode false
 
     # install Mitre's STIX and its dependencies by running the following commands:
-        # install mixbox to accomodate the new STIX dependencies:
-        RUN cd /var/www/MISP/app/files/scripts; \
-            git clone https://github.com/CybOXProject/mixbox.git; \
-            cd mixbox; python3 setup.py install; \
-        # install python-maec
-            cd /var/www/MISP/app/files/scripts; \
-            git clone https://github.com/MAECProject/python-maec.git; \
-            cd python-maec; python3 setup.py install; \
-        # install python-cybox
-            cd /var/www/MISP/app/files/scripts; \
-            git clone https://github.com/CybOXProject/python-cybox.git; \
-            cd python-cybox; python3 setup.py install; \
-        # install python stix
-            cd /var/www/MISP/app/files/scripts; \
-            git clone https://github.com/STIXProject/python-stix.git; \
-            cd python-stix; python3 setup.py install;
+    # install mixbox to accomodate the new STIX dependencies:
+    RUN set -eu \
+        ;cd /var/www/MISP/app/files/scripts; \
+        git clone https://github.com/CybOXProject/mixbox.git; \
+        cd mixbox; python3 setup.py install; \
+    # install python-maec
+        cd /var/www/MISP/app/files/scripts; \
+        git clone https://github.com/MAECProject/python-maec.git; \
+        cd python-maec; python3 setup.py install; \
+    # install python-cybox
+        cd /var/www/MISP/app/files/scripts; \
+        git clone https://github.com/CybOXProject/python-cybox.git; \
+        cd python-cybox; python3 setup.py install; \
+    # install python stix
+        cd /var/www/MISP/app/files/scripts; \
+        git clone https://github.com/STIXProject/python-stix.git; \
+        cd python-stix; python3 setup.py install;
         
     # install STIX2.0 library to support STIX 2.0 export:
-    RUN cd /var/www/MISP/ \
+    RUN set -eu \
+        ;cd /var/www/MISP/ \
         ;cd cti-python-stix2; python3 setup.py install \
     # install PyMISP
         ;cd /var/www/MISP/ \
@@ -206,11 +161,11 @@ RUN apt-get install -y \
         ;pear install INSTALL/dependencies/Crypt_GPG/package.xml
 
 
-    RUN \
+    RUN set -eu \
         # pymisp:… Please install pymisp: pip install pymisp
             #pip install pymisp \
         # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
-            pip install git+https://github.com/kbandla/pydeep.git \
+            ;pip install git+https://github.com/kbandla/pydeep.git \
         # #magic:… Please install python-magic: pip install python-magic.
             ;pip install python-magic \
         # #lief:… Please install lief, documentation here: https://github.com/lief-project/LIEF
@@ -237,8 +192,8 @@ RUN apt-get install -y \
 # 4/ CakePHP
 # ------------
     # Once done, install CakeResque along with its dependencies if you intend to use the built in background jobs:
-    RUN \
-        cd /var/www/MISP/app \
+    RUN set -eu \
+        ;cd /var/www/MISP/app \
         ;php composer.phar require kamisama/cake-resque:4.1.2 \
         ;php composer.phar config vendor-dir Vendor \
         ;php composer.phar install \
@@ -262,8 +217,6 @@ RUN apt-get install -y \
 
 
 
-
-
 # 6/ Create a database and user
 # -----------------------------
     # At the moment this will be done via entypoint_mariadb.sh script
@@ -276,8 +229,8 @@ RUN apt-get install -y \
     COPY files/etc/apache2/sites-enabled/misp.ssl /etc/apache2/sites-enabled/
     COPY files/etc/apache2/sites-enabled/misp.conf /etc/apache2/sites-enabled/
     COPY files/etc/apache2/ports.conf /etc/apache2/ports.conf
-    RUN \
-        chmod 640 /etc/apache2/ports.conf \
+    RUN set -eu \
+        ;chmod 640 /etc/apache2/ports.conf \
         ;chown root.root /etc/apache2/ports.conf \
         ;chmod 640 /etc/apache2/sites-available/* \
         ;chown root.root /etc/apache2/sites-available/* \
@@ -316,8 +269,8 @@ RUN apt-get install -y \
 # ADD additionall modules
     # MISP has a new pub/sub feature, using ZeroMQ. To enable it, simply run the following command
     # ZeroMQ depends on the Python client for Redis
-    RUN \
-        pip3 install pyzmq \
+    RUN set -eu \
+        ;pip3 install pyzmq \
         ;pip3 install redis \
         ;pip install pyzmq \
         ;pip install redis \
@@ -338,24 +291,30 @@ RUN apt-get install -y \
         do \
             echo "extension=ssdeep.so" > /etc/php/$FILE/mods-available/ssdeep.ini; \
             phpenmod ssdeep; \
-        done;
+        done \
+        ;
 
 
 #########################################
 #       Start of DCSO MISP Config Part
 
+# add own mysql config
+    COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
+
 # for S/MIME
-RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
+RUN set -eu \
+    ;sudo -u www-data mkdir /var/www/MISP/.smime; \
     sudo -u www-data chmod 500 /var/www/MISP/.smime; \
 # for PGP
     sudo -u www-data mkdir /var/www/MISP/.gnupg; \
     sudo -u www-data chmod 700 /var/www/MISP/.gnupg; \
     # for local MySQL Server: delete all config files
-    rm -Rf /var/lib/mysql/*;
-    
-# add own mysql config
-    COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
-    RUN chmod -R 644 /etc/mysql/mariadb.conf.d/
+    rm -Rf /var/lib/mysql/*; \
+    # Change permissions of mysql config
+    chmod -R 644 /etc/mysql/mariadb.conf.d/ ; \
+    # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
+    touch "/var/www/MISP/app/Config/NOT_CONFIGURED" \
+    ;
 
 # Copy patch File for MISP Events Page with additional Analyse Column
     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /
@@ -370,9 +329,6 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
 # Postfix
 # Copy files to postfix container
     COPY files/etc/postfix/* /etc/postfix/
-
-# I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
-    RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 # MISP Update and MISP Cron
     COPY --chown=www-data:www-data files/usr/local/bin/misp_update.sh /usr/local/bin/
@@ -391,12 +347,26 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
     COPY files/entrypoint_rsyslog.sh /
     COPY files/entrypoint_workers.sh /
     COPY files/entrypoint.sh /
-
-# Supervisord
     ENTRYPOINT [ "/entrypoint.sh" ]
 
+# Change Workdirectory
+    WORKDIR /var/www/MISP
+
+# Variables for Labels:
+    ARG VENDOR="DCSO GmbH"
+    ARG COMPONENT="server"
+    ARG BUILD_DATE
+    ARG GIT_REPO
+    ARG VCS_REF
+    ARG VERSION
+    ARG RELEASE_DATE
+    ARG NAME="MISP-dockerized-${COMPONENT}"
+    ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
+    ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
+    ARG AUTHOR="DCSO MISP Docker Team <misp.docker@dcso.de>"
+    ARG LICENSE="BSD-3-Clause"
+
 # Environment Variables
-    # CMD
     ENV CMD_MYSQL=mysqld \
         CMD_APACHE=none \
         CMD_REDIS="--appendonly yes" \
@@ -432,8 +402,29 @@ RUN sudo -u www-data mkdir /var/www/MISP/.smime; \
         # ENV LC_ALL ${LANG}
         LANGUAGE=en_US:en
 
+# Labels
+LABEL org.label-schema.build-date="${BUILD_DATE}" \
+        org.label-schema.name="${NAME}" \
+        org.label-schema.description="${DESCRIPTION}" \
+        org.label-schema.vcs-ref="${VCS_REF}" \
+        org.label-schema.vcs-url="${GIT_REPO}" \
+        org.label-schema.url="${GIT_REPO}" \
+        org.label-schema.vendor="${VENDOR}" \
+        org.label-schema.version="${VERSION}" \
+        org.label-schema.usage="${DOCUMENTATION}" \
+        org.label-schema.schema-version="1.0.0-rc1"
 
-WORKDIR /var/www/MISP
+LABEL   org.opencontainers.image.created="${BUILD_DATE}" \
+        org.opencontainers.image.url="${GIT_REPO}" \
+        org.opencontainers.image.source="${GIT_REPO}" \
+        org.opencontainers.image.version="${VERSION}" \
+        org.opencontainers.image.revision="${VCS_REF}" \
+        org.opencontainers.image.vendor="${VENDOR}" \
+        org.opencontainers.image.title="${NAME}" \
+        org.opencontainers.image.description="${DESCRIPTION}" \
+        org.opencontainers.image.documentation="${DOCUMENTATION}" \
+        org.opencontainers.image.authors="${AUTHOR}" \
+        org.opencontainers.image.licenses="${LICENSE}"
 
 #       End of DCSO MISP Config Part
 #########################################

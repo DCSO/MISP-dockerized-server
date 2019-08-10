@@ -90,10 +90,10 @@ gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
 echo "$STARTMSG Database initialized"
 
 echo "$STARTMSG Start mysqld to setup"
-#"$@" --skip-networking --socket="${SOCKET}" &
 start_mysql &
 # test if mysqld is ready
 check_mysql
+echo "$STARTMSG Create database $MYSQL_DATABASE, change root password and add $MYSQL_USER"
 ########################################################
 $MYSQL_INIT_CMD << EOF
 -- What's done in this file shouldn't be replicated
@@ -128,7 +128,7 @@ EOF
 ########################################################
 # create debian.cnf
 debian_conf=/etc/mysql/debian.cnf
-
+echo "$STARTMSG Write $debian_conf"
 # add debian.cnf File
 cat << EOF > $debian_conf
 #	MYSQL Configuration from DCSO
@@ -146,7 +146,6 @@ basedir  = /usr
 
 EOF
     ########################################################
-set +xv
 
 }
 
@@ -160,7 +159,7 @@ set +xv
 
 # create an pid file for the entrypoint script.
 # entrypoint_apache start only if file is not in place.
-    touch "${DATADIR}${0}.pid" 
+    echo "Create pid file: ${DATADIR}${0}.pid" touch "${DATADIR}${0}.pid" 
 # create socket folder if not exists
     [ ! -d "/var/run/mysqld" ] && mkdir -p /var/run/mysqld && chown -R mysql.mysql /var/run/mysqld
 ########################################################
@@ -181,6 +180,6 @@ set +xv
 ########################################################
 # start mysql deamon
     # delete PID file
-    rm "${DATADIR}${0}.pid"
+    echo "$STARTMSG Remove pid file: ${DATADIR}${0}.pid" && rm -v "${DATADIR}${0}.pid"
     # start daemon
     echo "$STARTMSG start longtime mysql..." && start_mysql "$@"
