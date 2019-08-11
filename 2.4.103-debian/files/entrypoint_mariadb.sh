@@ -177,7 +177,7 @@ EOF
     echo "$STARTMSG stopping mysql..." && service mysql stop
 ########################################################
 # Own the directory
-    echo "$STARTMSG chown -R mysql.mysql $DATADIR/*" && chown -R mysql.mysql $DATADIR/*
+    echo "$STARTMSG chown -R mysql.mysql $DATADIR" && chown -R mysql.mysql $DATADIR
 ########################################################
 # CHMOD the configuration files
     echo "$STARTMSG chmod -R 644 /etc/mysql/*" && chmod -R 644 /etc/mysql/*
