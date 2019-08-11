@@ -301,20 +301,20 @@ RUN apt-get install -y \
 # add own mysql config
     COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
 
-# for S/MIME
-RUN set -eu \
-    ;sudo -u www-data mkdir /var/www/MISP/.smime; \
-    sudo -u www-data chmod 500 /var/www/MISP/.smime; \
-# for PGP
-    sudo -u www-data mkdir /var/www/MISP/.gnupg; \
-    sudo -u www-data chmod 700 /var/www/MISP/.gnupg; \
-    # for local MySQL Server: delete all config files
-    rm -Rf /var/lib/mysql; \
-    # Change permissions of mysql config
-    chmod -R 644 /etc/mysql/mariadb.conf.d/ ; \
-    # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
-    touch "/var/www/MISP/app/Config/NOT_CONFIGURED" \
-    ;
+    RUN set -eu \
+        # for S/MIME
+        ;gosu www-data mkdir /var/www/MISP/.smime \
+        ;gosu  www-data chmod 500 /var/www/MISP/.smime \
+        # for PGP
+        ;sudo -u www-data mkdir /var/www/MISP/.gnupg \
+        ;sudo -u www-data chmod 700 /var/www/MISP/.gnupg \
+        # for local MySQL Server: delete all config files
+        ;rm -Rf /var/lib/mysql \
+        # Change permissions of mysql config
+        ;chmod -R 644 /etc/mysql/mariadb.conf.d/ \
+        # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
+        ;touch "/var/www/MISP/app/Config/NOT_CONFIGURED" \
+        ;
 
 # Copy patch File for MISP Events Page with additional Analyse Column
     COPY --chown=www-data:www-data files/var/www/MISP/app/View/Elements/Events/eventIndexTable.patch /

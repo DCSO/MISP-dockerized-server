@@ -159,7 +159,7 @@ EOF
 
 # create an pid file for the entrypoint script.
 # entrypoint_apache start only if file is not in place.
-    echo "Create pid file: ${DATADIR}${0}.pid" && touch "${DATADIR}${0}.pid" 
+    echo "$STARTMSG Create pid file: ${DATADIR}${0}.pid" && touch "${DATADIR}${0}.pid" 
 # create socket folder if not exists
     if [ ! -d "/var/run/mysqld" ];then
         mkdir -p /var/run/mysqld
@@ -167,7 +167,7 @@ EOF
     fi
 ########################################################
 # Initialize mysql daemon
-    [ -d "$DATADIR/mysql" ] && echo "No MariaDB initialization"
+    [ -d "$DATADIR/mysql" ] && echo "$STARTMSG MariaDB is initialized"
     [ ! -d "$DATADIR/mysql" ] && init_mysql "$@"
 ########################################################
 # check volumes and upgrade if it is required
