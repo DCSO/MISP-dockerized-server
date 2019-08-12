@@ -106,10 +106,16 @@ ENV LANGUAGE=en_US:en
 
 
     # Install MariaDB (a MySQL fork/alternative) | Server has its own container!!!
-    RUN apt-get install -y \
-        mariadb-client \
-        mariadb-server \
-        && apt-get autoremove -y && apt-get clean -y
+    RUN set -eu \
+        ;apt-get install -y \
+            mariadb-client \
+            mariadb-server \
+        && apt-get autoremove -y && apt-get clean -y \
+        # for local MySQL Server: delete all config files
+        ;rm -Rf /var/lib/mysql \
+        # Change permissions of mysql config
+        ;chmod -R 644 /etc/mysql/mariadb.conf.d/ \
+        ;
 
 
     # Install Apache
