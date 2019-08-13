@@ -53,7 +53,7 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 [ -z "${PHP_POST_MAX_SIZE}" ] && PHP_POST_MAX_SIZE="50M"
 
 [ -z "$REDIS_FQDN" ] && REDIS_FQDN=localhost
-
+[ "$REDIS_FQDN" = "misp-server" ] && REDIS_FQDN=localhost
 
 init_pgp(){
     local FOLDER="/var/www/MISP/.gnupgp/public.key"
@@ -490,7 +490,7 @@ echo "$STARTMSG Upgrade if it is required..." && upgrade
     echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
 
 # delete pid file
-[ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
+[ -f $ENTRYPOINT_PID_FILE ] && rm -v $ENTRYPOINT_PID_FILE
 
 # START APACHE2
 echo "$STARTMSG ####################################  started Apache2 with cmd: '$CMD_APACHE' ####################################"
