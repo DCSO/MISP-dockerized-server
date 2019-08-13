@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-export DEBIAN_FRONTEND=noninteractive
+DEBIAN_FRONTEND=noninteractive
 
 NC='\033[0m' # No Color
 Light_Green='\033[1;32m'  
@@ -35,20 +35,20 @@ PID_CERT_CREATER="/etc/apache2/ssl/SSL_create.pid"
 [ -z "$PGP_ENABLE" ] && PGP_ENABLE=false
 [ -z "$SMIME_ENABLE" ] && SMIME_ENABLE=false
 ( [ -z "$MISP_URL" ] && [ -z "$MISP_FQDN" ] ) && echo "Please set 'MISP_FQDN' or 'MISP_URL' environment variable in docker-compose.override.yml file for misp-server!!!" && exit
-( [ -z "$MISP_URL" ] && [ ! -z "$MISP_FQDN" ] ) && export MISP_URL="https://$(echo "$MISP_FQDN"|cut -d '/' -f 3)"
-[ -z "$PGP_ENABLE" ] && export PGP_ENABLE=0
-[ -z "$SMIME_ENABLE" ] && export SMIME_ENABLE=0
-[ -z "$MYSQL_HOST" ] && export MYSQL_HOST=localhost
-[ -z "$MYSQL_PORT" ] && export MYSQL_PORT=3306
-[ -z "$MYSQL_USER" ] && export MYSQL_USER=misp
-[ -z "$SENDER_ADDRESS" ] && export SENDER_ADDRESS="no-reply@$MISP_FQDN"
-[ -z "$MISP_SALT" ] && export MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
+( [ -z "$MISP_URL" ] && [ ! -z "$MISP_FQDN" ] ) && MISP_URL="https://$(echo "$MISP_FQDN"|cut -d '/' -f 3)"
+[ -z "$PGP_ENABLE" ] && PGP_ENABLE=0
+[ -z "$SMIME_ENABLE" ] && SMIME_ENABLE=0
+[ -z "$MYSQL_HOST" ] && MYSQL_HOST=localhost
+[ -z "$MYSQL_PORT" ] && MYSQL_PORT=3306
+[ -z "$MYSQL_USER" ] && MYSQL_USER=misp
+[ -z "$SENDER_ADDRESS" ] && SENDER_ADDRESS="no-reply@$MISP_FQDN"
+[ -z "$MISP_SALT" ] && MISP_SALT="$(</dev/urandom tr -dc A-Za-z0-9 | head -c 50)"
 
-[ -z "$CAKE" ] && export CAKE="$MISP_APP_PATH/Console/cake"
-[ -z "$MYSQLCMD" ] && export MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N  $MYSQL_DATABASE"
+[ -z "$CAKE" ] && CAKE="$MISP_APP_PATH/Console/cake"
+[ -z "$MYSQLCMD" ] && MYSQLCMD="mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N  $MYSQL_DATABASE"
 
-[ -z "${PHP_MEMORY_LIMIT}" ] && PHP_MEMORY_LIMIT="512M"
-[ -z "${PHP_MAX_EXECUTION_TIME}" ] && PHP_MAX_EXECUTION_TIME="600"
+[ -z "${PHP_MEMORY_LIMIT}" ] && PHP_MEMORY_LIMIT="1024M"
+[ -z "${PHP_MAX_EXECUTION_TIME}" ] && PHP_MAX_EXECUTION_TIME="900"
 [ -z "${PHP_UPLOAD_MAX_FILESIZE}" ] && PHP_UPLOAD_MAX_FILESIZE="50M"
 [ -z "${PHP_POST_MAX_SIZE}" ] && PHP_POST_MAX_SIZE="50M"
 
@@ -67,7 +67,7 @@ init_pgp(){
         echo "$STARTMSG No public PGP key found in $FOLDER."
         return
     else
-        export PGP_ENABLE=true
+        PGP_ENABLE=true
         echo "$STARTMSG ###### PGP Key exists and copy it to MISP webroot #######"
 
         # Copy public key to the right place
@@ -92,7 +92,7 @@ init_smime(){
         ### Set permissions
         chown www-data:www-data /var/www/MISP/.smime
         chmod 500 /var/www/MISP/.smime
-        ## Export the public certificate (for Encipherment) to the webroot
+        ## the public certificate (for Encipherment) to the webroot
         sudo -u www-data sh -c "cp /var/www/MISP/.smime/cert.pem /var/www/MISP/app/webroot/public_certificate.pem"
         #Due to this action, the MISP users will be able to download your public certificate (for Encipherment) by clicking on the footer
         ### Set permissions
@@ -203,7 +203,7 @@ setup_via_cake_cli(){
         sudo $CAKE Admin setSetting "Plugin.Import_timeout" 300
         sudo $CAKE Admin setSetting "Plugin.Import_ocr_enabled" true
         sudo $CAKE Admin setSetting "Plugin.Import_csvimport_enabled" true
-        # Enable Export modules set better timout
+        # Enable modules set better timout
         sudo $CAKE Admin setSetting "Plugin.Export_services_enable" true
         sudo $CAKE Admin setSetting "Plugin.Export_services_url" "http://misp-modules"
         sudo $CAKE Admin setSetting "Plugin.Export_services_port" 6666
