@@ -16,10 +16,13 @@ init_redis() {
 	if [ "$1" = 'redis-server' ] && [ "$(id -u)" = '0' ]; then
 		chown -R redis .
 		gosu redis "$0" "$* --daemonize no --bind 0.0.0.0 --protected-mode no --logfile /dev/stdout"
+	else
+		echo -e "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"
+		"$@"
 	fi
 
-	echo -e "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"
-	exec "$@"
+	
 }
 
-init_redis "$CMD_REDIS"
+# shellcheck disable=SC2086
+init_redis $CMD_REDIS
