@@ -12,7 +12,7 @@ include:
 #
 # For a cleaner Gitlab CI file include all subfolder which should be build:
 #
-  - '2.4.nightly-ubuntu/.gitlab-ci.yml'
+  #- '2.4.nightly-ubuntu/.gitlab-ci.yml'
   - '2.4.nightly-debian/.gitlab-ci.yml'
   - '2.4.88-ubuntu/.gitlab-ci.yml'
   - '2.4.89-ubuntu/.gitlab-ci.yml'
