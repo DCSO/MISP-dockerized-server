@@ -1,0 +1,32 @@
+
+2.4.113-debian:
+  extends: .build
+  variables:
+    FOLDER: "$CI_JOB_NAME-debian"
+    VERSION: "$CI_JOB_NAME"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2019-08
+  only:
+    changes:
+      - $CI_JOB_NAME/*
+ 
+ 2.4.113-debian:
+  extends: .build
+  variables:
+    FOLDER: "$CI_JOB_NAME-debian"
+    VERSION: "$CI_JOB_NAME"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2019-08
+  only:
+    refs:
+      - schedules 
+
+ 2.4.113-debian:
+  extends: .build
+  variables:
+    FOLDER: "$CI_JOB_NAME-debian"
+    VERSION: "$CI_JOB_NAME"
+    TAGS: "${FOLDER}-dev"
+    RELEASE_DATE: 2019-08
+  when: manual
+  

@@ -41,4 +41,5 @@ include:
   - '2.4.110-debian/.gitlab-ci.yml'
   - '2.4.111-debian/.gitlab-ci.yml'
   - '2.4.112-debian/.gitlab-ci.yml'
+  - '2.4.113-debian/.gitlab-ci.yml'
 
