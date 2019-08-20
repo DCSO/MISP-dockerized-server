@@ -1,8 +1,36 @@
-
-build 2.4.112-debian:
+2.4.112 Changes:
   extends: .build
   variables:
     FOLDER: "2.4.112-debian"
     VERSION: "2.4.112"
-    TAGS: "${FOLDER}-dev"
+    TAGS: "${FOLDER}-dev latest-dev"
     RELEASE_DATE: 2019-08
+  only:
+    changes:
+      - 2.4.112-debian/*
+  except:
+    refs:
+      - schedules
+ 
+2.4.112 Scheduler:
+  extends: .build
+  variables:
+    FOLDER: "2.4.112-debian"
+    VERSION: "2.4.112"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2019-08
+  only:
+    refs:
+      - schedules 
+
+2.4.112 Manual:
+  extends: .build
+  variables:
+    VERSION: "2.4.112"
+    FOLDER: "2.4.112-debian"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2019-08
+  when: manual
+  except:
+    refs:
+      - schedules
