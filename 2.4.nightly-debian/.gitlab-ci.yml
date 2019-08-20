@@ -7,7 +7,7 @@
     RELEASE_DATE: 2019-06
   only:
     changes:
-      - ${CI_JOB_NAME}-debian/*
+      - 2.4.nightly-debian/*
  
 2.4.nightly Scheduler:
   extends: .build
