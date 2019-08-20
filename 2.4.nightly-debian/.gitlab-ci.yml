@@ -1,4 +1,4 @@
-2.4.nightly:
+2.4.nightly Changes:
   extends: .build
   variables:
     FOLDER: "2.4.nightly-debian"
@@ -8,8 +8,11 @@
   only:
     changes:
       - 2.4.nightly-debian/*
+  except:
+    refs:
+      - schedules
  
-2.4.nightly:
+2.4.nightly Scheduler:
   extends: .build
   variables:
     FOLDER: "2.4.nightly-debian"
@@ -20,7 +23,7 @@
     refs:
       - schedules 
 
-2.4.nightly:
+2.4.nightly Manual:
   extends: .build
   variables:
     VERSION: "2.4.nightly"
@@ -28,4 +31,6 @@
     TAGS: "${FOLDER}-dev latest-dev"
     RELEASE_DATE: 2019-06
   when: manual
-  
+  except:
+    refs:
+      - schedules
