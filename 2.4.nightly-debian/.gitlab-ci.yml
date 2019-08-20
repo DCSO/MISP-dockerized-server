@@ -1,8 +1,31 @@
-
-build 2.4.nightly-debian:
+2.4.nightly:
   extends: .build
   variables:
-    FOLDER: "2.4.nightly-debian"
-    VERSION: "2.4.nightly"
+    FOLDER: "$CI_JOB_NAME-debian"
+    VERSION: "$CI_JOB_NAME"
     TAGS: "${FOLDER}-dev latest-dev"
     RELEASE_DATE: 2019-06
+  only:
+    changes:
+      - $CI_JOB_NAME/*
+ 
+2.4.nightly:
+  extends: .build
+  variables:
+    FOLDER: "$CI_JOB_NAME-debian"
+    VERSION: "$CI_JOB_NAME"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2019-06
+  only:
+    refs:
+      - schedules 
+
+2.4.nightly:
+  extends: .build
+  variables:
+    FOLDER: "$CI_JOB_NAME-debian"
+    VERSION: "$CI_JOB_NAME"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2019-06
+  when: manual
+  
