@@ -39,16 +39,39 @@ env:
   - VERSION=2.4.111 FOLDER=$VERSION-debian
   - VERSION=2.4.112 FOLDER=$VERSION-debian
 
+before_install:
+# Pull Kaniko Image
+- docker pull gcr.io/kaniko-project/executor:latest
+# Login to hub.docker.com
+- echo "$DOCKER_PASSWORD" | docker login -u $DOCKER_USERNAME --password-stdin
+
+install:
+# Add docker-retag executable
+- wget -q https://github.com/joshdk/docker-retag/releases/download/0.0.2/docker-retag && chmod +x docker-retag
+# Add env variables for docker-retag
+- export DOCKER_USER=$DOCKER_USERNAME
+- export DOCKER_PASS=$DOCKER_PASSWORD
 
 script:
-- docker build -f "$FOLDER/Dockerfile" 
-                      --build-arg VCS_REF="$TRAVIS_COMMIT" 
-                      --build-arg VERSION="$VERSION" 
-                      --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
-                      --build-arg COMPONENT="$COMPONENT"
-                      --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
-                      "$FOLDER"
+# Build Image via kaniko
+- docker run
+    -v "$TRAVIS_BUILD_DIR/$FOLDER":/workspace
+    -v $HOME/.docker:/kaniko/.docker
+  gcr.io/kaniko-project/executor:latest
+    --context=/workspace
+    --build-arg VCS_REF=$TRAVIS_COMMIT
+    --build-arg VERSION=$FOLDER
+    --build-arg GIT_REPO=https://github.com/$TRAVIS_REPO_SLUG
+    --build-arg COMPONENT=$COMPONENT
+    --build-arg BUILD_DATE=$(date -u +"%Y-%m-%d")
+    --verbosity=info
+    --destination=$DOCKER_SLUG/misp-dockerized-$COMPONENT:$FOLDER
 
+# Retag images for other tags
+- for i in $ADD_TAG;
+  do
+    ./docker-retag $DOCKER_SLUG/misp-dockerized-$COMPONENT:$FOLDER $i;
+  done
 
 # # don't notify me when things fail
 # notifications:
