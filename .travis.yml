@@ -38,6 +38,7 @@ env:
   - VERSION=2.4.110 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
   - VERSION=2.4.111 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
   - VERSION=2.4.112 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.113 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
 
 before_install:
 # Pull Kaniko Image
