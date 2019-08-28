@@ -21,9 +21,9 @@ echo (){
 
 
 # Environment Variables
-INTERVAL=${CRON_INTERVAL:-'3600'}   # Default 3600 seconds
-USER_ID=${CRON_USER_ID:-'1'}       # Default user id 1 admin@admin.test
-
+INTERVAL=${CRON_INTERVAL:-'3600'}
+USER_ID=${CRON_USER_ID:-'1'} 
+SERVER_IDS=${CRON_SERVER_IDS:-'1'}
 
 #
 #   MAIN
@@ -56,6 +56,6 @@ else
     # wait for the first round
     echo "Wait $INTERVAL seconds, then start the first intervall." && sleep "$INTERVAL" 
     # start cron job
-    echo "Start cron job" && misp_cron "$INTERVAL" "$USER_ID"
+    echo "Start cron job" && misp_cron "$INTERVAL" "$USER_ID" "$SERVER_IDS"
 fi
 

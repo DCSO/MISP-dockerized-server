@@ -11,43 +11,68 @@ env:
   - COMPONENT=server
   matrix:
   # Activate only Supported and Nightly Images.
-  - VERSION=2.4.nightly FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.nightly FOLDER=$VERSION-debian
-  - VERSION=2.4.88 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.89 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.90 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.91 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.92 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.93 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.94 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.95 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.96 FOLDER=$VERSION-ubuntu
-  - VERSION=2.4.97 FOLDER=$VERSION-debian
-  - VERSION=2.4.98 FOLDER=$VERSION-debian
-  - VERSION=2.4.99 FOLDER=$VERSION-debian
-  - VERSION=2.4.100 FOLDER=$VERSION-debian
-  - VERSION=2.4.101 FOLDER=$VERSION-debian
-  - VERSION=2.4.102 FOLDER=$VERSION-debian
-  - VERSION=2.4.103 FOLDER=$VERSION-debian
-  - VERSION=2.4.104 FOLDER=$VERSION-debian
-  - VERSION=2.4.105 FOLDER=$VERSION-debian
-  - VERSION=2.4.106 FOLDER=$VERSION-debian
-  - VERSION=2.4.107 FOLDER=$VERSION-debian
-  - VERSION=2.4.108 FOLDER=$VERSION-debian
-  - VERSION=2.4.109 FOLDER=$VERSION-debian
-  - VERSION=2.4.110 FOLDER=$VERSION-debian
-  - VERSION=2.4.111 FOLDER=$VERSION-debian
+  - VERSION=2.4.nightly FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.nightly FOLDER=$VERSION-debian TAG="$FOLDER-dev" ADD_TAG="latest-dev"
+  - VERSION=2.4.88 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.89 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.90 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.91 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.92 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.93 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.94 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.95 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.96 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  - VERSION=2.4.97 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.98 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.99 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.100 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.101 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.102 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.103 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.104 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.105 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.106 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.107 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.108 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.109 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.110 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.111 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.112 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
+  - VERSION=2.4.113 FOLDER=$VERSION-debian TAG="$FOLDER-dev"
 
+before_install:
+# Pull Kaniko Image
+- docker pull gcr.io/kaniko-project/executor:latest
+# Login to hub.docker.com
+- echo "$DOCKER_PASSWORD" | docker login -u $DOCKER_USERNAME --password-stdin
+
+install:
+# Add docker-retag executable
+- wget -q https://github.com/joshdk/docker-retag/releases/download/0.0.2/docker-retag && chmod +x docker-retag
+# Add env variables for docker-retag
+- export DOCKER_USER=$DOCKER_USERNAME
+- export DOCKER_PASS=$DOCKER_PASSWORD
 
 script:
-- docker build -f "$FOLDER/Dockerfile" 
-                      --build-arg VCS_REF="$TRAVIS_COMMIT" 
-                      --build-arg VERSION="$VERSION" 
-                      --build-arg GIT_REPO="https://github.com/$TRAVIS_REPO_SLUG" 
-                      --build-arg COMPONENT="$COMPONENT"
-                      --build-arg BUILD_DATE="$(date -u +"%Y-%m-%d")"
-                      "$FOLDER"
+# Build Image via kaniko
+- docker run
+    -v "$TRAVIS_BUILD_DIR/$FOLDER":/workspace
+    -v $HOME/.docker:/kaniko/.docker
+  gcr.io/kaniko-project/executor:latest
+    --context=/workspace
+    --build-arg VCS_REF=$TRAVIS_COMMIT
+    --build-arg VERSION=$VERSION
+    --build-arg GIT_REPO=https://github.com/$TRAVIS_REPO_SLUG
+    --build-arg COMPONENT=$COMPONENT
+    --build-arg BUILD_DATE=$(date -u +"%Y-%m-%d")
+    --verbosity=info
+    --destination=$DOCKER_SLUG/misp-dockerized-$COMPONENT:$TAG
 
+# Retag images for other tags
+- for i in $ADD_TAG;
+  do
+    ./docker-retag $DOCKER_SLUG/misp-dockerized-$COMPONENT:$TAG $i;
+  done
 
 # # don't notify me when things fail
 # notifications:

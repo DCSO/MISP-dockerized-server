@@ -1,8 +1,36 @@
-
-build 2.4.93-ubuntu:
+2.4.93 Changes:
   extends: .build
   variables:
     FOLDER: "2.4.93-ubuntu"
     VERSION: "2.4.93"
-    TAGS: "${FOLDER}-dev"
+    TAGS: "${FOLDER}-dev latest-dev"
     RELEASE_DATE: 2018-09
+  only:
+    changes:
+      - 2.4.93-ubuntu/*
+  except:
+    refs:
+      - schedules
+ 
+2.4.93 Scheduler:
+  extends: .build
+  variables:
+    FOLDER: "2.4.93-ubuntu"
+    VERSION: "2.4.93"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2018-09
+  only:
+    refs:
+      - schedules 
+
+2.4.93 Manual:
+  extends: .build
+  variables:
+    VERSION: "2.4.93"
+    FOLDER: "2.4.93-ubuntu"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2018-09
+  when: manual
+  except:
+    refs:
+      - schedules

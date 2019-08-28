@@ -19,7 +19,7 @@ if [ "$REDIS_FQDN" = "localhost" ] || [ -z "$REDIS_FQDN" ] || [ "$REDIS_FQDN" = 
 	# check if script is started as user redis if not do it!
 	if [ "$(id -u)" = '0' ]; then
 		chown -R redis "$REDIS_DATA"
-		exec gosu redis "$0" "$CMD_REDIS"
+		gosu redis "$0" "$* --daemonize no --bind 0.0.0.0 --protected-mode no --logfile /dev/stdout"
 	fi
 
 	echo "$STARTMSG ###############	started REDIS with cmd: '$CMD_REDIS'	#############"

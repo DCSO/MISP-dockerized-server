@@ -1,8 +1,36 @@
-
-build 2.4.98-debian:
+2.4.98 Changes:
   extends: .build
   variables:
     FOLDER: "2.4.98-debian"
     VERSION: "2.4.98"
-    TAGS: "${FOLDER}-dev"
+    TAGS: "${FOLDER}-dev latest-dev"
     RELEASE_DATE: 2018-11
+  only:
+    changes:
+      - 2.4.98-debian/*
+  except:
+    refs:
+      - schedules
+ 
+2.4.98 Scheduler:
+  extends: .build
+  variables:
+    FOLDER: "2.4.98-debian"
+    VERSION: "2.4.98"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2018-11
+  only:
+    refs:
+      - schedules 
+
+2.4.98 Manual:
+  extends: .build
+  variables:
+    VERSION: "2.4.98"
+    FOLDER: "2.4.98-debian"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2018-11
+  when: manual
+  except:
+    refs:
+      - schedules

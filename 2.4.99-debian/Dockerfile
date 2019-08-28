@@ -1,52 +1,7 @@
 FROM debian:stretch-slim
-
-
-#     Variables for Labels:
-ARG VENDOR="DCSO GmbH"
-ARG COMPONENT="server"
-ARG BUILD_DATE
-ARG GIT_REPO
-ARG VCS_REF
-ARG VERSION
-ARG MISP_TAG=${VERSION}
-ARG RELEASE_DATE
-ARG NAME="MISP-dockerized-${COMPONENT}"
-ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
-ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
-ARG AUTHOR="DCSO MISP Docker Team <misp.docker@dcso.de>"
-ARG LICENSE="BSD-3-Clause"
-#     END Variables
-
-#########################################
-LABEL org.label-schema.build-date="${BUILD_DATE}" \
-        org.label-schema.name="${NAME}" \
-        org.label-schema.description="${DESCRIPTION}" \
-        org.label-schema.vcs-ref="${VCS_REF}" \
-        org.label-schema.vcs-url="${GIT_REPO}" \
-        org.label-schema.url="${GIT_REPO}" \
-        org.label-schema.vendor="${VENDOR}" \
-        org.label-schema.version="${VERSION}" \
-        org.label-schema.usage="${DOCUMENTATION}" \
-        org.label-schema.schema-version="1.0.0-rc1"
-
-LABEL   org.opencontainers.image.created="${BUILD_DATE}" \
-        org.opencontainers.image.url="${GIT_REPO}" \
-        org.opencontainers.image.source="${GIT_REPO}" \
-        org.opencontainers.image.version="${VERSION}" \
-        org.opencontainers.image.revision="${VCS_REF}" \
-        org.opencontainers.image.vendor="${VENDOR}" \
-        org.opencontainers.image.title="${NAME}" \
-        org.opencontainers.image.description="${DESCRIPTION}" \
-        org.opencontainers.image.documentation="${DOCUMENTATION}" \
-        org.opencontainers.image.authors="${AUTHOR}" \
-        org.opencontainers.image.licenses="${LICENSE}"
-#########################################
-
-
-#       Start of MISP Config Part
-
-# Install core components
 ENV DEBIAN_FRONTEND noninteractive
+
+
 #RUN apt-get install -y software-properties- && apt-get autoremove -y && apt-get clean -y
 
 # DCSO Required Software
@@ -106,10 +61,16 @@ ENV LANGUAGE=en_US:en
 
 
     # Install MariaDB (a MySQL fork/alternative) | Server has its own container!!!
-    RUN apt-get install -y \
-        mariadb-client \
-        mariadb-server \
-        && apt-get autoremove -y && apt-get clean -y
+    RUN set -eu \
+        ;apt-get install -y \
+            mariadb-client \
+            mariadb-server \
+        && apt-get autoremove -y && apt-get clean -y \
+        # for local MySQL Server: delete all config files
+        ;rm -Rf /var/lib/mysql \
+        # Change permissions of mysql config
+        ;chmod -R 644 /etc/mysql/mariadb.conf.d/ \
+        ;
 
 
     # Install Apache
@@ -146,6 +107,9 @@ ENV LANGUAGE=en_US:en
 
 # 3/ MISP code
 # ------------
+    ARG VERSION
+    ARG MISP_TAG=${VERSION}
+    ENV MISP_TAG=${MISP_TAG}
     # Download MISP using git in the /var/www/ directory.
     # Attention: we replaced the fixed tag with a variable
     RUN mkdir /var/www/MISP; chown www-data:www-data /var/www/MISP;
@@ -386,11 +350,41 @@ COPY files/etc/postfix/* /etc/postfix/
 # I create this empty file to decide is the configuration completely new or not in the entrypoint_apache.sh
 RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
+# Entrypoints
+    # CMD
+    COPY files/entrypoint*.sh files/healthcheck.sh files/update_misp.sh /
+    RUN chmod +x /*.sh
+
+# Supervisord
+    # Copy Supervisord config
+    COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
+    # Execute Supervisord after start:
+    CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+
+# Add Healthcheck Config
+HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
+
+
+#     Variables for Labels:
+ARG VENDOR="DCSO GmbH"
+ARG COMPONENT="server"
+ARG BUILD_DATE
+ARG GIT_REPO
+ARG VCS_REF
+ARG RELEASE_DATE
+ARG NAME="MISP-dockerized-${COMPONENT}"
+ARG DESCRIPTION="This docker container is part of the DCSO MISP dockerized environment."
+ARG DOCUMENTATION="https://github.com/DCSO/MISP-dockerized"
+ARG AUTHOR="DCSO MISP Docker Team <misp.docker@dcso.de>"
+ARG LICENSE="BSD-3-Clause"
+#     END Variables
+
+
+
 # Environment Variables
     # CMD
     ENV CMD_MYSQL mysqld
     ENV CMD_APACHE none
-    ENV CMD_REDIS "redis-server --appendonly yes"
     # Version + Name
     ENV NAME ${NAME}
     ENV VERSION ${VERSION}
@@ -424,19 +418,30 @@ RUN touch "/var/www/MISP/app/Config/NOT_CONFIGURED"
 
 
 
-# Entrypoints
-    # CMD
-    COPY files/entrypoint*.sh files/healthcheck.sh files/update_misp.sh /
-    RUN chmod +x /*.sh
+#########################################
+LABEL org.label-schema.build-date="${BUILD_DATE}" \
+        org.label-schema.name="${NAME}" \
+        org.label-schema.description="${DESCRIPTION}" \
+        org.label-schema.vcs-ref="${VCS_REF}" \
+        org.label-schema.vcs-url="${GIT_REPO}" \
+        org.label-schema.url="${GIT_REPO}" \
+        org.label-schema.vendor="${VENDOR}" \
+        org.label-schema.version="${VERSION}" \
+        org.label-schema.usage="${DOCUMENTATION}" \
+        org.label-schema.schema-version="1.0.0-rc1"
 
-# Supervisord
-    # Copy Supervisord config
-    COPY files/etc/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
-    # Execute Supervisord after start:
-    CMD exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
-
-# Add Healthcheck Config
-HEALTHCHECK --interval=1m --timeout=45s --retries=3 CMD ["/healthcheck.sh"]
+LABEL   org.opencontainers.image.created="${BUILD_DATE}" \
+        org.opencontainers.image.url="${GIT_REPO}" \
+        org.opencontainers.image.source="${GIT_REPO}" \
+        org.opencontainers.image.version="${VERSION}" \
+        org.opencontainers.image.revision="${VCS_REF}" \
+        org.opencontainers.image.vendor="${VENDOR}" \
+        org.opencontainers.image.title="${NAME}" \
+        org.opencontainers.image.description="${DESCRIPTION}" \
+        org.opencontainers.image.documentation="${DOCUMENTATION}" \
+        org.opencontainers.image.authors="${AUTHOR}" \
+        org.opencontainers.image.licenses="${LICENSE}"
+#########################################
 
 
 #       End of DCSO MISP Config Part
