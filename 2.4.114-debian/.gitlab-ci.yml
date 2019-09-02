@@ -1,0 +1,36 @@
+2.4.114 Changes:
+  extends: .build
+  variables:
+    FOLDER: "2.4.114-debian"
+    VERSION: "2.4.114"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2019-08
+  only:
+    changes:
+      - 2.4.114-debian/*
+  except:
+    refs:
+      - schedules
+ 
+2.4.114 Scheduler:
+  extends: .build
+  variables:
+    FOLDER: "2.4.114-debian"
+    VERSION: "2.4.114"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2019-08
+  only:
+    refs:
+      - schedules 
+
+2.4.114 Manual:
+  extends: .build
+  variables:
+    VERSION: "2.4.114"
+    FOLDER: "2.4.114-debian"
+    TAGS: "${FOLDER}-dev latest-dev"
+    RELEASE_DATE: 2019-08
+  when: manual
+  except:
+    refs:
+      - schedules
