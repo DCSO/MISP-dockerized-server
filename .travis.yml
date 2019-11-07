@@ -57,10 +57,9 @@ before_install:
 # Login to hub.docker.com
 - echo "$DOCKER_PASSWORD" | docker login -u $DOCKER_USERNAME --password-stdin
 - RELEASE_TAG="$TAG-dev";
-  if [ "$TRAVIS_BRANCH" = "master" ]; then 
+- if [ "$TRAVIS_BRANCH" = "master" ]; then 
     RELEASE_TAG="$TAG";
   fi
-- echo "Build Release Version $RELEASE_TAG" 
 
 install:
 # Add docker-retag executable
@@ -71,6 +70,7 @@ install:
 
 script:
 # Build Image via kaniko
+- echo "Build Release Version $RELEASE_TAG";
 - docker run
     -v "$TRAVIS_BUILD_DIR/$FOLDER":/workspace
     -v $HOME/.docker:/kaniko/.docker
@@ -82,7 +82,7 @@ script:
     --build-arg COMPONENT=$COMPONENT
     --build-arg BUILD_DATE=$(date -u +"%Y-%m-%d")
     --verbosity=info
-    --destination=$DOCKER_SLUG/misp-dockerized-$COMPONENT:$RELEASE_TAG;
+    --destination=$DOCKER_SLUG/misp-dockerized-$COMPONENT:$RELEASE_TAG
 # Retag images for other tags
 - for i in $ADD_TAG;
   do
