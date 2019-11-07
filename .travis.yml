@@ -1,9 +1,9 @@
 language: minimal
-dist: bionic
+dist: xenial
 addons:
   apt:
     sources:
-      - docker-bionic
+      - docker-xenial
 
 branches:
   only:
@@ -70,7 +70,6 @@ install:
 
 script:
 # Build Image via kaniko
-- echo "Build Release Version $RELEASE_TAG";
 - docker run
     -v "$TRAVIS_BUILD_DIR/$FOLDER":/workspace
     -v $HOME/.docker:/kaniko/.docker
