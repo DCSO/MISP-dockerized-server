@@ -66,10 +66,9 @@ install:
 
 script:
 # Build Image via kaniko
-- if [ "$TRAVIS_BRANCH" = "master" ]; then 
-    RELEASE_TAG="$TAG"
-  else
-    RELEASE_TAG="$TAG-dev"
+- RELEASE_TAG="$TAG-dev";
+  if [ "$TRAVIS_BRANCH" = "master" ]; then 
+    RELEASE_TAG="$TAG";
   fi
   docker run
     -v "$TRAVIS_BUILD_DIR/$FOLDER":/workspace
