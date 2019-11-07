@@ -56,6 +56,11 @@ before_install:
 - docker pull gcr.io/kaniko-project/executor:latest
 # Login to hub.docker.com
 - echo "$DOCKER_PASSWORD" | docker login -u $DOCKER_USERNAME --password-stdin
+- RELEASE_TAG="$TAG-dev";
+  if [ "$TRAVIS_BRANCH" = "master" ]; then 
+    RELEASE_TAG="$TAG";
+  fi
+- echo "Build Release Version $RELEASE_TAG" 
 
 install:
 # Add docker-retag executable
@@ -66,11 +71,7 @@ install:
 
 script:
 # Build Image via kaniko
-- RELEASE_TAG="$TAG-dev";
-  if [ "$TRAVIS_BRANCH" = "master" ]; then 
-    RELEASE_TAG="$TAG";
-  fi
-  docker run
+- docker run
     -v "$TRAVIS_BUILD_DIR/$FOLDER":/workspace
     -v $HOME/.docker:/kaniko/.docker
   gcr.io/kaniko-project/executor:latest
