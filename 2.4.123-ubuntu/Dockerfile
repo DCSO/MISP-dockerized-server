@@ -73,7 +73,7 @@ RUN $SUDO_WWW python3 -m venv ${PATH_TO_MISP}/venv
 RUN sudo mkdir /var/www/.cache/; \
     sudo chown www-data:www-data /var/www/.cache;
 
-RUN ${PATH_TO_MISP}/app/files/scripts; \
+RUN cd ${PATH_TO_MISP}/app/files/scripts; \
     $SUDO_WWW git clone https://github.com/CybOXProject/python-cybox.git; \
     $SUDO_WWW git clone https://github.com/STIXProject/python-stix.git; \
     $SUDO_WWW git clone https://github.com/MAECProject/python-maec.git; \
