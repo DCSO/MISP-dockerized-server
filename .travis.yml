@@ -11,8 +11,8 @@ env:
   - COMPONENT=server
   matrix:
   # Activate only Supported and Nightly Images.
-  - VERSION=2.4.nightly FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
-  - VERSION=2.4.nightly FOLDER=$VERSION-debian TAG="$FOLDER-dev" ADD_TAG="latest-dev"
+  #- VERSION=2.4.nightly FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
+  #- VERSION=2.4.nightly FOLDER=$VERSION-debian TAG="$FOLDER-dev" ADD_TAG="latest-dev"
   #- VERSION=2.4.88 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
   #- VERSION=2.4.89 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
   #- VERSION=2.4.90 FOLDER=$VERSION-ubuntu TAG="$FOLDER-dev"
