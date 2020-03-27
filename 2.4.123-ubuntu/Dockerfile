@@ -36,7 +36,7 @@ RUN sudo apt install -qy \
     mariadb-client \
     mariadb-server \
     apache2 apache2-doc apache2-utils \
-    python3-dev python3-pip libpq5 libjpeg-dev libfuzzy-dev ruby asciidoctor \
+    python3-dev python3-pip python3-venv libpq5 libjpeg-dev libfuzzy-dev ruby asciidoctor \
     libxml2-dev libxslt1-dev zlib1g-dev python3-setuptools expect;
 
 ##### Install PHP 7.2 dependencies
