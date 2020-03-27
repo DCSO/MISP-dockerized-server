@@ -55,6 +55,7 @@ ENV MISP_TAG=${MISP_TAG}
 ENV WWW_USER="www-data"
 ENV PATH_TO_MISP="/var/www/MISP"
 ENV SUDO_WWW="sudo -H -u ${WWW_USER}"
+RUN echo ${MISP_TAG}
 
 RUN git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP}; \
     cd ${PATH_TO_MISP}; git checkout tags/v${MISP_TAG}; \
@@ -67,7 +68,7 @@ RUN git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP}; \
     cd ${PATH_TO_MISP}; git submodule foreach --recursive git config core.filemode false
 
 # Create a python3 virtualenv
-RUN   sudo -H -u virtualenv -p python3 ${PATH_TO_MISP}/venv
+RUN $SUDO_WWW virtualenv -p python3 ${PATH_TO_MISP}/venv
 
 # Make PIP happy
 RUN sudo mkdir /var/www/.cache/; \
