@@ -57,7 +57,7 @@ ENV PATH_TO_MISP="/var/www/MISP"
 ENV SUDO_WWW="sudo -H -u ${WWW_USER}"
 
 RUN git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP}; \
-    git --git-dir ${PATH_TO_MISP}/.git checkout tags/v${MISP_TAG}; \
+    git --git-dir ${PATH_TO_MISP}/.git checkout tags/v2.4.123; \
     chown -R ${WWW_USER}:${WWW_USER} ${PATH_TO_MISP}; \
     # Make git ignore filesystem permission differences
     cd ${PATH_TO_MISP}; $SUDO_WWW git config core.filemode false; \
