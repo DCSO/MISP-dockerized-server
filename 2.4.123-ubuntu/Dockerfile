@@ -50,14 +50,15 @@ RUN sudo apt update; \
     php-gd;
 
 ##### Install MISP Core
-ARG MISP_TAG=${VERSION}
-ENV MISP_TAG=${MISP_TAG}
+ARG MISP_ARG=${VERSION}
+ENV MISP_TAG="${MISP_ARG}"
 ENV WWW_USER="www-data"
 ENV PATH_TO_MISP="/var/www/MISP"
 ENV SUDO_WWW="sudo -H -u ${WWW_USER}"
 
 RUN git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP}; \
-    cd ${PATH_TO_MISP}; git checkout tags/v${MISP_TAG}; \
+    cd ${PATH_TO_MISP}; \
+    git checkout tags/v${MISP_TAG}; \
     chown -R ${WWW_USER}:${WWW_USER} ${PATH_TO_MISP}; \
     # Make git ignore filesystem permission differences
     cd ${PATH_TO_MISP}; $SUDO_WWW git config core.filemode false; \
