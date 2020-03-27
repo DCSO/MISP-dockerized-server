@@ -74,8 +74,8 @@ RUN sudo mkdir /var/www/.cache/; \
     sudo chown www-data:www-data /var/www/.cache; \
     # Install wheel
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install setuptools; \
-    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install wheel; \
-    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/python setup.py bdist_wheel
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install wheel;
+    #$SUDO_WWW ${PATH_TO_MISP}/venv/bin/python setup.py bdist_wheel
 
 RUN cd ${PATH_TO_MISP}/app/files/scripts; \
     $SUDO_WWW git clone https://github.com/CybOXProject/python-cybox.git; \
