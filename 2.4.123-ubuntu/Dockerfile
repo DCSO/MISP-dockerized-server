@@ -58,13 +58,13 @@ ENV SUDO_WWW="sudo -H -u ${WWW_USER}"
 
 RUN git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP}; \
     cd ${PATH_TO_MISP}; git checkout tags/v${MISP_TAG}; \
-    chown ${WWW_USER}:${WWW_USER} ${PATH_TO_MISP}; \
+    chown -R ${WWW_USER}:${WWW_USER} ${PATH_TO_MISP}; \
     # Make git ignore filesystem permission differences
-    cd ${PATH_TO_MISP}; git config core.filemode false; \
+    cd ${PATH_TO_MISP}; $SUDO_WWW git config core.filemode false; \
     # CakePHP and a lot of other things is included as a submodule of MISP, execute the following commands to let git fetch it:
-    cd ${PATH_TO_MISP}; git submodule update --init --recursive; \
+    cd ${PATH_TO_MISP}; $SUDO_WWW git submodule update --init --recursive; \
     # Make git ignore filesystem permission differences for submodules
-    cd ${PATH_TO_MISP}; git submodule foreach --recursive git config core.filemode false
+    cd ${PATH_TO_MISP}; $SUDO_WWW git submodule foreach --recursive git config core.filemode false
 
 # Create a python3 virtualenv
 RUN $SUDO_WWW python3 -m venv ${PATH_TO_MISP}/venv
