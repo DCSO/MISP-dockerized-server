@@ -192,7 +192,6 @@ RUN sudo chmod +x $PATH_TO_MISP/app/Console/worker/start.sh; \
 # Copy files to postfix container
 RUN apt install -qy postfix
 COPY files/etc/postfix/* /etc/postfix/
-RUN sudo postfix reload
 
 ##### Copy additional scripts
 # MISP Update and MISP Cron
