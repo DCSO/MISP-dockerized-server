@@ -176,7 +176,7 @@ RUN apt-get install -y \
         # # Install maec libraries for STIX
             ;pip install maec \
         # pymisp:… Please install pymisp: pip install pymisp
-            #pip3 install pymisp; \
+            ;pip3 install 'pymisp == ${MISP_TAG}' \
         # #pydeep:… Please install pydeep: pip install git+https://github.com/kbandla/pydeep.git
             ;pip3 install git+https://github.com/kbandla/pydeep.git \
         # #magic:… Please install python-magic: pip install python-magic.
