@@ -71,7 +71,10 @@ RUN $SUDO_WWW python3 -m venv ${PATH_TO_MISP}/venv
 
 # Make PIP happy
 RUN sudo mkdir /var/www/.cache/; \
-    sudo chown www-data:www-data /var/www/.cache;
+    sudo chown www-data:www-data /var/www/.cache; \
+    # Install wheel
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install wheel; \
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/python setup.py bdist_wheel
 
 RUN cd ${PATH_TO_MISP}/app/files/scripts; \
     $SUDO_WWW git clone https://github.com/CybOXProject/python-cybox.git; \
@@ -183,8 +186,8 @@ COPY files/etc/rc.local /etc/
 COPY files/etc/systemd/system/misp-workers.service /etc/systemd/system/
 RUN sudo chmod +x $PATH_TO_MISP/app/Console/worker/start.sh; \
     chmod 744 /etc/rc.local; \
-    sudo systemctl daemon-reload; \
-    sudo systemctl enable --now misp-workers
+    #sudo systemctl daemon-reload; \
+    #sudo systemctl enable --now misp-workers
 
 ##### Install and configure postfix
 # Copy files to postfix container
