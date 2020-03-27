@@ -73,6 +73,7 @@ RUN $SUDO_WWW python3 -m venv ${PATH_TO_MISP}/venv
 RUN sudo mkdir /var/www/.cache/; \
     sudo chown www-data:www-data /var/www/.cache; \
     # Install wheel
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install setuptools; \
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install wheel; \
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/python setup.py bdist_wheel
 
