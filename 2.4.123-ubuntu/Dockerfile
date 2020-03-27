@@ -1,7 +1,7 @@
 #FROM debian:stretch-slim
 FROM ubuntu:18.04
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBIAN_PRIORITY=critical
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_PRIORITY critical
 
 # DCSO Required Software
 RUN apt-get update; apt-get install -y \ 
@@ -27,6 +27,8 @@ RUN locale-gen ${LANG}
 
 #RUN wget -O /tmp/INSTALL.sh https://raw.githubusercontent.com/MISP/MISP/2.4/INSTALL/INSTALL.sh; \
 #    bash /tmp/INSTALL.sh
+##### Avoid tzdata dialog during install
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
 
 ##### Install core dependencies
 RUN sudo apt install -qy \
