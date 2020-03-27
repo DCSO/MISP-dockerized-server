@@ -67,7 +67,7 @@ RUN git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP}; \
     cd ${PATH_TO_MISP}; git submodule foreach --recursive git config core.filemode false
 
 # Create a python3 virtualenv
-RUN $SUDO_WWW python3 -m ${PATH_TO_MISP}/venv
+RUN $SUDO_WWW python3 -m venv ${PATH_TO_MISP}/venv
 
 # Make PIP happy
 RUN sudo mkdir /var/www/.cache/; \
