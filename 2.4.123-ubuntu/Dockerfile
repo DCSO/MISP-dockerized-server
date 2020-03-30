@@ -202,8 +202,6 @@ RUN set -eu; \
     $SUDO_WWW mkdir /var/www/MISP/.gnupg; \
     $SUDO_WWW chmod 700 /var/www/MISP/.gnupg; \
     # Create empty file for configurat##### Configure Database
-# add own mysql config
-COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/ons checks in entrypoint_apache.sh
     touch "/var/www/MISP/app/Config/NOT_CONFIGURED";
 
 ##### Copy "Mode for Ralf" patch File for MISP Events Page with additional Analyse Column
