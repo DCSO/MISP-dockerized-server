@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBIAN_PRIORITY critical
 
-# DCSO Required Software
+# Base dependencies
 RUN apt-get update; apt-get install -y \ 
 locales \
 iputils-ping \
@@ -13,6 +13,7 @@ gosu \
 wget \
 rsyslog \
 sudo \
+nano \
 && apt-get autoremove -y && apt-get clean -y
 
 # Set locals
@@ -33,11 +34,26 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
 ##### Install core dependencies
 RUN sudo apt install -qy \
     curl gcc git gnupg-agent make openssl redis-server neovim unzip zip libyara-dev python3-yara python3-redis python3-zmq sqlite3 \
-    mariadb-client \
-    mariadb-server \
+    # mariadb-client \ # Will be installed later
+    # mariadb-server \ # Will be installed later
     apache2 apache2-doc apache2-utils \
     python3-dev python3-pip python3-venv libpq5 libjpeg-dev libfuzzy-dev ruby asciidoctor \
     libxml2-dev libxslt1-dev zlib1g-dev python3-setuptools expect;
+
+##### Install MariaDB
+RUN set -eu; \
+    apt-get install -y \
+    mariadb-client \
+    mariadb-server \
+    && apt-get autoremove -y && apt-get clean -y \
+    # for local MySQL Server: delete all config files
+    rm -Rf /var/lib/mysql; \
+    # Change permissions of mysql config
+    chmod -R 644 /etc/mysql/mariadb.conf.d;
+
+##### Configure Database
+# add own mysql config
+COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
 
 ##### Install PHP 7.2 dependencies
 RUN sudo apt update; \
@@ -56,8 +72,10 @@ ENV WWW_USER="www-data"
 ENV PATH_TO_MISP="/var/www/MISP"
 ENV SUDO_WWW="sudo -H -u ${WWW_USER}"
 
-RUN git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP}; \
-    git --git-dir ${PATH_TO_MISP}/.git checkout tags/v2.4.123; \
+RUN set -eu; \
+    git clone https://github.com/MISP/MISP.git ${PATH_TO_MISP}; \
+    cd ${PATH_TO_MISP}; \
+    git checkout tags/v2.4.123; \
     chown -R ${WWW_USER}:${WWW_USER} ${PATH_TO_MISP}; \
     # Make git ignore filesystem permission differences
     cd ${PATH_TO_MISP}; $SUDO_WWW git config core.filemode false; \
@@ -82,52 +100,65 @@ RUN cd ${PATH_TO_MISP}/app/files/scripts; \
     $SUDO_WWW git clone https://github.com/CybOXProject/mixbox.git
 
 # install mixbox to accommodate the new STIX dependencies:
-RUN cd ${PATH_TO_MISP}/app/files/scripts/mixbox; \
+RUN set -eu; \
+    cd ${PATH_TO_MISP}/app/files/scripts/mixbox; \
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install .
 
-RUN cd ${PATH_TO_MISP}/app/files/scripts/python-cybox; \
+RUN set -eu; \
+    cd ${PATH_TO_MISP}/app/files/scripts/python-cybox; \
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install .
 
-RUN cd ${PATH_TO_MISP}/app/files/scripts/python-stix; \
+RUN set -eu; \
+    cd ${PATH_TO_MISP}/app/files/scripts/python-stix; \
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install .
 
-RUN cd $PATH_TO_MISP/app/files/scripts/python-maec; \
+RUN set -eu; \
+    cd $PATH_TO_MISP/app/files/scripts/python-maec; \
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install .
 
-RUN $SUDO_WWW $PATH_TO_MISP/venv/bin/pip install -I antlr4-python3-runtime==4.7.2; \
+RUN set -eu; \
+    $SUDO_WWW $PATH_TO_MISP/venv/bin/pip install -I antlr4-python3-runtime==4.7.2; \
     # install STIX2.0 library to support STIX 2.0 export:
     cd ${PATH_TO_MISP}/cti-python-stix2; \
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install .
 
 # install PyMISP
-RUN cd ${PATH_TO_MISP}/PyMISP; \
+RUN set -eu; \
+    cd ${PATH_TO_MISP}/PyMISP; \
     $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install .
 
 # install pydeep
-RUN $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install git+https://github.com/kbandla/pydeep.git
+RUN set -eu; \
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install git+https://github.com/kbandla/pydeep.git
 
 # install lief
-RUN $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install https://github.com/lief-project/packages/raw/lief-master-latest/pylief-0.9.0.dev.zip
+RUN set -eu; \
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install https://github.com/lief-project/packages/raw/lief-master-latest/pylief-0.9.0.dev.zip
 
 # install zmq needed by mispzmq
-RUN $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install zmq redis
+RUN set -eu; \
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install zmq redis
 
 # install python-magic
-RUN $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install python-magic
+RUN set -eu; \
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install python-magic
 
 # install plyara
-RUN $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install plyara
+RUN set -eu; \
+    $SUDO_WWW ${PATH_TO_MISP}/venv/bin/pip install plyara
 
 ##### Install CakePHP
 # Once done, install CakeResque along with its dependencies 
 # if you intend to use the built in background jobs:
-RUN cd ${PATH_TO_MISP}/app; \
-  sudo mkdir /var/www/.composer ; sudo chown $WWW_USER:$WWW_USER /var/www/.composer; \
-  $SUDO_WWW php composer.phar install
+RUN set -eu; \
+    cd ${PATH_TO_MISP}/app; \
+    sudo mkdir /var/www/.composer ; \
+    sudo chown $WWW_USER:$WWW_USER /var/www/.composer; \
+    $SUDO_WWW php composer.phar install;
 
 # Enable CakeResque with php-redis
 RUN sudo phpenmod redis; \
-    sudo phpenmod gnupg
+    sudo phpenmod gnupg;
 
 # To use the scheduler worker for scheduled tasks, do the following:
 RUN $SUDO_WWW cp -fa ${PATH_TO_MISP}/INSTALL/setup/config.php ${PATH_TO_MISP}/app/Plugin/CakeResque/Config/config.php
@@ -162,10 +193,6 @@ RUN set -eu \
 # To rotate these logs install the supplied logrotate script:
 RUN sudo cp /var/www/MISP/INSTALL/misp.logrotate /etc/logrotate.d/misp
 
-##### Configure Database
-# add own mysql config
-COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
-
 ##### Prepare mail encryption
 RUN set -eu; \
     # for S/MIME
@@ -192,6 +219,7 @@ RUN sudo chmod +x $PATH_TO_MISP/app/Console/worker/start.sh; \
 # Copy files to postfix container
 RUN apt install -qy postfix
 COPY files/etc/postfix/* /etc/postfix/
+RUN chown -R postfix:postfix /etc/postfix/*
 
 ##### Copy additional scripts
 # MISP Update and MISP Cron
