@@ -34,22 +34,11 @@ RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
 ##### Install core dependencies
 RUN sudo apt install -qy \
     curl gcc git gnupg-agent make openssl redis-server neovim unzip zip libyara-dev python3-yara python3-redis python3-zmq sqlite3 \
-    # mariadb-client \ # Will be installed later
-    # mariadb-server \ # Will be installed later
+    mariadb-client \ 
+    mariadb-server \
     apache2 apache2-doc apache2-utils \
     python3-dev python3-pip python3-venv libpq5 libjpeg-dev libfuzzy-dev ruby asciidoctor \
     libxml2-dev libxslt1-dev zlib1g-dev python3-setuptools expect;
-
-##### Install MariaDB
-RUN set -eu; \
-    apt-get install -y \
-    mariadb-client \
-    mariadb-server \
-    && apt-get autoremove -y && apt-get clean -y; \
-    # for local MySQL Server: delete all config files
-    rm -Rf /var/lib/mysql; \
-    # Change permissions of mysql config
-    chmod -R 644 /etc/mysql/mariadb.conf.d;
 
 ##### Configure Database
 # add own mysql config

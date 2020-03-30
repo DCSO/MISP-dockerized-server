@@ -49,30 +49,6 @@ check_mysql(){
 
 }
 
-upgrade(){
-    for i in $FOLDER_with_VERSIONS
-    do
-        if [ ! -f "$i/${NAME}" ] 
-        then
-            # File not exist and now it will be created
-            echo "$STARTMSG No version file exists. Will be created."
-        elif [ ! -f "$i/${NAME}" ] && [ -z "$(cat "$i/${NAME}")" ]
-        then
-            # File exists, but is empty
-            echo "$STARTMSG Version file exists, but is empty."
-        elif [ "$VERSION" = "$(cat "$i/${NAME}")" ]
-        then
-            # File exists and the volume is the current version
-            echo "$STARTMSG Folder $i is on the newest version."
-        else
-            # upgrade
-            echo "$STARTMSG Folder $i should be updated."
-
-            ############ DO ANY!!!
-        fi
-    done
-}
-
 start_mysql(){
     if [ $# -eq 0 ]; then
         gosu mysql mysqld 
@@ -82,7 +58,57 @@ start_mysql(){
 }
 
 init_mysql(){
-echo "$STARTMSG Initializing database..."
+    echo "$STARTMSG Initializing database..."
+    if [[ ! -e /var/lib/mysql/misp/users.ibd ]]; then
+        debug "Setting up database"
+
+        # FIXME: If user 'misp' exists, and has a different password, the below WILL fail.
+        # Add your credentials if needed, if sudo has NOPASS, comment out the relevant lines
+        if [[ "${PACKER}" == "1" ]]; then
+        pw="Password1234"
+        else
+        pw=${MISP_PASSWORD}
+        fi
+
+        expect -f - <<-EOF
+        set timeout 10
+
+        spawn sudo -k mysql_secure_installation
+        expect "*?assword*"
+        send -- "${pw}\r"
+        expect "Enter current password for root (enter for none):"
+        send -- "\r"
+        expect "Set root password?"
+        send -- "y\r"
+        expect "New password:"
+        send -- "${DBPASSWORD_ADMIN}\r"
+        expect "Re-enter new password:"
+        send -- "${DBPASSWORD_ADMIN}\r"
+        expect "Remove anonymous users?"
+        send -- "y\r"
+        expect "Disallow root login remotely?"
+        send -- "y\r"
+        expect "Remove test database and access to it?"
+        send -- "y\r"
+        expect "Reload privilege tables now?"
+        send -- "y\r"
+        expect eof
+    EOF
+        sudo apt-get purge -y expect ; sudo apt autoremove -qy
+    fi 
+
+  sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "CREATE DATABASE ${DBNAME};"
+  sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "CREATE USER '${DBUSER_MISP}'@'localhost' IDENTIFIED BY '${DBPASSWORD_MISP}';"
+  sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "GRANT USAGE ON *.* to ${DBUSER_MISP}@localhost;"
+  sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "GRANT ALL PRIVILEGES on ${DBNAME}.* to '${DBUSER_MISP}'@'localhost';"
+  sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "FLUSH PRIVILEGES;"
+  # Import the empty MISP database from MYSQL.sql
+  ${SUDO_WWW} cat ${PATH_TO_MISP}/INSTALL/MYSQL.sql | mysql -u ${DBUSER_MISP} -p${DBPASSWORD_MISP} ${DBNAME}
+
+
+
+
+
 echo "$STARTMSG mkdir -p $DATADIR/$MYSQL_DATABASE" && mkdir -p $DATADIR/mysql
 echo "$STARTMSG chown -R mysql.mysql $DATADIR" && chown -R mysql.mysql $DATADIR
 # "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
