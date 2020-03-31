@@ -24,6 +24,7 @@ MYSQL_USER=${MYSQL_USER:-"misp"}
 MYSQL_INIT_CMD=${MYSQL_INIT_CMD:-"mysql -u root -P $MYSQL_PORT -h $MYSQL_HOST -r -N"}
 
 
+
 echo (){
     command echo -e "$@"
 }
@@ -59,54 +60,79 @@ start_mysql(){
 
 init_mysql(){
 
-    echo "$STARTMSG Initializing database..."
+    echo "$STARTMSG Check if database is allready initialized"
     if [[ ! -e /var/lib/mysql/misp/users.ibd ]]; then
-        debug "Setting up database"
+        echo "$STARTMSG MISP Database not found - Initializing database..."
     
         # Set root password
-        sudo mysql -u ${DBUSER_ADMIN} -p -e "UPDATE mysql.user SET Password=PASSWORD('${DBPASSWORD_ADMIN}') WHERE User='root';"
+        if sudo mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('${MYSQL_ROOT_PASSWORD}') WHERE User='root';"; then
+            echo "$STARTMSG root password changed"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
         # Remove remote root
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"; then
+            echo "$STARTMSG root remote access removed"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
         # Remove anomynous user 
-        "DELETE FROM mysql.user WHERE User='';"
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "DELETE FROM mysql.user WHERE User='';"
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='';"; then
+            echo "$STARTMSG anomynous user removed"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
         # Dropp test db
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "DROP DATABASE IF EXISTS test;"
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DROP DATABASE IF EXISTS test;"; then
+            echo "$STARTMSG test database dropped"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"; then
+            echo "$STARTMSG privileges on test database removed"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
         # Reload privileges
-        "FLUSH PRIVILEGES;"
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "FLUSH PRIVILEGES;"
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "FLUSH PRIVILEGES;"; then
+            echo "$STARTMSG priviliges flushed"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
 
         # Intilize misp db
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "CREATE DATABASE ${DBNAME};"
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "CREATE USER '${DBUSER_MISP}'@'localhost' IDENTIFIED BY '${DBPASSWORD_MISP}';"
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "GRANT USAGE ON *.* to ${DBUSER_MISP}@localhost;"
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "GRANT ALL PRIVILEGES on ${DBNAME}.* to '${DBUSER_MISP}'@'localhost';"
-        sudo mysql -u ${DBUSER_ADMIN} -p${DBPASSWORD_ADMIN} -e "FLUSH PRIVILEGES;"
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE DATABASE ${MYSQL_DATABASE};"; then
+            echo "$STARTMSG misp database created"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';"; then
+            echo "$STARTMSG misp database user created"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to ${MYSQL_USER}@localhost;"; then
+            echo "$STARTMSG misp user access granted"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT ALL PRIVILEGES on ${MYSQL_DATABASE}.* to '${MYSQL_USER}'@'localhost';"; then
+            echo "$STARTMSG misp user privileges granted"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
+        if sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "FLUSH PRIVILEGES;"; then 
+            echo "$STARTMSG priviliges flushed"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
         
         # Import the empty MISP database from MYSQL.sql
-        sudo cat /var/www/MISP/INSTALL/MYSQL.sql | mysql -u ${DBUSER_MISP} -p${DBPASSWORD_MISP} ${DBNAME}
-
-        ########################################################
-        # create debian.cnf
-        debian_conf=/etc/mysql/debian.cnf
-        echo "$STARTMSG Write $debian_conf"
-        # add debian.cnf File
-        cat << EOF > $debian_conf
-        #	MYSQL Configuration from DCSO
-        [client]
-        host     = localhost
-        user     = root
-        password = $MYSQL_ROOT_PASSWORD
-        socket   = /var/run/mysqld/mysqld.sock
-        [mysql_upgrade]
-        #host     = localhost
-        user     = root
-        password = $MYSQL_ROOT_PASSWORD
-        socket   = /var/run/mysqld/mysqld.sock
-        basedir  = /usr
-EOF
-        ########################################################
+        if sudo cat /var/www/MISP/INSTALL/MYSQL.sql | mysql -u ${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE}; then
+            echo "$STARTMSG misp database setup script successfully imported"
+        else 
+            echo "$STARTMSG error initializing database"
+        fi
     fi
 }
 
