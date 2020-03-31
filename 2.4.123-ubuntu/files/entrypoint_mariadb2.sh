@@ -133,6 +133,8 @@ init_mysql(){
         else 
             echo "$STARTMSG error initializing database"
         fi
+    else 
+        echo "$STARTMSG Database allready initilized - Skipping"    
     fi
 }
 
