@@ -49,7 +49,11 @@ check_mysql(){
 
 }
 
-upgrade(){
+upgrade(){# create socket folder if not exists
+    if [ ! -d "/var/run/mysqld" ];then
+        mkdir -p /var/run/mysqld
+        chown -R mysql.mysql /var/run/mysqld
+    fi
     for i in $FOLDER_with_VERSIONS
     do
         if [ ! -f "$i/${NAME}" ] 
@@ -89,8 +93,6 @@ echo "$STARTMSG chown -R mysql.mysql $DATADIR" && chown -R mysql.mysql $DATADIR
 gosu mysql mysql_install_db --datadir="$DATADIR" --rpm "${@:2}"
 echo "$STARTMSG Database initialized"
 
-echo "$STARTMSG Start mysqld to setup"
-start_mysql &
 # test if mysqld is ready
 check_mysql
 echo "$STARTMSG Create database $MYSQL_DATABASE, change root password and add $MYSQL_USER"
