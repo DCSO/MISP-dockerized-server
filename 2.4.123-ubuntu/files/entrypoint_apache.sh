@@ -332,11 +332,11 @@ check_mysql(){
         #[ ! -f /var/lib/mysql/entrypoint_local_mariadb.sh.pid ] && break
         #sleep 5
         if [[ ! -e /var/lib/mysql/misp/users.ibd ]]; then
-            echo "$STARTMSG misp database created or allready exist"
+            echo "$STARTMSG misp database created or allready exist" && break
         else
             echo "$STARTMSG ... wait until mariadb entrypoint has completly created the database"
-            sleep 5
         fi
+        sleep 5
     done
 
     # wait for Database come ready
