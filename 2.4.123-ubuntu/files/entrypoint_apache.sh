@@ -336,6 +336,7 @@ check_mysql(){
         else
             echo "$STARTMSG ... wait until mariadb entrypoint has completly created the database"
             sleep 5
+        fi
     done
 
     # wait for Database come ready

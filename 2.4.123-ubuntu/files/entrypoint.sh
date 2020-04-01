@@ -1,14 +1,14 @@
 #!/bin/sh
 
-#if [ "$MYSQL_HOST" = "localhost" ] || [ "$MYSQL_HOST" = "misp-server" ]; then
-#DB="[program:db]
-#command=/entrypoint_mariadb2.sh
-#autorestart=true
-##stdout_logfile=/dev/stdout
-#stdout_logfile_maxbytes=0
-#stderr_logfile=/dev/stderr
-#stderr_logfile_maxbytes=0"
-#fi
+if [ "$MYSQL_HOST" = "localhost" ] || [ "$MYSQL_HOST" = "misp-server" ]; then
+DB="[program:db]
+command=/entrypoint_mariadb2.sh
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0"
+fi
 
 if [ "$REDIS_FQDN" = "localhost" ] || [ -z "$REDIS_FQDN" ] || [ "$REDIS_FQDN" = "misp-server" ]; then
 REDIS="[program:redis]
