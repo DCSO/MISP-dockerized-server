@@ -329,8 +329,13 @@ check_mysql(){
     sleep 5
     while (true)
     do
-        [ ! -f /var/lib/mysql/entrypoint_local_mariadb.sh.pid ] && break
-        sleep 5
+        #[ ! -f /var/lib/mysql/entrypoint_local_mariadb.sh.pid ] && break
+        #sleep 5
+        if [[ ! -e /var/lib/mysql/misp/users.ibd ]]; then
+            echo "$STARTMSG misp database created or allready exist"
+        else
+            echo "$STARTMSG ... wait until mariadb entrypoint has completly created the database"
+            sleep 5
     done
 
     # wait for Database come ready
@@ -460,7 +465,8 @@ echo "$STARTMSG Check if Redis is ready..." && check_redis
 echo "$STARTMSG Check if MySQL is ready..." && check_mysql
 
 ##### Import MySQL scheme
-echo "$STARTMSG Import MySQL scheme..." && init_mysql
+## MISP database schema is created via mariadb entrypoint
+##echo "$STARTMSG Import MySQL scheme..." && init_mysql
 
 ##### initialize MISP-Server
 echo "$STARTMSG Initialize misp base config..." && init_misp_config
