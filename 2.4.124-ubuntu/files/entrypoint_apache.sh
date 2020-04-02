@@ -261,6 +261,9 @@ setup_via_cake_cli(){
         sudo $CAKE Admin setSetting "MISP.redis_password" ""
         sudo $CAKE Admin setSetting "Plugin.ZeroMQ_redis_host" "$REDIS_FQDN"
 
+        # Set python path
+        sudo $CAKE Admin setSetting "MISP.python_bin" "/var/www/MISP/venv/bin/python"
+
         # Force defaults to make MISP Server Settings less YELLOW
         # sudo $CAKE Admin setSetting "MISP.ssdeep_correlation_threshold" 40
         # sudo $CAKE Admin setSetting "MISP.extended_alert_subject" false
