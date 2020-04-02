@@ -103,10 +103,12 @@ init_smime(){
 }
 
 start_apache() {
-    # Apache gets grumpy about PID files pre-existing
-    rm -f /run/apache2/apache2.pid
+    # check if a PID file exists 
+    if [[ -e /run/apache2/apache2.pid ]]; then
+        rm -f /run/apache2/apache2.pid
+    fi
     # execute APACHE2
-    /usr/sbin/apache2ctl -DFOREGROUND "$1"
+    /usr/sbin/apache2ctl -DFOREGROUND "$@"
 }
 
 add_analyze_column(){
@@ -462,10 +464,6 @@ echo "$STARTMSG Initialize misp base config..." && init_misp_config
 ##### check if setup is new: - in the dockerfile i create on this path a empty file to decide is the configuration completely new or not
 echo "$STARTMSG Check if cake setup should be initialized..." && setup_via_cake_cli
 
-##### Delete the initial decision file & reboot misp-server
-echo "$STARTMSG Check if misp-server is configured and file /var/www/MISP/app/Config/NOT_CONFIGURED exist"
-    [ -f /var/www/MISP/app/Config/NOT_CONFIGURED ] && echo "$STARTMSG delete init config file and reboot" && rm "/var/www/MISP/app/Config/NOT_CONFIGURED"
-
 # Disable MPM_EVENT Worker
 echo "$STARTMSG Deactivate Apache2 Event Worker" && a2dismod mpm_event
 
@@ -475,15 +473,15 @@ echo "$STARTMSG Upgrade if it is required..." && upgrade
 
 
 ##### Check permissions #####
-    echo "$STARTMSG Configure MISP | Check if permissions are still ok..."
-    #echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
-    #echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
-    #echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
-    #echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
-    #echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
-    #echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
-    sudo chown -R www-data:www-data ${MISP_BASE_PATH}/*
-    sudo chmod -R 750 ${MISP_BASE_PATH}/app/Config
+echo "$STARTMSG Configure MISP | Check if permissions are still ok..."
+#echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
+#echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
+#echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
+#echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
+#echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
+#echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+sudo chown -R www-data:www-data ${MISP_BASE_PATH}/*
+sudo chmod -R 750 ${MISP_BASE_PATH}/app/Config
 
 # delete pid file
 [ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE
@@ -511,4 +509,5 @@ __WELCOME__
 ##### execute apache
 #[ "$CMD_APACHE" != "none" ] && start_apache "$CMD_APACHE"
 #[ "$CMD_APACHE" == "none" ] && start_apache
-service apache2 start
+#service apache2 start
+start_apache "$@"
