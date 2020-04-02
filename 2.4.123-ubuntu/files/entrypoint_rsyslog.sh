@@ -13,8 +13,7 @@ STARTMSG="${Light_Green}[ENTRYPOINT_RSYSLOG]${NC}"
 [ -z "$DELETE_LOG" ] && export DELETE_LOG="yes"
 [ "$DELETE_LOG" = "yes" ] && echo "$STARTMSG delete old MISP logs: rm -f /var/www/MISP/app/tmp/logs/*" && rm -f /var/www/MISP/app/tmp/logs/*
 
-
-
+adduser syslog www-data
 
 # write supervisord configuration
 cat << EOF > /etc/rsyslog.d/rsyslog_custom.conf
