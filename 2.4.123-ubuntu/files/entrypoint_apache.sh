@@ -368,6 +368,7 @@ check_redis(){
         [ "$(redis-cli -h "$REDIS_FQDN" ping)" == "PONG" ] && break;
         echo "$STARTMSG Wait for Redis..."
         sleep 2WWW_USER
+    done
 }
 
 upgrade(){
