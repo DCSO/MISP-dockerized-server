@@ -130,49 +130,52 @@ change_php_vars(){
 }
 
 init_misp_config(){
-    echo "$STARTMSG Configure MISP | Copy MISP default configuration files"
-    
-    [ -f $MISP_APP_CONFIG_PATH/bootstrap.php ] || cp $MISP_APP_CONFIG_PATH/bootstrap.default.php $MISP_APP_CONFIG_PATH/bootstrap.php
-    [ -f $DATABASE_CONFIG ] || cp $MISP_APP_CONFIG_PATH/database.default.php $DATABASE_CONFIG
-    [ -f $MISP_APP_CONFIG_PATH/core.php ] || cp $MISP_APP_CONFIG_PATH/core.default.php $MISP_APP_CONFIG_PATH/core.php
-    [ -f $MISP_CONFIG ] || cp $MISP_APP_CONFIG_PATH/config.default.php $MISP_CONFIG
+    if [[ ! -e $MISP_APP_CONFIG_PATH/core.php ]]; then
+        echo "$STARTMSG Configure MISP | Copy MISP default configuration files"
+        
+        [ -f $MISP_APP_CONFIG_PATH/bootstrap.php ] || cp $MISP_APP_CONFIG_PATH/bootstrap.default.php $MISP_APP_CONFIG_PATH/bootstrap.php
+        [ -f $DATABASE_CONFIG ] || cp $MISP_APP_CONFIG_PATH/database.default.php $DATABASE_CONFIG
+        [ -f $MISP_APP_CONFIG_PATH/core.php ] || cp $MISP_APP_CONFIG_PATH/core.default.php $MISP_APP_CONFIG_PATH/core.php
+        [ -f $MISP_CONFIG ] || cp $MISP_APP_CONFIG_PATH/config.default.php $MISP_CONFIG
 
-    echo "$STARTMSG Configure MISP | Set DB User, Password and Host in database.php"
-    sed -i "s/localhost/$MYSQL_HOST/" $DATABASE_CONFIG
-    sed -i "s/db\s*login/$MYSQL_USER/" $DATABASE_CONFIG
-    sed -i "s/8889/3306/" $DATABASE_CONFIG
-    sed -i "s/db\s*password/$MYSQL_PASSWORD/" $DATABASE_CONFIG
+        echo "$STARTMSG Configure MISP | Set DB User, Password and Host in database.php"
+        sed -i "s/localhost/$MYSQL_HOST/" $DATABASE_CONFIG
+        sed -i "s/db\s*login/$MYSQL_USER/" $DATABASE_CONFIG
+        sed -i "s/8889/3306/" $DATABASE_CONFIG
+        sed -i "s/db\s*password/$MYSQL_PASSWORD/" $DATABASE_CONFIG
 
-    echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
-    sed -i "s_.*baseurl.*=>.*_    \'baseurl\' => \'$MISP_URL\',_" $MISP_CONFIG
-    #sudo $CAKE baseurl "$MISP_URL"
+        echo "$STARTMSG Configure MISP | Set MISP-Url in config.php"
+        sed -i "s_.*baseurl.*=>.*_    \'baseurl\' => \'$MISP_URL\',_" $MISP_CONFIG
+        #sudo $CAKE baseurl "$MISP_URL"
 
-    echo "$STARTMSG Configure MISP | Set Email in config.php"
-    sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG
-    
-    echo "$STARTMSG Configure MISP | Set Admin Email in config.php"
-    sed -i "s/admin@misp.example.com/$SENDER_ADDRESS/" $MISP_CONFIG
+        echo "$STARTMSG Configure MISP | Set Email in config.php"
+        sed -i "s/email@address.com/$SENDER_ADDRESS/" $MISP_CONFIG
+        
+        echo "$STARTMSG Configure MISP | Set Admin Email in config.php"
+        sed -i "s/admin@misp.example.com/$SENDER_ADDRESS/" $MISP_CONFIG
 
-    # echo "Configure MISP | Set GNUPG Homedir in config.php"
-    # sed -i "s,'homedir' => '/',homedir'                        => '/var/www/MISP/.gnupg'," $MISP_CONFIG
+        # echo "Configure MISP | Set GNUPG Homedir in config.php"
+        # sed -i "s,'homedir' => '/',homedir'                        => '/var/www/MISP/.gnupg'," $MISP_CONFIG
 
-    echo "$STARTMSG Configure MISP | Change Salt in config.php"
-    sed -i "s,'salt'\\s*=>\\s*'','salt'                        => '$MISP_SALT'," $MISP_CONFIG
+        echo "$STARTMSG Configure MISP | Change Salt in config.php"
+        sed -i "s,'salt'\\s*=>\\s*'','salt'                        => '$MISP_SALT'," $MISP_CONFIG
 
-    echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
-    sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
-    
-    #### CAKE ####
-    echo "$STARTMSG Configure Cake | Change Redis host to $REDIS_FQDN"
-    sed -i "s/'host' => 'localhost'.*/'host' => '$REDIS_FQDN',          \/\/ Redis server hostname/" $CAKE_CONFIG
+        echo "$STARTMSG Configure MISP | Change Mail type from phpmailer to smtp"
+        sed -i "s/'transport'\\s*=>\\s*''/'transport'                        => 'Smtp'/" $EMAIL_CONFIG
+        
+        #### CAKE ####
+        echo "$STARTMSG Configure Cake | Change Redis host to $REDIS_FQDN"
+        sed -i "s/'host' => 'localhost'.*/'host' => '$REDIS_FQDN',          \/\/ Redis server hostname/" $CAKE_CONFIG
 
-    ##############
-    echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
+        ##############
+        echo # add an echo command because if no command is done busybox (alpine sh) won't continue the script
+    else
+        echo "$STARTMSG MISP allready configured"
+    fi
 }
 
 setup_via_cake_cli(){
-    [ -f "/var/www/MISP/app/Config/database.php"  ] || (echo "$STARTMSG File /var/www/MISP/app/Config/database.php not found. Exit now." && exit 1)
-    if [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ]; then
+    if [[ ! -e $MISP_APP_CONFIG_PATH/core.php ]]; then
         echo "$STARTMSG Cake initializing started..."
         # Initialize user and fetch Auth Key
         sudo -E $CAKE userInit -q
@@ -297,7 +300,7 @@ setup_via_cake_cli(){
         # sudo $CAKE Admin updateObjectTemplates
         #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
     else
-        echo "$STARTMSG Cake setup: MISP is configured."
+        echo "$STARTMSG Cake setup: MISP is allready configured."
     fi
 }
 
@@ -358,26 +361,13 @@ check_mysql(){
 
 }
 
-init_mysql(){
-    #####################################################################
-    if [ -f "/var/www/MISP/app/Config/NOT_CONFIGURED" ]; then
-        check_mysql
-        # import MISP DB Scheme
-        echo "$STARTMSG ... importing MySQL scheme..."
-        $MYSQLCMD < /var/www/MISP/INSTALL/MYSQL.sql
-        echo "$STARTMSG MySQL import...finished"
-    fi
-    echo
-}
-
 check_redis(){
     # Test when Redis is ready
     while (true)
     do
         [ "$(redis-cli -h "$REDIS_FQDN" ping)" == "PONG" ] && break;
         echo "$STARTMSG Wait for Redis..."
-        sleep 2
-    done
+        sleep 2WWW_USER
 }
 
 upgrade(){
@@ -465,10 +455,6 @@ echo "$STARTMSG Check if Redis is ready..." && check_redis
 ##### check MySQL
 echo "$STARTMSG Check if MySQL is ready..." && check_mysql
 
-##### Import MySQL scheme
-## MISP database schema is created via mariadb entrypoint
-##echo "$STARTMSG Import MySQL scheme..." && init_mysql
-
 ##### initialize MISP-Server
 echo "$STARTMSG Initialize misp base config..." && init_misp_config
 
@@ -488,13 +474,15 @@ echo "$STARTMSG Upgrade if it is required..." && upgrade
 
 
 ##### Check permissions #####
-    echo "$STARTMSG Configure MISP | Check permissions..."
+    echo "$STARTMSG Configure MISP | Check if permissions are still ok..."
     #echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && chown -R www-data.www-data /var/www/MISP
-    echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
-    echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
-    echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
-    echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
-    echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    #echo "$STARTMSG ... chown -R www-data.www-data /var/www/MISP..." && find /var/www/MISP -not -user www-data -exec chown www-data.www-data {} +
+    #echo "$STARTMSG ... chmod -R 0750 /var/www/MISP..." && find /var/www/MISP -perm 550 -type f -exec chmod 0550 {} + && find /var/www/MISP -perm 770 -type d -exec chmod 0770 {} +
+    #echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/tmp..." && chmod -R g+ws /var/www/MISP/app/tmp
+    #echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files..." && chmod -R g+ws /var/www/MISP/app/files
+    #echo "$STARTMSG ... chmod -R g+ws /var/www/MISP/app/files/scripts/tmp" && chmod -R g+ws /var/www/MISP/app/files/scripts/tmp
+    sudo chown -R www-data:www-data ${MISP_BASE_PATH}/*
+    sudo chmod -R 750 ${MISP_BASE_PATH}/app/Config
 
 # delete pid file
 [ -f $ENTRYPOINT_PID_FILE ] && rm $ENTRYPOINT_PID_FILE

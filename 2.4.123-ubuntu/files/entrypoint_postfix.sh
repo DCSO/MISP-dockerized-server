@@ -38,6 +38,8 @@ echo "@$DOMAIN $SENDER_ADDRESS" >> $GENERIC
 # RELAY User and Password
 echo -e "$RELAYHOST $RELAY_USER:$RELAY_PASSWORD" > $SMTP_AUTH
 
+# Make sure permissions are ok
+chown -R root:root /etc/postfix/*
 
 # Start Postfix
 postmap $SMTP_AUTH
