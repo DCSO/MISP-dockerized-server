@@ -509,5 +509,6 @@ __WELCOME__
 
 
 ##### execute apache
-[ "$CMD_APACHE" != "none" ] && start_apache "$CMD_APACHE"
-[ "$CMD_APACHE" == "none" ] && start_apache
+#[ "$CMD_APACHE" != "none" ] && start_apache "$CMD_APACHE"
+#[ "$CMD_APACHE" == "none" ] && start_apache
+service apache2 start
