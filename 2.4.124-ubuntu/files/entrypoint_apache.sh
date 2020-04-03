@@ -508,7 +508,7 @@ Congratulations!
 Your MISP-dockerized server has been successfully booted.
 __WELCOME__
 
-
+sudo /var/www/MISP/app/Console/cake Admin setSetting "MISP.python_bin" "/var/www/MISP/venv/bin/python"
 ##### execute apache
 #[ "$CMD_APACHE" != "none" ] && start_apache "$CMD_APACHE"
 #[ "$CMD_APACHE" == "none" ] && start_apache
