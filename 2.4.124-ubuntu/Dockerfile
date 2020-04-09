@@ -42,7 +42,7 @@ RUN sudo apt install -qy \
 
 ##### Configure Database
 # add own mysql config
-COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
+#COPY files/etc/mysql/mariadb.conf.d/DCSO.cnf /etc/mysql/mariadb.conf.d/
 
 ##### Install PHP 7.2 dependencies
 RUN sudo apt update; \

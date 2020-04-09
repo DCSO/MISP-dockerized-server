@@ -24,6 +24,8 @@ MYSQL_USER=${MYSQL_USER:-"misp"}
 MYSQL_INIT_CMD=${MYSQL_INIT_CMD:-"mysql -u root -P $MYSQL_PORT -h $MYSQL_HOST -r -N"}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 MYSQL_PASSWORD=${MYSQL_PASSWORD}
+DOCKER_NETWORK=${DOCKER_NETWORK}
+MYSQL_NETWORK_ACCESS="${DOCKER_NETWORK/0\/28/%}"
 
 echo (){
     command echo -e "$@"
@@ -63,7 +65,16 @@ init_mysql(){
     echo "$STARTMSG Check if database is allready initialized"
     if [[ ! -e /var/lib/mysql/misp/users.ibd ]]; then
         echo "$STARTMSG MISP Database not found - Initializing database..."
-    
+
+        # Change bind address so that mysql is reachable from the robot container for backup and restore
+        # !THIS SHOULD BY CHANGED LATER BY MOVING THE BACKUP SCRIPTS INTO THIS CONTAINER
+        sudo sed -i "s/bind-address\s*=\s*127.0.0.1/bind-address\\t\\t= 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
+        if sudo cat /etc/mysql/mariadb.conf.d/50-server.cnf | grep "bind-address" | grep -q "0.0.0.0"; then
+            echo "$STARTMSG MYSQL bind address changed"
+        else
+            echo "$STARTMSG error: MYSQL bind address could not be changed"
+        fi
+
         # Set root password
         sudo mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('${MYSQL_ROOT_PASSWORD}') WHERE User='root';"
         if [ $? -eq 0 ]; then
@@ -71,8 +82,8 @@ init_mysql(){
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        # Remove remote root
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"
+        # Deny remote access for root from non docker networks
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "UPDATE mysql.user set Host='$MYSQL_NETWORK_ACCESS' WHERE User='root';"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG root remote access removed"
         else 

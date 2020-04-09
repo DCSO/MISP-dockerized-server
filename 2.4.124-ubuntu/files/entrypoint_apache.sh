@@ -177,8 +177,13 @@ init_misp_config(){
 }
 
 setup_via_cake_cli(){
-    if [[ ! -e $MISP_APP_CONFIG_PATH/core.php ]]; then
-        echo "$STARTMSG Cake initializing started..."
+    #if [[ ! -e $MISP_APP_CONFIG_PATH/core.php ]]; then
+
+    ### We assume that both the python venv and misp modules are unset - if not, the instance was allready configured 
+    if grep -q "http://misp-modules" /var/www/MISP/app/Config/config.php && grep -q "/var/www/MISP/venv/bin/python" /var/www/MISP/app/Config/config.php; then
+        echo "$STARTMSG MISP initial configuration allready done - skipping"
+    else
+        echo "$STARTMSG Start MISP configuration via CAKE..."
         # Initialize user and fetch Auth Key
         sudo -E $CAKE userInit -q
         #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
