@@ -309,8 +309,6 @@ setup_via_cake_cli(){
         # Updating the object templates…
         # sudo $CAKE Admin updateObjectTemplates
         #curl --header "Authorization: $AUTH_KEY" --header "Accept: application/json" --header "Content-Type: application/json" -k -X POST https://127.0.0.1/objectTemplates/update
-    else
-        echo "$STARTMSG Cake setup: MISP is allready configured."
     fi
 }
 
