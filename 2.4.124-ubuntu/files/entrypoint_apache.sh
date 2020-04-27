@@ -212,8 +212,8 @@ setup_misp_modules_CAKE(){
         sudo $CAKE Admin setSetting "Plugin.Enrichment_hover_enable" true
         sudo $CAKE Admin setSetting "Plugin.Enrichment_timeout" 300
         sudo $CAKE Admin setSetting "Plugin.Enrichment_hover_timeout" 150
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_cve_enabled" true
-        sudo $CAKE Admin setSetting "Plugin.Enrichment_dns_enabled" true
+        #sudo $CAKE Admin setSetting "Plugin.Enrichment_cve_enabled" true
+        #sudo $CAKE Admin setSetting "Plugin.Enrichment_dns_enabled" true
         sudo $CAKE Admin setSetting "Plugin.Enrichment_services_url" "http://misp-modules"
         sudo $CAKE Admin setSetting "Plugin.Enrichment_services_port" 6666
         # Enable Import modules set better timout
@@ -221,14 +221,14 @@ setup_misp_modules_CAKE(){
         sudo $CAKE Admin setSetting "Plugin.Import_services_url" "http://misp-modules"
         sudo $CAKE Admin setSetting "Plugin.Import_services_port" 6666
         sudo $CAKE Admin setSetting "Plugin.Import_timeout" 300
-        sudo $CAKE Admin setSetting "Plugin.Import_ocr_enabled" true
-        sudo $CAKE Admin setSetting "Plugin.Import_csvimport_enabled" true
+        #sudo $CAKE Admin setSetting "Plugin.Import_ocr_enabled" true
+        #sudo $CAKE Admin setSetting "Plugin.Import_csvimport_enabled" true
         # Enable modules set better timout
         sudo $CAKE Admin setSetting "Plugin.Export_services_enable" true
         sudo $CAKE Admin setSetting "Plugin.Export_services_url" "http://misp-modules"
         sudo $CAKE Admin setSetting "Plugin.Export_services_port" 6666
         sudo $CAKE Admin setSetting "Plugin.Export_timeout" 300
-        sudo $CAKE Admin setSetting "Plugin.Export_pdfexport_enabled" true
+        #sudo $CAKE Admin setSetting "Plugin.Export_pdfexport_enabled" true
     fi
 }
 
