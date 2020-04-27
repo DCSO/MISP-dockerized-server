@@ -131,7 +131,7 @@ init_mysql(){
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to ${MYSQL_USER}@%localhost;"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to ${MYSQL_USER}@localhost;"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp user access granted"
         else 
