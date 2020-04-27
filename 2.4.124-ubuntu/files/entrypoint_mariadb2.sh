@@ -65,7 +65,7 @@ init_mysql(){
     echo "$STARTMSG Check if database is allready initialized"
     if [[ ! -e /var/lib/mysql/misp/users.ibd ]]; then
         echo "$STARTMSG MISP Database not found - Initializing database..."
-    
+
         # Change bind address so that mysql is reachable from the robot container for backup and restore
         # !THIS SHOULD BY CHANGED LATER BY MOVING THE BACKUP SCRIPTS INTO THIS CONTAINER
         sudo sed -i "s/bind-address\s*=\s*127.0.0.1/bind-address\\t\\t= 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
@@ -74,7 +74,7 @@ init_mysql(){
         else
             echo "$STARTMSG error: MYSQL bind address could not be changed"
         fi
-        
+
         # Set root password
         sudo mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('${MYSQL_ROOT_PASSWORD}') WHERE User='root';"
         if [ $? -eq 0 ]; then
@@ -82,13 +82,14 @@ init_mysql(){
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        # Deny remote access for root from non docker networks
+        # Allow remote access for root only from misp docker network
         #sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "UPDATE mysql.user set Host='$MYSQL_NETWORK_ACCESS' WHERE User='root';"
-        #if [ $? -eq 0 ]; then
-        #    echo "$STARTMSG root remote access removed"
-        #else 
-        #    echo "$STARTMSG error initializing database: $?"
-        #fi
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%.misp-dockerized_misp-backend' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' WITH GRANT OPTION;"
+        if [ $? -eq 0 ]; then
+            echo "$STARTMSG root remote access removed"
+        else 
+            echo "$STARTMSG error initializing database: $?"
+        fi
         # Remove anomynous user 
         sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='';"
         if [ $? -eq 0 ]; then
@@ -124,13 +125,13 @@ init_mysql(){
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_USER}'@'%.misp-dockerized_misp-backend' IDENTIFIED BY '${MYSQL_PASSWORD}';"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp database user created"
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to ${MYSQL_USER}@localhost;"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to ${MYSQL_USER}@%.misp-dockerized_misp-backend;"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp user access granted"
         else 
