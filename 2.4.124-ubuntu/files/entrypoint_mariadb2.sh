@@ -125,19 +125,19 @@ init_mysql(){
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_USER}'@'%.misp-dockerized_misp-backend' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp database user created"
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to ${MYSQL_USER}@%.misp-dockerized_misp-backend;"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to ${MYSQL_USER}@%localhost;"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp user access granted"
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT ALL PRIVILEGES on ${MYSQL_DATABASE}.* to '${MYSQL_USER}'@'localhost';"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT ALL PRIVILEGES on ${MYSQL_DATABASE}.* to '${MYSQL_USER}'@'%.misp-dockerized_misp-backend';"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp user privileges granted"
         else 
