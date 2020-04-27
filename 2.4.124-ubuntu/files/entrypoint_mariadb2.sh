@@ -83,12 +83,12 @@ init_mysql(){
             echo "$STARTMSG error initializing database: $?"
         fi
         # Deny remote access for root from non docker networks
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "UPDATE mysql.user set Host='$MYSQL_NETWORK_ACCESS' WHERE User='root';"
-        if [ $? -eq 0 ]; then
-            echo "$STARTMSG root remote access removed"
-        else 
-            echo "$STARTMSG error initializing database: $?"
-        fi
+        #sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "UPDATE mysql.user set Host='$MYSQL_NETWORK_ACCESS' WHERE User='root';"
+        #if [ $? -eq 0 ]; then
+        #    echo "$STARTMSG root remote access removed"
+        #else 
+        #    echo "$STARTMSG error initializing database: $?"
+        #fi
         # Remove anomynous user 
         sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User='';"
         if [ $? -eq 0 ]; then
