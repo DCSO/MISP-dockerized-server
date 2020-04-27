@@ -185,7 +185,7 @@ setup_via_cake_cli(){
     else
         echo "$STARTMSG Start MISP configuration via CAKE..."
         # Initialize user and fetch Auth Key
-        sudo -E $CAKE userInit -q
+        #sudo -E $CAKE userInit -q
         #AUTH_KEY=$(mysql -u $MYSQL_USER -p$MYSQL_PASSWORD -h $MYSQL_HOST $MYSQL_DATABASE -e "SELECT authkey FROM users;" | head -2| tail -1)
         # Setup some more MISP default via cake CLI
         sudo $CAKE baseurl "$MISP_URL"
