@@ -117,7 +117,6 @@ init_mysql(){
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-
         # Intilize misp db
         sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE DATABASE ${MYSQL_DATABASE};"
         if [ $? -eq 0 ]; then
@@ -125,19 +124,25 @@ init_mysql(){
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_USER}'@'%.misp-dockerized_misp-backend' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp database user created"
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to '${MYSQL_USER}'@'%.misp-dockerized_misp-backend';"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT USAGE ON *.* to '${MYSQL_USER}'@'localhost';"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp user access granted"
         else 
             echo "$STARTMSG error initializing database: $?"
         fi
-        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT ALL PRIVILEGES on ${MYSQL_DATABASE}.* to '${MYSQL_USER}'@'%.misp-dockerized_misp-backend';"
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT ALL PRIVILEGES on ${MYSQL_DATABASE}.* to '${MYSQL_USER}'@'localhost';"
+        if [ $? -eq 0 ]; then
+            echo "$STARTMSG misp user privileges granted"
+        else 
+            echo "$STARTMSG error initializing database: $?"
+        fi
+        sudo mysql -u root -p${MYSQL_ROOT_PASSWORD} -e "GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%.misp-dockerized_misp-backend' IDENTIFIED BY '${MYSQL_PASSWORD}' WITH GRANT OPTION;"
         if [ $? -eq 0 ]; then
             echo "$STARTMSG misp user privileges granted"
         else 
