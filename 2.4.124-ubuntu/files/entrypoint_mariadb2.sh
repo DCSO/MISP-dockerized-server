@@ -21,7 +21,7 @@ MYSQL_HOST=${MYSQL_HOST:-"localhost"}
 [ -z "$MYSQL_ROOT_PASSWORD" ] && echo "$STARTMSG No MYSQL_ROOT_PASSWORD is set. Exit now." && exit 1
 MYSQL_PORT=${MYSQL_PORT:-3306}
 MYSQL_USER=${MYSQL_USER:-"misp"}
-MYSQL_INIT_CMD=${MYSQL_INIT_CMD:-"mysql -u root -P $MYSQL_PORT -h $MYSQL_HOST -r -N"}
+MYSQL_INIT_CMD=${MYSQL_INIT_CMD:-"mysql -u root -p$MYSQL_ROOT_PASSWORD -P $MYSQL_PORT -h $MYSQL_HOST -r -N"}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 MYSQL_PASSWORD=${MYSQL_PASSWORD}
 DOCKER_NETWORK=${DOCKER_NETWORK}
@@ -50,6 +50,26 @@ check_mysql(){
         exit 1
     fi
 
+}
+
+# Check Update
+check_upgrade(){
+    if [[ ! -e /srv/MISP-dockerized/.update/v1.4.0_db ]]; then
+        #check if ownership is set correctly
+        echo "$STARTMSG it seems you have done an upgrade to version 1.4.0"
+        echo "$STARTMSG making sure db permissions are correct"
+        chown -R mysql:mysql /var/lib/mysql
+
+        sudo sed -i "s/bind-address\s*=\s*127.0.0.1/bind-address\\t\\t= 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
+        if sudo cat /etc/mysql/mariadb.conf.d/50-server.cnf | grep "bind-address" | grep -q "0.0.0.0"; then
+            echo "$STARTMSG MYSQL bind address changed"
+        else
+            echo "$STARTMSG error: MYSQL bind address could not be changed or allready set"
+        fi
+
+        #set updateflag
+        touch /srv/MISP-dockerized/.update/v1.4.0_db
+    fi
 }
 
 start_mysql(){
@@ -172,6 +192,9 @@ init_mysql(){
 # START MAIN
 ########################################################
 
+# echo "$STARTMSG starting mysql..." && service mysql start
+echo "$STARTMSG check if the container was updated..."
+check_upgrade
 # Start mysql deamon
 echo "$STARTMSG starting mysql..." && service mysql start
 check_mysql
