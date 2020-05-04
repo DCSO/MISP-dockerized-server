@@ -52,6 +52,27 @@ check_mysql(){
 
 }
 
+create_debian_config(){
+    # create debian.cnf
+    debian_conf=/etc/mysql/debian.cnf
+    echo "$STARTMSG Write $debian_conf"
+    # add debian.cnf File
+    cat << EOF > $debian_conf
+    #	MYSQL Configuration from DCSO
+    [client]
+    host     = localhost
+    user     = root
+    password = $MYSQL_ROOT_PASSWORD
+    socket   = /var/run/mysqld/mysqld.sock
+    [mysql_upgrade]
+    #host     = localhost
+    user     = root
+    password = $MYSQL_ROOT_PASSWORD
+    socket   = /var/run/mysqld/mysqld.sock
+    basedir  = /usr
+EOF
+}
+
 # Check Update
 check_upgrade(){
     if [[ ! -e /srv/MISP-dockerized/.update/v1.4.0_db ]]; then
@@ -67,8 +88,15 @@ check_upgrade(){
             echo "$STARTMSG error: MYSQL bind address could not be changed or allready set"
         fi
 
+        # Check debian.cnf
+        create_debian_config
+
         #set updateflag
-        touch /srv/MISP-dockerized/.update/v1.4.0_db
+        if [[ ! -e /srv/MISP-dockerized/current/config/.update ]]; then
+            # create folder if not exist
+            mkdir /srv/MISP-dockerized/current/config/.update
+        fi
+        touch /srv/MISP-dockerized/current/config/.update/v1.4.0_db
     fi
 }
 
