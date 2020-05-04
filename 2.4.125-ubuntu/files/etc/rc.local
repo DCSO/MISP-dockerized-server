@@ -1,0 +1,8 @@
+#!/bin/sh -e
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+echo 1024 > /proc/sys/net/core/somaxconn
+
+sysctl vm.overcommit_memory=1
+
+exit 0
